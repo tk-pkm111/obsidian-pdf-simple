@@ -1,0 +1,10 @@
+{
+	"id": "pdf-tools",
+	"name": "PDF Tools",
+	"version": "0.0.1",
+	"minAppVersion": "1.13.0",
+	"description": "Highlight PDFs in the built-in viewer and keep only the highlighted text in a paired note, with jumps both ways.",
+	"author": "tk-pkm111",
+	"authorUrl": "https://github.com/tk-pkm111",
+	"isDesktopOnly": false
+}

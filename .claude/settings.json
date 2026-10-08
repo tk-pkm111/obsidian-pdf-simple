@@ -1,0 +1,21 @@
+{
+	"permissions": {
+		"allow": [
+			"Bash(npm run:*)",
+			"Bash(npm test:*)",
+			"Bash(npm install:*)",
+			"Bash(npm ci)",
+			"Bash(npm ls:*)",
+			"Bash(npm view:*)",
+			"Bash(npm outdated:*)",
+			"Bash(npx tsc:*)",
+			"Bash(npx vitest:*)",
+			"Bash(npx eslint:*)",
+			"Bash(npx prettier:*)",
+			"Bash(node esbuild.config.mjs:*)",
+			"Bash(git status:*)",
+			"Bash(git diff:*)",
+			"Bash(git log:*)"
+		]
+	}
+}
