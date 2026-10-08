@@ -1,15 +1,12 @@
 import { MarkdownView, type TFile } from 'obsidian';
 import {
 	ENTRIES_PROPERTY,
+	HEADING_PROPERTY,
 	entryIdOf,
 	recolorEntryString,
 	toEntryList,
 } from '../lib/highlight-entry';
-import {
-	planInsertLine,
-	planInsertOrdered,
-	type OrderKey,
-} from '../lib/note-insert';
+import { planInsertHighlight, type InsertOrder } from '../lib/note-insert';
 import { applyEdits, type TextEdit } from '../lib/note-lines';
 import {
 	planRemoveHighlight,
@@ -17,12 +14,6 @@ import {
 	type RemoveMode,
 } from '../lib/note-remove';
 import type PdfToolsPlugin from '../main';
-
-/** PDF の順に入れるための位置: 新しいハイライトの位置と、ノートの行の ID → 位置（比べられなければ null） */
-export interface InsertOrder {
-	key: OrderKey;
-	keyOf: (id: string) => OrderKey | null;
-}
 
 function unique(values: readonly string[]): string[] {
 	return [...new Set(values)];
@@ -119,7 +110,8 @@ export class NoteWriter {
 
 	/**
 	 * ハイライト 1 件を書く: 本文に 1 行、プロパティに 1 要素。
-	 * order があり、設定が「PDF の順」なら、ノートの中のハイライトと PDF の順に並ぶ位置に入れる。
+	 * 入れる場所は、ノートごとの見出し → 設定の見出し → 本文の最後（Excalidraw のデータなどの手前）の順に探す。
+	 * order があり、設定が「PDF の順」なら、その場所の中で PDF の順に並ぶ位置に入れる。
 	 */
 	async insertHighlight(
 		note: TFile,
@@ -128,19 +120,38 @@ export class NoteWriter {
 		order?: InsertOrder,
 	): Promise<void> {
 		const { insertPosition, insertHeading } = this.plugin.settings;
-		const options = { position: insertPosition, heading: insertHeading };
+		const headings = [this.noteHeading(note), insertHeading].filter(
+			(name): name is string => name !== null && name.trim() !== '',
+		);
 		await this.editBody(note, (content) => [
-			order && insertPosition === 'order'
-				? planInsertOrdered(
-						content,
-						bodyLine,
-						order.key,
-						order.keyOf,
-						options,
-					)
-				: planInsertLine(content, bodyLine, options),
+			planInsertHighlight(content, bodyLine, {
+				headings,
+				order: insertPosition === 'order' ? (order ?? null) : null,
+			}),
 		]);
 		await this.addEntryStrings(note, [entry]);
+	}
+
+	/** ノートごとに決めた、ハイライトを入れる見出しの名前（プロパティ pdf-highlights-heading。無ければ null） */
+	noteHeading(note: TFile): string | null {
+		const value: unknown =
+			this.plugin.app.metadataCache.getFileCache(note)?.frontmatter?.[
+				HEADING_PROPERTY
+			];
+		if (typeof value === 'number') return String(value);
+		return typeof value === 'string' && value.trim() !== '' ? value : null;
+	}
+
+	/** ノートごとの、ハイライトを入れる見出しを決める（null なら外す） */
+	async setNoteHeading(note: TFile, name: string | null): Promise<void> {
+		await this.plugin.app.fileManager.processFrontMatter(
+			note,
+			(frontmatter: Record<string, unknown>) => {
+				if (name !== null) frontmatter[HEADING_PROPERTY] = name;
+				else if (HEADING_PROPERTY in frontmatter)
+					delete frontmatter[HEADING_PROPERTY];
+			},
+		);
 	}
 
 	/**

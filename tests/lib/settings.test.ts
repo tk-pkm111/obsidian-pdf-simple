@@ -63,21 +63,45 @@ describe('normalizeSettings', () => {
 		expect(settings.hideEntriesProperty).toBe(false);
 	});
 
-	it('版 2 までの「ノートの末尾」は「PDF の順」に移す（見出しの下はそのまま）', () => {
+	it('版 2 までの「ノートの末尾」は「PDF の順」に移す', () => {
 		expect(
 			normalizeSettings({ settingsVersion: 2, insertPosition: 'end' })
 				.insertPosition,
 		).toBe('order');
-		expect(
-			normalizeSettings({ settingsVersion: 2, insertPosition: 'heading' })
-				.insertPosition,
-		).toBe('heading');
 		expect(
 			normalizeSettings({
 				settingsVersion: SETTINGS_VERSION,
 				insertPosition: 'end',
 			}).insertPosition,
 		).toBe('end');
+	});
+
+	it('版 3 までの「見出しの下」は、その見出しを入れる見出しにして PDF の順に並べる', () => {
+		const heading = normalizeSettings({
+			settingsVersion: 3,
+			insertPosition: 'heading',
+			insertHeading: '## メモ',
+		});
+		expect(heading.insertPosition).toBe('order');
+		expect(heading.insertHeading).toBe('メモ');
+		expect(
+			normalizeSettings({ settingsVersion: 2, insertPosition: 'heading' })
+				.insertHeading,
+		).toBe('ハイライト');
+		// 見出しの下でなかったときの値（保存されていた既定値）は使わない
+		expect(
+			normalizeSettings({
+				settingsVersion: 3,
+				insertPosition: 'order',
+				insertHeading: '## ハイライト',
+			}).insertHeading,
+		).toBe('');
+		expect(
+			normalizeSettings({
+				settingsVersion: SETTINGS_VERSION,
+				insertHeading: 'Summary',
+			}).insertHeading,
+		).toBe('Summary');
 	});
 
 	it('ペンの書き方は 0（本文）〜 3', () => {
@@ -157,6 +181,7 @@ describe('normalizeHex / isValidPropertyName / paletteHex', () => {
 			'a#b',
 			'a[b]',
 			'pdf-highlights',
+			'pdf-highlights-heading',
 		])
 			expect(isValidPropertyName(bad)).toBe(false);
 	});

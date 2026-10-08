@@ -1,15 +1,15 @@
-import { ENTRIES_PROPERTY } from './highlight-entry';
+import { ENTRIES_PROPERTY, HEADING_PROPERTY } from './highlight-entry';
 import { isColorName } from './pdf-subpath';
 import type { PaletteEntry } from './types';
 
-/** ノートのどこに足すか: PDF の順に並べる / 末尾 / 指定した見出しの下 */
-export type InsertPosition = 'order' | 'end' | 'heading';
+/** 入れる場所の中での並べ方: PDF の順 / 最後に足す */
+export type InsertPosition = 'order' | 'end';
 export type FlipMode = 'same-leaf' | 'split';
 /** PDF で文字をマウスで選んだとき: すぐ塗る / 色の吹き出しを出す / 何もしない */
 export type SelectAction = 'highlight' | 'popup' | 'none';
 
 /** data.json の形の版。上げたときは normalizeSettings に移し方を書く */
-export const SETTINGS_VERSION = 3;
+export const SETTINGS_VERSION = 4;
 
 /** ペンで書く見出しの大きさの上限（メニューに出すのは 1〜3） */
 export const MAX_PEN_HEADING = 3;
@@ -24,9 +24,9 @@ export interface PdfToolsSettings {
 	selectAction: SelectAction;
 	/** いまの書き方: 0 は本文、1〜3 は見出しの大きさ（ペンの設定。変えるまで続く） */
 	defaultHeading: number;
-	/** ノートのどこに行を足すか */
+	/** 入れる場所の中での並べ方 */
 	insertPosition: InsertPosition;
-	/** insertPosition が heading のときの見出し */
+	/** ハイライトを入れる見出しの名前（その見出しがあるノートでは、その節に入れる。空なら本文の最後） */
 	insertHeading: string;
 	/** 行頭に `- ` を付ける */
 	bulletList: boolean;
@@ -55,7 +55,7 @@ export const DEFAULT_SETTINGS: Readonly<PdfToolsSettings> = {
 	selectAction: 'highlight',
 	defaultHeading: 0,
 	insertPosition: 'order',
-	insertHeading: '## ハイライト',
+	insertHeading: '',
 	bulletList: false,
 	flipMode: 'same-leaf',
 	pairingProperty: 'pdf',
@@ -73,13 +73,19 @@ export function normalizeHex(value: unknown): string | null {
 		: null;
 }
 
-/** ペアリングのプロパティ名として使えるか（空でなく、YAML とリンクの読み取りを壊す文字を含まず、記録のプロパティと別） */
+/** このプラグインが使うプロパティの名前か */
+export function isReservedProperty(value: string): boolean {
+	const trimmed = value.trim();
+	return trimmed === ENTRIES_PROPERTY || trimmed === HEADING_PROPERTY;
+}
+
+/** ペアリングのプロパティ名として使えるか（空でなく、YAML とリンクの読み取りを壊す文字を含まず、このプラグインの記録のプロパティと別） */
 export function isValidPropertyName(value: string): boolean {
 	const trimmed = value.trim();
 	return (
 		trimmed !== '' &&
 		trimmed === value &&
-		trimmed !== ENTRIES_PROPERTY &&
+		!isReservedProperty(trimmed) &&
 		!/[.:#[\]{},"'`|>&*!%@\n\r\t]/.test(trimmed)
 	);
 }
@@ -117,6 +123,7 @@ function normalizePalette(raw: unknown): PaletteEntry[] {
  * data.json の中身を検証して、欠けているところを既定値で埋める。
  * 版の無いもの（第 1 弾）は移す: 吹き出しの設定 → 文字を選んだときの動き、箇条書き → オフ
  * （第 1 弾は設定画面を開くと既定値ごと保存していたので、保存された true はユーザーが選んだ値とは限らない）。
+ * 版 3 までの「見出しの下」は、その見出しを「ハイライトを入れる見出し」にして PDF の順に並べる。
  */
 export function normalizeSettings(raw: unknown): PdfToolsSettings {
 	const data =
@@ -155,12 +162,28 @@ export function normalizeSettings(raw: unknown): PdfToolsSettings {
 			);
 	const bool = (value: unknown, fallback: boolean): boolean =>
 		typeof value === 'boolean' ? value : fallback;
-	// 版 3 で「PDF の順に並べる」を足して既定にした。それまでの既定（末尾）は既定値ごと保存されていたので移す
-	const insertPosition = pick(
+	const position = pick(
 		data.insertPosition,
 		['order', 'end', 'heading'] as const,
 		DEFAULT_SETTINGS.insertPosition,
 	);
+	// 版 3 で「PDF の順に並べる」を足して既定にした。それまでの既定（末尾）は既定値ごと保存されていたので移す
+	const insertPosition: InsertPosition =
+		position === 'heading' || (version < 3 && position === 'end')
+			? 'order'
+			: position;
+	// 版 4 で、見出しを「並べ方」と別の設定にした（空なら本文の最後）。
+	// 版 3 までは「見出しの下」のときだけ使い、空なら「ハイライト」だった。ほかのときの値（既定値）は使わない
+	const legacyHeading =
+		text(data.insertHeading, '')
+			.trim()
+			.replace(/^#+\s*/, '') || 'ハイライト';
+	const insertHeading =
+		version >= 4
+			? text(data.insertHeading, DEFAULT_SETTINGS.insertHeading)
+			: position === 'heading'
+				? legacyHeading
+				: '';
 	const heading = Number(data.defaultHeading);
 
 	return {
@@ -174,9 +197,8 @@ export function normalizeSettings(raw: unknown): PdfToolsSettings {
 			heading <= MAX_PEN_HEADING
 				? heading
 				: DEFAULT_SETTINGS.defaultHeading,
-		insertPosition:
-			version < 3 && insertPosition === 'end' ? 'order' : insertPosition,
-		insertHeading: text(data.insertHeading, DEFAULT_SETTINGS.insertHeading),
+		insertPosition,
+		insertHeading,
 		bulletList: legacy
 			? false
 			: bool(data.bulletList, DEFAULT_SETTINGS.bulletList),

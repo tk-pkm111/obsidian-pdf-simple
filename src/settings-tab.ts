@@ -4,9 +4,9 @@ import {
 	type SettingDefinitionItem,
 } from 'obsidian';
 import { t } from './i18n';
-import { ENTRIES_PROPERTY } from './lib/highlight-entry';
 import {
 	DEFAULT_SETTINGS,
+	isReservedProperty,
 	isValidPropertyName,
 	normalizeHex,
 	type PdfToolsSettings,
@@ -120,6 +120,15 @@ export class PdfToolsSettingTab extends PluginSettingTab {
 				heading: t('settings.groupNote'),
 				items: [
 					{
+						name: t('settings.insertHeading'),
+						desc: t('settings.insertHeadingDesc'),
+						control: {
+							type: 'text',
+							key: 'insertHeading',
+							placeholder: t('settings.insertHeadingPlaceholder'),
+						},
+					},
+					{
 						name: t('settings.insertPosition'),
 						desc: t('settings.insertPositionDesc'),
 						control: {
@@ -128,19 +137,7 @@ export class PdfToolsSettingTab extends PluginSettingTab {
 							options: {
 								order: t('settings.insertOrder'),
 								end: t('settings.insertEnd'),
-								heading: t('settings.insertHeading'),
 							},
-						},
-					},
-					{
-						name: t('settings.heading'),
-						desc: t('settings.headingDesc'),
-						visible: () =>
-							this.plugin.settings.insertPosition === 'heading',
-						control: {
-							type: 'text',
-							key: 'insertHeading',
-							placeholder: DEFAULT_SETTINGS.insertHeading,
 						},
 					},
 					{
@@ -193,8 +190,7 @@ export class PdfToolsSettingTab extends PluginSettingTab {
 	}
 
 	private validateProperty(value: string): string | void {
-		if (value.trim() === ENTRIES_PROPERTY)
-			return t('settings.reservedProperty');
+		if (isReservedProperty(value)) return t('settings.reservedProperty');
 		if (!isValidPropertyName(value)) return t('settings.invalidProperty');
 	}
 
@@ -248,7 +244,7 @@ export class PdfToolsSettingTab extends PluginSettingTab {
 					next.selectAction = value;
 				break;
 			case 'insertPosition':
-				if (value === 'order' || value === 'end' || value === 'heading')
+				if (value === 'order' || value === 'end')
 					next.insertPosition = value;
 				break;
 			case 'defaultHeading': {

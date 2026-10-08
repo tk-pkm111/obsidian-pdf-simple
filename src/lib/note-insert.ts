@@ -2,132 +2,26 @@ import { findBlockId } from './highlight-entry';
 import {
 	LIST_ITEM,
 	blockStart,
-	bodyStartLine,
 	eolOf,
-	fencedLines,
 	headingLevel,
 	isBlank,
 	splitLines,
 	type LineInfo,
 	type TextEdit,
 } from './note-lines';
+import {
+	insertRegion,
+	scanLines,
+	type InsertRegion,
+	type LineScan,
+} from './note-regions';
 
 /**
  * ハイライトの行をノートに足す編集。
  * 1 件は 1 段落（前後に空行）。箇条書きにする設定のときだけ、箇条書きどうしを詰めて続ける。
- * 足す位置は、PDF の順（planInsertOrdered）か、ノートの末尾・指定した見出しの下（planInsertLine）。
+ * 入れる場所は、指定した見出しの節か、本文の最後（Excalidraw のデータなどの手前）まで（note-regions）。
+ * その中で、PDF の順に並べるか、最後に足す。
  */
-
-/** 設定の見出し（`## ハイライト`）。# が無ければ ## を付ける */
-export function normalizeHeading(heading: string): string {
-	const trimmed = heading.trim();
-	if (trimmed === '') return '## ハイライト';
-	return headingLevel(trimmed) > 0 ? trimmed : `## ${trimmed}`;
-}
-
-/** 見出しの行と、その節の終わり（次の同じか上の階層の見出し。無ければ行数）。コードブロックの中は見ない */
-function findSection(
-	lines: readonly LineInfo[],
-	bodyStart: number,
-	heading: string,
-): { headingLine: number; endLine: number } | null {
-	const level = headingLevel(heading);
-	const fenced = fencedLines(lines);
-	let found = -1;
-	for (let i = bodyStart; i < lines.length; i++) {
-		if (fenced[i]) continue;
-		const text = lines[i]?.text ?? '';
-		const lineLevel = headingLevel(text);
-		if (lineLevel === 0) continue;
-		if (found < 0) {
-			if (text.trim() === heading) found = i;
-		} else if (lineLevel <= level) {
-			return { headingLine: found, endLine: i };
-		}
-	}
-	return found < 0 ? null : { headingLine: found, endLine: lines.length };
-}
-
-/** [from, to) の中で最後の空でない行（無ければ -1） */
-function lastNonBlank(
-	lines: readonly LineInfo[],
-	from: number,
-	to: number,
-): number {
-	for (let i = to - 1; i >= from; i--) if (!isBlank(lines[i])) return i;
-	return -1;
-}
-
-/** lastIndex の行の後ろに 1 行足す。箇条書きの後ろに箇条書きを足すときだけ空行を挟まない */
-function insertAfter(
-	lines: readonly LineInfo[],
-	lastIndex: number,
-	line: string,
-	eol: string,
-): TextEdit {
-	const previous = lines[lastIndex];
-	if (!previous) return { from: 0, to: 0, insert: `${line}${eol}` };
-	const tight = LIST_ITEM.test(line) && LIST_ITEM.test(previous.text);
-	let insert = `${tight ? eol : eol + eol}${line}`;
-	// 直後に空でない行（次の見出しなど）が続くなら空行を挟む
-	const following = lines[lastIndex + 1];
-	if (following && !isBlank(following)) insert += eol;
-	return { from: previous.end, to: previous.end, insert };
-}
-
-export interface InsertOptions {
-	/** order（PDF の順）で比べられるハイライトがノートに無いときは end と同じ */
-	position: 'order' | 'end' | 'heading';
-	heading: string;
-}
-
-/** ハイライトの行を足す位置と文字列（既存の文字は変えない） */
-export function planInsertLine(
-	content: string,
-	line: string,
-	options: InsertOptions,
-): TextEdit {
-	const eol = eolOf(content);
-	const lines = splitLines(content);
-	if (options.position === 'heading') {
-		const heading = normalizeHeading(options.heading);
-		const section = findSection(lines, bodyStartLine(lines), heading);
-		if (section) {
-			const last = lastNonBlank(
-				lines,
-				section.headingLine,
-				section.endLine,
-			);
-			return insertAfter(lines, last, line, eol);
-		}
-		const last = lastNonBlank(lines, 0, lines.length);
-		const block = `${heading}${eol}${eol}${line}`;
-		const previous = lines[last];
-		return previous
-			? {
-					from: previous.end,
-					to: previous.end,
-					insert: `${eol}${eol}${block}`,
-				}
-			: { from: 0, to: 0, insert: `${block}${eol}` };
-	}
-	return insertAfter(lines, lastNonBlank(lines, 0, lines.length), line, eol);
-}
-
-/**
- * 見出しモードで足す見出しの大きさ。「見出しの下に追記」のときは、追記先の見出しより深くする
- * （浅いと、そこで追記先の節が終わってしまい、次からの追記がその手前に入る）。
- */
-export function headingLevelInSection(
-	level: number,
-	options: InsertOptions,
-): number {
-	const base =
-		options.position === 'heading'
-			? headingLevel(normalizeHeading(options.heading))
-			: 0;
-	return Math.min(6, Math.max(1, base + level));
-}
 
 /** PDF の中の位置: ページと、そのページの中の読む順（大きいほど後ろ） */
 export interface OrderKey {
@@ -139,19 +33,50 @@ export function compareOrder(a: OrderKey, b: OrderKey): number {
 	return a.page - b.page || a.pos - b.pos;
 }
 
-/** 先行の行の後ろで、足してよい範囲の終わり: 見出しなら同じか上の階層の次の見出し、文なら次の見出し */
-function regionEnd(
+/** PDF の順に入れるための位置: 新しいハイライトの位置と、ノートの行の ID → 位置（比べられなければ null） */
+export interface InsertOrder {
+	key: OrderKey;
+	keyOf: (id: string) => OrderKey | null;
+}
+
+export interface InsertTarget {
+	/** 入れる見出しの名前（前にあるものほど優先。ノートに無ければ次。どれも無ければ本文の最後） */
+	headings: readonly string[];
+	/** PDF の順に並べるときの位置（null なら入れる場所の最後に足す） */
+	order: InsertOrder | null;
+}
+
+/** [from, to) の中で最後の空でない行（無ければ -1） */
+function lastNonBlank(
 	lines: readonly LineInfo[],
-	fenced: readonly boolean[],
-	index: number,
-	level: number,
+	from: number,
+	to: number,
 ): number {
-	for (let i = index + 1; i < lines.length; i++) {
-		if (fenced[i]) continue;
-		const lineLevel = headingLevel(lines[i]?.text ?? '');
-		if (lineLevel > 0 && (level === 0 || lineLevel <= level)) return i;
+	for (let i = to - 1; i >= Math.max(0, from); i--)
+		if (!isBlank(lines[i])) return i;
+	return -1;
+}
+
+/** lastIndex の行の後ろに 1 行足す。箇条書きの後ろに箇条書きを足すときだけ空行を挟まない */
+function insertAfter(
+	lines: readonly LineInfo[],
+	lastIndex: number,
+	line: string,
+	eol: string,
+): TextEdit {
+	const previous = lines[lastIndex];
+	if (!previous) {
+		// 前に何も無い: 文書の先頭に入れ、すぐ後ろに文（Excalidraw のデータなど）があれば空行を挟む
+		const first = lines[0];
+		const gap = first && !isBlank(first) ? eol + eol : eol;
+		return { from: 0, to: 0, insert: `${line}${gap}` };
 	}
-	return lines.length;
+	const tight = LIST_ITEM.test(line) && LIST_ITEM.test(previous.text);
+	let insert = `${tight ? eol : eol + eol}${line}`;
+	// 直後に空でない行（次の見出しなど）が続くなら空行を挟む
+	const following = lines[lastIndex + 1];
+	if (following && !isBlank(following)) insert += eol;
+	return { from: previous.end, to: previous.end, insert };
 }
 
 /** index の行の手前に 1 行足す（前後を空行で区切る。箇条書きどうしは詰める） */
@@ -176,44 +101,96 @@ function insertBefore(
 }
 
 /**
- * ハイライトの行を、PDF の順に並ぶ位置に足す（章の見出しを先に引いておけば、本文はその章の下に入る）。
- * - ノートの中で、PDF でこれより後ろにあるハイライトのうち最初のもの（後続）の手前に入れる
+ * 見出しの行を、節の見出し（level）より深くする（`# x` は、## の節なら `### x`）。
+ * 浅いままだと、そこで節が終わったように見える。
+ */
+function deepenHeading(line: string, level: number): string {
+	const current = headingLevel(line);
+	if (current === 0 || level === 0) return line;
+	return line.replace(
+		/^\s{0,3}#{1,6}/,
+		'#'.repeat(Math.min(6, level + current)),
+	);
+}
+
+/** 先行の行の後ろで、足してよい範囲の終わり: 見出しなら同じか上の階層の次の見出し、文なら次の見出し */
+function itemEnd(
+	lines: readonly LineInfo[],
+	scan: LineScan,
+	index: number,
+	level: number,
+	limit: number,
+): number {
+	for (let i = index + 1; i < limit; i++) {
+		if (scan.fenced[i] || scan.commented[i]) continue;
+		const lineLevel = headingLevel(lines[i]?.text ?? '');
+		if (lineLevel > 0 && (level === 0 || lineLevel <= level)) return i;
+	}
+	return limit;
+}
+
+/**
+ * 入れる場所の中で、PDF の順に並ぶ位置（章の見出しを先に引いておけば、本文はその章の下に入る）。
+ * - 場所の中のハイライトのうち、PDF でこれより後ろにある最初のもの（後続）の手前に入れる
  * - 後続が無ければ、いちばん後ろのハイライト（先行）の後ろに入れる。先行が見出しならその節の終わり、
  *   文や画像なら次の見出しの手前まで（先行のあとに書いた自分の文の後ろ）
- * - 比べられるハイライトがノートに無ければ fallback（末尾・見出しの下）
- * keyOf はノートの行の ID → PDF の中の位置（別の PDF のものなど、比べられなければ null）。
+ * - 比べられるハイライトが場所の中に無ければ null（場所の最後に足す）
  */
-export function planInsertOrdered(
-	content: string,
+function planOrdered(
+	lines: readonly LineInfo[],
+	scan: LineScan,
+	region: InsertRegion,
 	line: string,
-	key: OrderKey,
-	keyOf: (id: string) => OrderKey | null,
-	fallback: InsertOptions,
-): TextEdit {
-	const eol = eolOf(content);
-	const lines = splitLines(content);
-	const fenced = fencedLines(lines);
+	order: InsertOrder,
+	eol: string,
+): TextEdit | null {
 	const items: Array<{ index: number; key: OrderKey; level: number }> = [];
-	for (let i = bodyStartLine(lines); i < lines.length; i++) {
-		if (fenced[i]) continue;
+	for (let i = region.start; i < region.end; i++) {
+		if (scan.fenced[i] || scan.commented[i]) continue;
 		const text = lines[i]?.text ?? '';
 		const match = findBlockId(text);
-		const itemKey = match ? keyOf(match.id) : null;
-		if (itemKey)
-			items.push({ index: i, key: itemKey, level: headingLevel(text) });
+		const key = match ? order.keyOf(match.id) : null;
+		if (key) items.push({ index: i, key, level: headingLevel(text) });
 	}
-	const successor = items.find((item) => compareOrder(item.key, key) > 0);
-	if (successor)
-		return insertBefore(
-			lines,
-			blockStart(lines, fenced, successor.index),
-			line,
-			eol,
-		);
+	const successor = items.find(
+		(item) => compareOrder(item.key, order.key) > 0,
+	);
+	if (successor) {
+		const start = blockStart(lines, scan.fenced, successor.index);
+		return insertBefore(lines, Math.max(region.start, start), line, eol);
+	}
 	let last: (typeof items)[number] | null = null;
 	for (const item of items)
 		if (!last || compareOrder(item.key, last.key) >= 0) last = item;
-	if (!last) return planInsertLine(content, line, fallback);
-	const end = regionEnd(lines, fenced, last.index, last.level);
+	if (!last) return null;
+	const end = itemEnd(lines, scan, last.index, last.level, region.end);
 	return insertAfter(lines, lastNonBlank(lines, last.index, end), line, eol);
+}
+
+/**
+ * ハイライトの行を足す位置と文字列（既存の文字は変えない）。
+ * 見出しの節に入れるときは、見出しの行をその節より深くする。
+ */
+export function planInsertHighlight(
+	content: string,
+	line: string,
+	target: InsertTarget,
+): TextEdit {
+	const eol = eolOf(content);
+	const lines = splitLines(content);
+	const scan = scanLines(lines);
+	const region = insertRegion(lines, scan, target.headings);
+	const text = deepenHeading(line, region.level);
+	const ordered = target.order
+		? planOrdered(lines, scan, region, text, target.order, eol)
+		: null;
+	return (
+		ordered ??
+		insertAfter(
+			lines,
+			lastNonBlank(lines, region.head, region.end),
+			text,
+			eol,
+		)
+	);
 }

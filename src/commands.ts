@@ -145,6 +145,26 @@ export function registerCommands(plugin: PdfToolsPlugin): void {
 	});
 
 	plugin.addCommand({
+		id: 'insert-under-heading',
+		name: t('command.insertUnderHeading'),
+		icon: 'arrow-down-to-line',
+		editorCheckCallback: (checking, editor, info) => {
+			const file = info.file;
+			const heading = file
+				? plugin.actions.insertHeadingAt(
+						editor,
+						file,
+						editor.getCursor().line,
+					)
+				: null;
+			if (!file || !heading) return false;
+			if (!checking)
+				void plugin.actions.setInsertHeading(file, heading.name);
+			return true;
+		},
+	});
+
+	plugin.addCommand({
 		id: 'clean-orphan-entries',
 		name: t('command.cleanOrphanEntries'),
 		icon: 'eraser',

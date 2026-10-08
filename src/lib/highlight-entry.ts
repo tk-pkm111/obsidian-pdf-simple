@@ -17,6 +17,9 @@ import type { HighlightEntry, PdfAnchor } from './types';
 /** 位置と色を書くプロパティ（名前は固定。プロパティ欄で隠す CSS もこの名前で書いている） */
 export const ENTRIES_PROPERTY = 'pdf-highlights';
 
+/** ノートごとに決めた、ハイライトを入れる見出しの名前を書くプロパティ（名前は固定） */
+export const HEADING_PROPERTY = 'pdf-highlights-heading';
+
 export const ID_PREFIX = 'hl-';
 const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
 const ID_LENGTH = 6;

@@ -38,11 +38,8 @@ describe('NoteWriter', () => {
 		expect(FakeFileManager.read(text)['pdf-highlights']).toHaveLength(2);
 	});
 
-	it('設定が「見出しの下」なら、その節に足す', async () => {
-		const t = await createTestPlugin({
-			insertPosition: 'heading',
-			insertHeading: '## メモ',
-		});
+	it('設定の見出しがあれば、その節に足す', async () => {
+		const t = await createTestPlugin({ insertHeading: '## メモ' });
 		const note = await t.vault.create(
 			'Note.md',
 			noteWith([], '## メモ\n\n- x\n\n## 次'),
@@ -54,6 +51,37 @@ describe('NoteWriter', () => {
 		);
 		expect(t.vault.text('Note.md')).toContain(
 			'## メモ\n\n- x\n- ==a== ^hl-aaaaaa\n\n## 次',
+		);
+	});
+
+	it('ノートごとの見出し（プロパティ）が設定の見出しより先。外すと設定の見出しに戻る', async () => {
+		const t = await createTestPlugin({ insertHeading: 'メモ' });
+		const note = await t.vault.create(
+			'Note.md',
+			'---\npdf: "[[doc.pdf]]"\n---\n\n## メモ\n\n## 次\n\n%%\ndata\n%%\n',
+		);
+		await t.writer.setNoteHeading(note, '次');
+		expect(t.writer.noteHeading(note)).toBe('次');
+		await t.writer.insertHighlight(
+			note,
+			'a ^hl-aaaaaa',
+			entryText('hl-aaaaaa'),
+		);
+		expect(t.vault.text('Note.md')).toContain(
+			'## メモ\n\n## 次\n\na ^hl-aaaaaa\n\n%%\ndata\n%%\n',
+		);
+		await t.writer.setNoteHeading(note, null);
+		expect(t.writer.noteHeading(note)).toBeNull();
+		expect(
+			FakeFileManager.read(t.vault.text('Note.md') ?? ''),
+		).not.toHaveProperty('pdf-highlights-heading');
+		await t.writer.insertHighlight(
+			note,
+			'b ^hl-bbbbbb',
+			entryText('hl-bbbbbb'),
+		);
+		expect(t.vault.text('Note.md')).toContain(
+			'## メモ\n\nb ^hl-bbbbbb\n\n## 次\n\na ^hl-aaaaaa\n',
 		);
 	});
 

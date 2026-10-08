@@ -118,18 +118,25 @@
 
 | キー | 型 / 既定 | 意味 |
 |---|---|---|
-| `settingsVersion` | `2` | data.json の形の版（第 2 弾で追加） |
+| `settingsVersion` | `4` | data.json の形の版（第 2 弾で追加） |
 | `palette` | `{name, color(hex), label}[]` / 6 色 | ハイライトの色 |
 | `defaultColor` | `'yellow'` | 今の色（すぐ塗るとき・色を指定しないコマンド。PDF 右上のペンでも変わる） |
 | `selectAction` | `'highlight' \| 'popup' \| 'none'` / `'highlight'` | マウスで文字を選んだとき: すぐ塗る / 色の吹き出し / 何もしない |
-| `insertPosition` | `'end' \| 'heading'` / `'end'` | 追記位置 |
-| `insertHeading` | `'## ハイライト'` | `heading` のときの見出し（無ければ末尾に作る） |
+| `defaultHeading` | `0`〜`3` / `0` | ペンの書き方（0 は本文、1〜3 は見出しの大きさ。第 3 弾） |
+| `insertPosition` | `'order' \| 'end'` / `'order'` | 入れる場所の中での並べ方: PDF の順 / 足した順（第 5 弾、§18） |
+| `insertHeading` | `''` | ハイライトを入れる見出しの名前（その見出しがあるノートでは、その節に入れる。空なら本文の最後。§18） |
 | `bulletList` | `false` | `- ` を付けるか（第 2 弾で既定をオフに） |
 | `flipMode` | `'same-leaf' \| 'split'` / `'same-leaf'` | 表⇄裏の既定動作 |
-| `pairingProperty` | `'pdf'` | ペアリングのプロパティ名（`pdf-highlights` は不可） |
+| `pairingProperty` | `'pdf'` | ペアリングのプロパティ名（`pdf-highlights`・`pdf-highlights-heading` は不可） |
 | `hideEntriesProperty` | `true` | ノートのプロパティ欄で `pdf-highlights` の行を隠す |
 
-読み込み時に `normalizeSettings()` で検証（名前の重複・hex・既定色の存在）。版の無いもの（第 1 弾）は移して保存し直す: `showSelectionPopup` が false なら `selectAction: 'none'`、それ以外は `'highlight'`。`bulletList` はオフ（第 1 弾は設定画面を開くと既定値ごと保存していたため、保存された true はユーザーが選んだ値とは限らない）。`entriesProperty` は捨てる。
+読み込み時に `normalizeSettings()` で検証（名前の重複・hex・既定色の存在）。版の無いもの（第 1 弾）は移して保存し直す: `showSelectionPopup` が false なら `selectAction: 'none'`、それ以外は `'highlight'`。`bulletList` はオフ（第 1 弾は設定画面を開くと既定値ごと保存していたため、保存された true はユーザーが選んだ値とは限らない）。`entriesProperty` は捨てる。版 3 までの `insertPosition: 'heading'` は、その見出しの名前を `insertHeading` にして `'order'` に移す。ほかのときの `insertHeading`（保存されていた既定値 `'## ハイライト'`）は使わず空にする。
+
+### 5.6 ノートごとの入れる見出し（プロパティ `pdf-highlights-heading`）
+
+- そのノートでハイライトを入れる見出しの名前（`pdf-highlights-heading: Summary`）。ノートの見出しの右クリック「PDF のハイライトをこの見出しの下に入れる」か、コマンドで書く。同じメニューで外す（プロパティを消す）。
+- 名前は固定。プロパティ欄では隠さない（自分で選んだ設定なので、見えて直せるほうがよい）。
+- 入れる場所は、このプロパティの見出し → 設定の見出し → 本文の最後、の順に探す（ノートに無い見出しは飛ばす）。
 
 ## 6. 画面・操作設計
 
@@ -169,6 +176,7 @@
 | `highlight-selection-<name>` | 選択範囲をハイライト（<色名>） | パレットごとに登録（変更時に `removeCommand` → 再登録） |
 | `open-highlight-in-pdf` | カーソル行のハイライトを PDF で開く | エディタ |
 | `remove-highlight-at-cursor` | カーソル行のハイライトを削除 | エディタ |
+| `insert-under-heading` | カーソルのある見出しの下に PDF のハイライトを入れる | PDF を添付したノートの、ハイライトでない見出しの行（第 5 弾） |
 | `clean-orphan-entries` | 本文に無いハイライト項目を整理 | いつでも（確認モーダル付き） |
 
 既定のホットキーは付けない。文言は `src/i18n/ja.ts`。
@@ -176,7 +184,7 @@
 ### 6.5 設定タブ（宣言的 `getSettingDefinitions()`、1.13.0 の範囲のみ）
 
 - 「色」グループ（`type: 'list'`、`addItem` / `onDelete` / `onReorder`。各行は名前を `name`、`control: { type: 'color', key: 'palette.<i>.color' }`。`getControlValue` / `setControlValue` を上書きしてドット付きキーを扱う）。
-- 既定の色（`dropdown`、選択肢はパレット）、追記位置（`dropdown`）と見出し（`text`、`visible` は `heading` のとき）、箇条書き（`toggle`）、切り替え方法（`dropdown`）、プロパティ名 2 つ（`text`、`validate` で YAML キーとして妥当か）、吹き出し（`toggle`）。
+- 既定の色（`dropdown`、選択肢はパレット）、ハイライトを入れる見出し（`text`）と並べ方（`dropdown`）、箇条書き（`toggle`）、切り替え方法（`dropdown`）、プロパティ名 2 つ（`text`、`validate` で YAML キーとして妥当か）、吹き出し（`toggle`）。
 - 1.13.1 専用のメンバー（`search` / `displayValue` / `status` / `displayFormat` / `addDisplayValue`）は使わない（`minAppVersion` 1.13.0 のまま）。
 
 ## 7. 使う API と根拠
@@ -459,3 +467,27 @@ dev-vault をスクラッチパッドにコピーして `E2E_VAULT` で起動す
 - 箇条書き 3 行をまとめて選ぶと、ノートでは `・…` の 3 行のまま 1 段落になる。折り返した段落は 1 行にまとまる。段落の最後の短い行と次の段落の行をまたいで選ぶと、そこで改行が残る
 - `window.__errs` は空
 
+## 18. 第 5 弾（2026-10-09、実際のノートで試した結果を受けて）
+
+### 18.1 要望と決めたこと
+
+- 要望: ユーザーの文献ノートのテンプレートは、`Source::` などの後に `## Next Action`（チェックリスト）・`## Summary` が続き、最後に Excalidraw のデータ（`# Excalidraw Data` から後ろ）がある。ハイライトが Excalidraw のデータの下に入ってしまうので、Summary と Excalidraw Data の間に入るようにしたい。指定したいときもあるが、複雑な機能にはしたくない（基本はどんどん溜まっていけばよい）。
+- 決めたこと（3 段構え。どれも、入れる場所の中では PDF の順に並べる）:
+  1. 何もしなければ、本文の最後に入れる。本文の最後は、末尾の特別な部分の手前: Excalidraw のデータの見出し（`%%` の中にあれば、その `%%`）と、末尾の `%%` コメント（後ろに空行しか無いもの。ほかのプラグインの設定など）。Excalidraw のデータより後ろに書くと、Excalidraw が保存し直すときに消えるおそれがあり、コメントの中に入ると見えなくなるので、既定で避ける。テンプレートのノートでは、何もしなくても Summary の下（Excalidraw Data の手前）に入る。
+  2. いつも同じ見出しに入れたいときは、設定「ハイライトを入れる見出し」に名前を書く（例: `Summary`）。その見出しがあるノートでは、その節（次の同じか上の階層の見出しまで。本文の最後まで）に入れる。名前は大文字・小文字、前の `#`、末尾の `#` を区別しない。見出しのハイライトは、その見出しより深くする（節が途中で切れないように。`## Summary` の下なら見出し 1 は `###`）。ハイライトの見出しでは節を終えない。
+  3. そのノートだけ変えたいときは、見出しを右クリックして「PDF のハイライトをこの見出しの下に入れる」（§5.6）。コマンドもある（スマホやキーボード用）。
+- 第 3 弾までの「見出しの下」（見出しが無ければ末尾に作る）は、2 にまとめてやめた。見出しが無いノートでは作らずに本文の最後に入れる。設定の「ハイライトを足す位置」は「ハイライトの並べ方」（PDF の順 / 足した順）だけにした。
+
+### 18.2 仕組み
+
+- `src/lib/note-regions.ts`: 行ごとにコードブロックと `%%` コメントの状態を求め（コメントの中の ``` は数えない。コードの中の `%%` は数えない）、本文の最後（`contentEndLine`）と入れる範囲（`insertRegion`）を決める。右クリックとコマンドで使う見出しの判定（`targetHeadingAt`。ハイライトの見出し・本文の最後より後ろ・コードやコメントの中は除く）もここ。
+- `src/lib/note-insert.ts` の `planInsertHighlight(content, line, { headings, order })`: 範囲の中だけで PDF の順の位置を探す（範囲の外のハイライトとは比べない。比べるものが無ければ範囲の最後）。frontmatter のすぐ下の段落の手前に入れるときも frontmatter の中には入れない。前に何も無いときは文書の先頭に入れて、後ろのデータとの間を空ける。
+- すでに Excalidraw のデータの下に入ってしまったハイライトは動かさない（`^hl-…` ごと切り取って上に貼れば、PDF とのつながりは保たれる）。
+
+### 18.3 確認（隔離した Obsidian 1.14.4。dev-vault から個人のファイルを除いたコピー。本物のマウス操作）
+
+- テンプレートと同じ形のノート（`## Next Action` のチェックリスト・`## Summary`・`# Excalidraw Data` と `%%` の中のデータ）で、PDF の文字を選ぶと Summary と Excalidraw Data の間に入る。PDF で前にある文字を後から引くと、その前に入る
+- 見出しの右クリックに「PDF のハイライトをこの見出しの下に入れる」が出て、押すとプロパティに書かれ、次のハイライトはその見出しの節の最後に入る。もう一度右クリックすると「…指定を外す」になり、外せる
+- 設定画面で「ハイライトを入れる見出し」に書くと、その見出しの節に PDF の順で入る（間の文字は間に入る）。見出し 1 のペンで引くと `###` で入り、PDF には「H3」と出る
+- コマンドは見出しの行でだけ出る（ハイライトの行・Excalidraw のデータの中では出ない）
+- `window.__errs` は空

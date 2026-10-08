@@ -10,6 +10,8 @@ export const ja = {
 	'command.recolorHighlightAtCursor': 'カーソル行のハイライトの色を変える',
 	'command.removeHighlightAtCursor': 'カーソル行のハイライトを削除',
 	'command.cleanOrphanEntries': '本文に無いハイライト項目を整理',
+	'command.insertUnderHeading':
+		'カーソルのある見出しの下に PDF のハイライトを入れる',
 	'command.toggleInstantHighlight': '選んだらすぐハイライトする（オン/オフ）',
 	'command.penText': 'ペンを本文にする',
 	'command.penHeading': 'ペンを見出し {level} にする',
@@ -46,6 +48,8 @@ export const ja = {
 	'menu.selectPopup': '色を選んでから塗る',
 	'menu.selectNone': '塗らない（選ぶだけ）',
 	'menu.openInPdf': 'PDF で開く',
+	'menu.insertUnderHeading': 'PDF のハイライトをこの見出しの下に入れる',
+	'menu.clearInsertHeading': 'PDF のハイライトを入れる見出しの指定を外す',
 	'menu.attachPdf': 'PDF を添付…',
 	'menu.changePdf': '添付する PDF を変える…',
 	'menu.openPairedNote': 'ノートを開く（表面）',
@@ -66,6 +70,10 @@ export const ja = {
 		'ノートの文は書き換えられていたので残しました（PDF のハイライトは外しました）。',
 	'notice.unlinked': 'PDF とのつながりを外しました。',
 	'notice.nothingToUndo': '取り消せるハイライトがありません。',
+	'notice.insertHeadingSet':
+		'このノートでは、PDF のハイライトを「{name}」の下に入れます。',
+	'notice.insertHeadingCleared':
+		'ハイライトを入れる見出しの指定を外しました（設定の場所に入れます）。',
 	'notice.penText': 'ペンを本文にしました。',
 	'notice.penHeading':
 		'ペンを見出し {level} にしました。選んだ文字は見出しとしてノートに入ります。',
@@ -129,15 +137,15 @@ export const ja = {
 	'settings.selectPopup': '色を選んでからハイライトする',
 	'settings.selectNone': '何もしない',
 	'settings.groupNote': 'ノート',
-	'settings.insertPosition': 'ハイライトを足す位置',
+	'settings.insertHeading': 'ハイライトを入れる見出し',
+	'settings.insertHeadingDesc':
+		'この名前の見出しがあるノートでは、その見出しの下に入れます。空にするか、ノートにその見出しが無ければ、本文の最後（Excalidraw のデータや末尾の %% コメントの手前）に入れます。ノートごとに変えるときは、ノートの見出しを右クリックします。',
+	'settings.insertHeadingPlaceholder': '例: Summary',
+	'settings.insertPosition': 'ハイライトの並べ方',
 	'settings.insertPositionDesc':
-		'PDF の順: ノートの中のハイライトを PDF の順に並べます（章の見出しを先に引いておくと、本文はその章の下に入ります）。',
-	'settings.insertOrder': 'PDF の順に並べる',
-	'settings.insertEnd': 'ノートの末尾',
-	'settings.insertHeading': '見出しの下',
-	'settings.heading': '見出し',
-	'settings.headingDesc':
-		'この見出しの節の最後に足します。無ければ末尾に作ります。',
+		'入れる場所の中での並べ方。PDF の順にすると、章の見出しを先に引いておけば、本文はその章の下に入ります。',
+	'settings.insertOrder': 'PDF の順',
+	'settings.insertEnd': '足した順（最後に足す）',
 	'settings.bulletList': '箇条書きにする',
 	'settings.bulletListDesc':
 		'行頭に「- 」を付けます。オフなら 1 件ずつ段落にします（前後に空行）。',
@@ -156,7 +164,7 @@ export const ja = {
 	'settings.invalidProperty':
 		'プロパティ名に使えない文字があります（. : # [ ] など）。',
 	'settings.reservedProperty':
-		'pdf-highlights はハイライトの記録に使っているので使えません。',
+		'pdf-highlights と pdf-highlights-heading はこのプラグインが使っているので使えません。',
 
 	// 色の既定の表示名
 	'color.yellow': '黄',

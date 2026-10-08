@@ -1,4 +1,4 @@
-import { Menu, Notice, type Editor, type FileView } from 'obsidian';
+import { Menu, Notice, type Editor, type FileView, type TFile } from 'obsidian';
 import { t } from './i18n';
 import {
 	buildBodyLine,
@@ -8,7 +8,8 @@ import {
 	generateId,
 } from './lib/highlight-entry';
 import { isLinkSafePath } from './lib/linktext';
-import { headingLevelInSection, type OrderKey } from './lib/note-insert';
+import type { InsertOrder, OrderKey } from './lib/note-insert';
+import { headingKey, targetHeadingAt } from './lib/note-regions';
 import type { RemoveMode } from './lib/note-remove';
 import { anchorKey } from './lib/pdf-selection';
 import { joinPdfLines } from './lib/paragraphs';
@@ -16,7 +17,6 @@ import { readingPosition, type SpanBox } from './lib/reading-order';
 import { escapeNoteText, normalizeSelectedText } from './lib/text';
 import type { BlockRef, Highlight, PdfAnchor } from './lib/types';
 import type PdfToolsPlugin from './main';
-import type { InsertOrder } from './note/note-writer';
 import { revealBlock, revealInPdf, type OpenOptions } from './note/navigate';
 import { noteName } from './ui/labels';
 import { ColorSuggestModal, HeadingSuggestModal } from './ui/modals';
@@ -81,10 +81,6 @@ export class HighlightActions {
 			return Promise.resolve();
 		}
 		const { settings } = this.plugin;
-		const insert = {
-			position: settings.insertPosition,
-			heading: settings.insertHeading,
-		};
 		const level = options.headingLevel ?? null;
 		return this.add({
 			view,
@@ -100,7 +96,7 @@ export class HighlightActions {
 								kind: 'heading',
 								text: escapeNoteText(text),
 								id,
-								level: headingLevelInSection(level, insert),
+								level,
 							})
 						: buildBodyLine({
 								kind: 'text',
@@ -309,6 +305,44 @@ export class HighlightActions {
 				);
 			}
 		});
+	}
+
+	/**
+	 * ハイライトを入れる先にできる見出し（その行の見出しの名前と、いまそこに入れることになっているか）。
+	 * PDF を添付したノートの、ハイライトでない見出しだけ。無ければ null。
+	 */
+	insertHeadingAt(
+		editor: Editor,
+		file: TFile,
+		line: number,
+	): { name: string; selected: boolean } | null {
+		if (!this.plugin.pairing.pdfFor(file)) return null;
+		const name = targetHeadingAt(editor.getValue(), line);
+		if (name === null) return null;
+		const current = this.plugin.writer.noteHeading(file);
+		return {
+			name,
+			selected:
+				current !== null && headingKey(current) === headingKey(name),
+		};
+	}
+
+	/** そのノートで、ハイライトを入れる見出しを決める（null なら外して既定に戻す） */
+	async setInsertHeading(file: TFile, name: string | null): Promise<void> {
+		try {
+			await this.plugin.writer.setNoteHeading(file, name);
+			new Notice(
+				name === null
+					? t('notice.insertHeadingCleared')
+					: t('notice.insertHeadingSet', { name }),
+			);
+		} catch (error) {
+			console.error(error);
+			new Notice(
+				t('notice.highlightFailed', { message: String(error) }),
+				8000,
+			);
+		}
 	}
 
 	/** その行のハイライトの ID（索引にあるものだけ） */

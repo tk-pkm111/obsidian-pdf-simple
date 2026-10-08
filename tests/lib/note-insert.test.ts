@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-	headingLevelInSection,
-	normalizeHeading,
-	planInsertLine,
-	planInsertOrdered,
-	type InsertOptions,
+	planInsertHighlight,
+	type InsertTarget,
 	type OrderKey,
 } from '../../src/lib/note-insert';
 import {
@@ -15,21 +12,22 @@ import {
 	splitLines,
 } from '../../src/lib/note-lines';
 
-const END: InsertOptions = { position: 'end', heading: '## ハイライト' };
-const HEADING: InsertOptions = {
-	position: 'heading',
-	heading: '## ハイライト',
-};
+const END: InsertTarget = { headings: [], order: null };
 
 function insert(
 	content: string,
 	line: string,
-	options: InsertOptions = END,
+	target: InsertTarget = END,
 ): string {
-	return applyEdits(content, [planInsertLine(content, line, options)]);
+	return applyEdits(content, [planInsertHighlight(content, line, target)]);
 }
 
-describe('planInsertLine（末尾）', () => {
+const under = (...headings: string[]): InsertTarget => ({
+	headings,
+	order: null,
+});
+
+describe('本文の最後に足す', () => {
 	it('空のノート', () => {
 		expect(insert('', 'a ^hl-1')).toBe('a ^hl-1\n');
 	});
@@ -74,75 +72,183 @@ describe('planInsertLine（末尾）', () => {
 	});
 });
 
-describe('planInsertLine（見出しの下）', () => {
-	it('見出しの節の最後に足す（次の見出しとの間は空行）', () => {
-		const content = '# Title\n\n## ハイライト\n\na ^hl-1\n## Next\ntext\n';
-		expect(insert(content, 'b ^hl-2', HEADING)).toBe(
-			'# Title\n\n## ハイライト\n\na ^hl-1\n\nb ^hl-2\n\n## Next\ntext\n',
+describe('末尾の特別な部分（Excalidraw のデータ・%% コメント）の手前に足す', () => {
+	const template = [
+		'---',
+		'pdf: "[[d.pdf]]"',
+		'---',
+		'Source:: x',
+		'',
+		'## Next Action',
+		'- [ ] Text Summary',
+		'',
+		'## Summary',
+		'',
+		'',
+		'# Excalidraw Data',
+		'',
+		'## Text Elements',
+		'%%',
+		'## Drawing',
+		'```json',
+		'{}',
+		'```',
+		'%%',
+		'',
+	].join('\n');
+
+	it('Summary と Excalidraw Data の間に、足した順に続ける', () => {
+		const once = insert(template, 'a ^hl-1');
+		expect(once).toContain(
+			'## Summary\n\na ^hl-1\n\n\n# Excalidraw Data\n',
+		);
+		expect(insert(once, 'b ^hl-2')).toContain(
+			'## Summary\n\na ^hl-1\n\nb ^hl-2\n\n\n# Excalidraw Data\n',
 		);
 	});
 
-	it('節の中の深い見出しは節の一部として扱う', () => {
-		const content = '## ハイライト\n\n### Sub ^hl-1\n\na ^hl-2\n';
-		expect(insert(content, 'b ^hl-3', HEADING)).toBe(
-			'## ハイライト\n\n### Sub ^hl-1\n\na ^hl-2\n\nb ^hl-3\n',
-		);
-	});
-
-	it('見出しが無ければ末尾に作る。コードブロックの中の見出しは見ない', () => {
-		expect(insert('text\n', 'a ^hl-1', HEADING)).toBe(
-			'text\n\n## ハイライト\n\na ^hl-1\n',
-		);
-		expect(insert('```\n## ハイライト\n```\n', 'a ^hl-1', HEADING)).toBe(
-			'```\n## ハイライト\n```\n\n## ハイライト\n\na ^hl-1\n',
-		);
-		expect(insert('', 'a ^hl-1', HEADING)).toBe(
-			'## ハイライト\n\na ^hl-1\n',
-		);
-	});
-
-	it('normalizeHeading は # が無ければ ## を付ける', () => {
-		expect(normalizeHeading('メモ')).toBe('## メモ');
-		expect(normalizeHeading('# メモ')).toBe('# メモ');
-		expect(normalizeHeading('  ')).toBe('## ハイライト');
-	});
-});
-
-describe('headingLevelInSection', () => {
-	it('末尾に足すときはそのまま、見出しの下に足すときは節の見出しより深くする', () => {
-		expect(headingLevelInSection(2, END)).toBe(2);
-		expect(headingLevelInSection(1, HEADING)).toBe(3);
-		expect(headingLevelInSection(3, HEADING)).toBe(5);
+	it('データの節が %% の中にあれば、その %% の手前', () => {
 		expect(
-			headingLevelInSection(3, {
-				position: 'heading',
-				heading: '#### X',
-			}),
-		).toBe(6);
+			insert(
+				'text\n\n%%\n# Excalidraw Data\n## Drawing\n%%\n',
+				'a ^hl-1',
+			),
+		).toBe('text\n\na ^hl-1\n\n%%\n# Excalidraw Data\n## Drawing\n%%\n');
+	});
+
+	it('末尾の %% コメント（ほかのプラグインの設定など）の手前', () => {
+		expect(
+			insert('text\n\n%% kanban:settings\n```\n{}\n```\n%%\n', 'a ^hl-1'),
+		).toBe('text\n\na ^hl-1\n\n%% kanban:settings\n```\n{}\n```\n%%\n');
+		expect(insert('text\n%% x %%\n', 'a ^hl-1')).toBe(
+			'text\n\na ^hl-1\n\n%% x %%\n',
+		);
+		// 閉じていないコメントは文書の最後まで続く
+		expect(insert('text\n\n%%\nhidden\n', 'a ^hl-1')).toBe(
+			'text\n\na ^hl-1\n\n%%\nhidden\n',
+		);
+	});
+
+	it('途中のコメントやコードブロックの中の文字は数えない', () => {
+		expect(insert('a\n%% c %%\nb\n', 'x ^hl-1')).toBe(
+			'a\n%% c %%\nb\n\nx ^hl-1\n',
+		);
+		expect(insert('```\n# Excalidraw Data\n%%\n```\n', 'x ^hl-1')).toBe(
+			'```\n# Excalidraw Data\n%%\n```\n\nx ^hl-1\n',
+		);
+	});
+
+	it('前に何も無ければ先頭に入れ、データとの間を空ける', () => {
+		expect(insert('# Excalidraw Data\n## Text Elements\n', 'a ^hl-1')).toBe(
+			'a ^hl-1\n\n# Excalidraw Data\n## Text Elements\n',
+		);
+		expect(
+			insert('---\npdf: x\n---\n%%\n# Excalidraw Data\n%%\n', 'a ^hl-1'),
+		).toBe('---\npdf: x\n---\n\na ^hl-1\n\n%%\n# Excalidraw Data\n%%\n');
 	});
 });
 
-describe('planInsertOrdered（PDF の順）', () => {
-	const ORDER: InsertOptions = {
-		position: 'order',
-		heading: '## ハイライト',
-	};
+describe('指定した見出しの下に足す', () => {
+	it('見出しの節の最後（次の同じか上の階層の見出しとの間は空行）', () => {
+		const content = '# Title\n\n## Summary\n\nmine\n## Notes\ntext\n';
+		expect(insert(content, 'a ^hl-1', under('Summary'))).toBe(
+			'# Title\n\n## Summary\n\nmine\n\na ^hl-1\n\n## Notes\ntext\n',
+		);
+		expect(
+			insert('## Summary\n## Notes\n', 'a ^hl-1', under('Summary')),
+		).toBe('## Summary\n\na ^hl-1\n\n## Notes\n');
+	});
+
+	it('名前は大文字・小文字、前の #、末尾の # を区別しない', () => {
+		const content = '## Summary ##\n\n## Notes\n';
+		for (const name of ['summary', '## Summary', '  SUMMARY  '])
+			expect(insert(content, 'a ^hl-1', under(name))).toBe(
+				'## Summary ##\n\na ^hl-1\n\n## Notes\n',
+			);
+	});
+
+	it('前の名前ほど優先し、無ければ次、どれも無ければ本文の最後', () => {
+		const content = '## Summary\n\n## Notes\n\nx\n';
+		expect(insert(content, 'a ^hl-1', under('Missing', 'Notes'))).toBe(
+			'## Summary\n\n## Notes\n\nx\n\na ^hl-1\n',
+		);
+		expect(insert(content, 'a ^hl-1', under('Summary', 'Notes'))).toBe(
+			'## Summary\n\na ^hl-1\n\n## Notes\n\nx\n',
+		);
+		expect(insert('text\n', 'a ^hl-1', under('Missing'))).toBe(
+			'text\n\na ^hl-1\n',
+		);
+	});
+
+	it('節は本文の最後まで（Excalidraw のデータには入れない）', () => {
+		expect(
+			insert(
+				'# Summary\n\nx\n\n%%\ndata\n%%\n',
+				'a ^hl-1',
+				under('Summary'),
+			),
+		).toBe('# Summary\n\nx\n\na ^hl-1\n\n%%\ndata\n%%\n');
+		expect(
+			insert(
+				'text\n\n# Excalidraw Data\n## Summary\n',
+				'a ^hl-1',
+				under('Summary'),
+			),
+		).toBe('text\n\na ^hl-1\n\n# Excalidraw Data\n## Summary\n');
+	});
+
+	it('コードやコメントの中の見出し、ハイライトの見出しは使わない', () => {
+		expect(
+			insert(
+				'```\n## Summary\n```\n\n## Summary\n\n## Notes\n',
+				'a ^hl-1',
+				under('Summary'),
+			),
+		).toBe('```\n## Summary\n```\n\n## Summary\n\na ^hl-1\n\n## Notes\n');
+		expect(insert('## Summary ^hl-a\n', 'b ^hl-2', under('Summary'))).toBe(
+			'## Summary ^hl-a\n\nb ^hl-2\n',
+		);
+	});
+
+	it('見出しのハイライトは節の見出しより深くし、節を切らない', () => {
+		const content = '## Summary\n\n## Notes\n';
+		const once = insert(content, '# Ch1 ^hl-a', under('Summary'));
+		expect(once).toBe('## Summary\n\n### Ch1 ^hl-a\n\n## Notes\n');
+		expect(insert(once, '### Deep ^hl-b', under('Summary'))).toBe(
+			'## Summary\n\n### Ch1 ^hl-a\n\n##### Deep ^hl-b\n\n## Notes\n',
+		);
+		// 前の版で入れた浅い見出しのハイライトがあっても、節はそこで終わらない
+		expect(
+			insert(
+				'## Summary\n\n## Ch1 ^hl-a\n\nt ^hl-b\n\n## Notes\n',
+				'u ^hl-c',
+				under('Summary'),
+			),
+		).toBe(
+			'## Summary\n\n## Ch1 ^hl-a\n\nt ^hl-b\n\nu ^hl-c\n\n## Notes\n',
+		);
+		// 本文の最後に入れるときは、見出しの大きさはそのまま
+		expect(insert('text\n', '# Ch1 ^hl-a')).toBe('text\n\n# Ch1 ^hl-a\n');
+	});
+});
+
+describe('PDF の順に並べる', () => {
 	const keys: Record<string, OrderKey> = {
 		'hl-a': { page: 1, pos: 0 },
 		'hl-b': { page: 1, pos: 5 },
 		'hl-c': { page: 2, pos: 0 },
 		'hl-e': { page: 3, pos: 0 },
 	};
-	const ordered = (content: string, line: string, key: OrderKey) =>
-		applyEdits(content, [
-			planInsertOrdered(
-				content,
-				line,
-				key,
-				(id) => keys[id] ?? null,
-				ORDER,
-			),
-		]);
+	const ordered = (
+		content: string,
+		line: string,
+		key: OrderKey,
+		headings: string[] = [],
+	) =>
+		insert(content, line, {
+			headings,
+			order: { key, keyOf: (id: string) => keys[id] ?? null },
+		});
 	const chapters =
 		'---\npdf: x\n---\n\n# Ch1 ^hl-a\n\n# Ch2 ^hl-c\n\n# Ch3 ^hl-e\n';
 
@@ -184,17 +290,54 @@ describe('planInsertOrdered（PDF の順）', () => {
 		);
 	});
 
+	it('frontmatter のすぐ下の段落の手前でも、frontmatter の中には入れない', () => {
+		expect(
+			ordered('---\npdf: x\n---\nc ^hl-c\n', 'n ^hl-x', {
+				page: 1,
+				pos: 0,
+			}),
+		).toBe('---\npdf: x\n---\n\nn ^hl-x\n\nc ^hl-c\n');
+	});
+
 	it('箇条書きの設定では詰めて差し込む', () => {
 		expect(
 			ordered('- a ^hl-a\n- c ^hl-c\n', '- n ^hl-x', { page: 1, pos: 9 }),
 		).toBe('- a ^hl-a\n- n ^hl-x\n- c ^hl-c\n');
 	});
 
-	it('比べられるハイライトが無ければ末尾（別の PDF の行は数えない）', () => {
+	it('比べられるハイライトが無ければ最後（別の PDF の行は数えない）', () => {
 		expect(ordered('x ^hl-zz\n', 'n ^hl-x', { page: 1, pos: 0 })).toBe(
 			'x ^hl-zz\n\nn ^hl-x\n',
 		);
 		expect(ordered('', 'n ^hl-x', { page: 1, pos: 0 })).toBe('n ^hl-x\n');
+	});
+
+	it('入れる場所の外（Excalidraw のデータの中・ほかの節）のハイライトとは比べない', () => {
+		expect(
+			ordered('a ^hl-a\n\n# Excalidraw Data\n\nc ^hl-c\n', 'n ^hl-x', {
+				page: 1,
+				pos: 9,
+			}),
+		).toBe('a ^hl-a\n\nn ^hl-x\n\n# Excalidraw Data\n\nc ^hl-c\n');
+		expect(
+			ordered(
+				'## Summary\n\na ^hl-a\n\n## Notes\n\nc ^hl-c\n',
+				'n ^hl-x',
+				{ page: 1, pos: 9 },
+				['Summary'],
+			),
+		).toBe('## Summary\n\na ^hl-a\n\nn ^hl-x\n\n## Notes\n\nc ^hl-c\n');
+		expect(
+			ordered(
+				'## Summary\n\n## Notes\n\nc ^hl-c\n',
+				'n ^hl-x',
+				{
+					page: 1,
+					pos: 9,
+				},
+				['Summary'],
+			),
+		).toBe('## Summary\n\nn ^hl-x\n\n## Notes\n\nc ^hl-c\n');
 	});
 });
 
