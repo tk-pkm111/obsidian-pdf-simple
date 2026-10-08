@@ -8,8 +8,9 @@ import {
 	generateId,
 } from './lib/highlight-entry';
 import { isLinkSafePath } from './lib/linktext';
+import { matchesHeading, parseHeadingSpec } from './lib/heading-spec';
 import type { InsertOrder, OrderKey } from './lib/note-insert';
-import { headingKey, targetHeadingAt } from './lib/note-regions';
+import { resolveInsertHeading, targetHeadingAt } from './lib/note-regions';
 import type { RemoveMode } from './lib/note-remove';
 import { anchorKey } from './lib/pdf-selection';
 import { joinPdfLines } from './lib/paragraphs';
@@ -19,7 +20,11 @@ import type { BlockRef, Highlight, PdfAnchor } from './lib/types';
 import type PdfToolsPlugin from './main';
 import { revealBlock, revealInPdf, type OpenOptions } from './note/navigate';
 import { noteName } from './ui/labels';
-import { ColorSuggestModal, HeadingSuggestModal } from './ui/modals';
+import {
+	ColorSuggestModal,
+	HeadingSuggestModal,
+	chooseInsertHeading,
+} from './ui/modals';
 import { spanBoxes } from './viewer/reading-order';
 import { selectionLines, type SelectionResult } from './viewer/text-range';
 
@@ -129,6 +134,8 @@ export class HighlightActions {
 				item.allowCreateNote,
 			);
 			if (!note) return;
+			const target = await this.insertTargetFor(note);
+			if (!target) return;
 			const id = generateId((candidate) =>
 				highlights.index.hasId(candidate),
 			);
@@ -156,12 +163,10 @@ export class HighlightActions {
 					block: { id, notePath: note.path, line: 0 },
 					createdAt: Date.now(),
 				});
-				await writer.insertHighlight(
-					note,
-					line,
-					entry,
-					this.orderOf(item, pdf.path),
-				);
+				await writer.insertHighlight(note, line, entry, {
+					...target,
+					order: this.orderOf(item, pdf.path),
+				});
 				this.lastCreated = id;
 			} catch (error) {
 				console.error(error);
@@ -171,6 +176,30 @@ export class HighlightActions {
 				);
 			}
 		});
+	}
+
+	/**
+	 * ハイライトを入れる見出し（heading が null なら本文の最後）。そのノートで決めた見出し → 設定の見出しの順に探す。
+	 * 設定の見出しがノートに 2 つ以上あれば、どれに入れるかを聞く。選んだ見出しは書き込みのあとでノートに記録する
+	 * （remember。以後は聞かない）。選ばずに閉じたら null（ハイライトしない）。
+	 */
+	private async insertTargetFor(
+		note: TFile,
+	): Promise<{ heading: string | null; remember: boolean } | null> {
+		const { writer, settings, app } = this.plugin;
+		const resolved = resolveInsertHeading(
+			await writer.readBody(note),
+			writer.noteHeading(note),
+			settings.insertHeading,
+		);
+		if ('heading' in resolved)
+			return { heading: resolved.heading, remember: false };
+		const chosen = await chooseInsertHeading(app, resolved.choices);
+		if (chosen === null) {
+			new Notice(t('notice.insertHeadingSkipped'));
+			return null;
+		}
+		return { heading: chosen, remember: true };
 	}
 
 	/**
@@ -308,33 +337,33 @@ export class HighlightActions {
 	}
 
 	/**
-	 * ハイライトを入れる先にできる見出し（その行の見出しの名前と、いまそこに入れることになっているか）。
+	 * ハイライトを入れる先にできる見出し（その行の見出しの形 `## Summary` と、そのノートでいまそこに入れることになっているか）。
 	 * PDF を添付したノートの、ハイライトでない見出しだけ。無ければ null。
 	 */
 	insertHeadingAt(
 		editor: Editor,
 		file: TFile,
 		line: number,
-	): { name: string; selected: boolean } | null {
+	): { heading: string; selected: boolean } | null {
 		if (!this.plugin.pairing.pdfFor(file)) return null;
-		const name = targetHeadingAt(editor.getValue(), line);
-		if (name === null) return null;
-		const current = this.plugin.writer.noteHeading(file);
+		const heading = targetHeadingAt(editor.getValue(), line);
+		if (heading === null) return null;
+		const own = this.plugin.writer.noteHeading(file);
+		const spec = own === null ? null : parseHeadingSpec(own);
 		return {
-			name,
-			selected:
-				current !== null && headingKey(current) === headingKey(name),
+			heading,
+			selected: spec !== null && matchesHeading(spec, heading),
 		};
 	}
 
-	/** そのノートで、ハイライトを入れる見出しを決める（null なら外して既定に戻す） */
-	async setInsertHeading(file: TFile, name: string | null): Promise<void> {
+	/** そのノートで、ハイライトを入れる見出しを決める（null なら外して設定どおりに戻す） */
+	async setInsertHeading(file: TFile, heading: string | null): Promise<void> {
 		try {
-			await this.plugin.writer.setNoteHeading(file, name);
+			await this.plugin.writer.setNoteHeading(file, heading);
 			new Notice(
-				name === null
+				heading === null
 					? t('notice.insertHeadingCleared')
-					: t('notice.insertHeadingSet', { name }),
+					: t('notice.insertHeadingSet', { heading }),
 			);
 		} catch (error) {
 			console.error(error);

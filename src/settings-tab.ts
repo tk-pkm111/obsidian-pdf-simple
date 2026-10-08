@@ -4,6 +4,7 @@ import {
 	type SettingDefinitionItem,
 } from 'obsidian';
 import { t } from './i18n';
+import { invalidHeadingLine } from './lib/heading-spec';
 import {
 	DEFAULT_SETTINGS,
 	isReservedProperty,
@@ -17,6 +18,20 @@ import { colorLabel, headingKindLabel } from './ui/labels';
 import { AddColorModal } from './ui/modals';
 
 const PALETTE_KEY = /^palette\.(\d+)\.color$/;
+
+/** 「ハイライトを入れる見出し」の説明（一般の人向けに、書き方・2 つ以上あるとき・ノートの最後の扱い） */
+function insertHeadingDesc(): DocumentFragment {
+	return createFragment((fragment) => {
+		fragment.appendText(t('settings.insertHeadingDesc'));
+		const list = fragment.createEl('ul');
+		for (const key of [
+			'settings.insertHeadingDescFormat',
+			'settings.insertHeadingDescConflict',
+			'settings.insertHeadingDescEnd',
+		] as const)
+			list.createEl('li', { text: t(key) });
+	});
+}
 
 /** 設定タブ（宣言的。Obsidian が描画・保存・検索を受け持つ） */
 export class PdfToolsSettingTab extends PluginSettingTab {
@@ -121,11 +136,18 @@ export class PdfToolsSettingTab extends PluginSettingTab {
 				items: [
 					{
 						name: t('settings.insertHeading'),
-						desc: t('settings.insertHeadingDesc'),
+						desc: insertHeadingDesc(),
 						control: {
-							type: 'text',
+							type: 'textarea',
 							key: 'insertHeading',
+							rows: 3,
 							placeholder: t('settings.insertHeadingPlaceholder'),
+							validate: (value) => {
+								const line = invalidHeadingLine(value);
+								return line === null
+									? undefined
+									: t('settings.invalidHeading', { line });
+							},
 						},
 					},
 					{

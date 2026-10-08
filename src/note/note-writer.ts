@@ -108,31 +108,45 @@ export class NoteWriter {
 		});
 	}
 
+	/** 本文を読む（ソースモードで開いていれば Editor の中身） */
+	async readBody(file: TFile): Promise<string> {
+		const view = this.editingView(file);
+		return view
+			? view.editor.getValue()
+			: await this.plugin.app.vault.cachedRead(file);
+	}
+
 	/**
 	 * ハイライト 1 件を書く: 本文に 1 行、プロパティに 1 要素。
-	 * 入れる場所は、ノートごとの見出し → 設定の見出し → 本文の最後（Excalidraw のデータなどの手前）の順に探す。
+	 * heading（`## Summary` などの指定）の見出しがあればその節に、無ければ本文の最後（Excalidraw のデータなどの手前）に入れる。
 	 * order があり、設定が「PDF の順」なら、その場所の中で PDF の順に並ぶ位置に入れる。
+	 * remember なら、heading をそのノートの見出しとして記録する（本文を保存したあとで。先に書くと、
+	 * 開いているエディタの古い本文で上書きされる）。
 	 */
 	async insertHighlight(
 		note: TFile,
 		bodyLine: string,
 		entry: string,
-		order?: InsertOrder,
+		target: {
+			heading: string | null;
+			order?: InsertOrder;
+			remember?: boolean;
+		} = { heading: null },
 	): Promise<void> {
-		const { insertPosition, insertHeading } = this.plugin.settings;
-		const headings = [this.noteHeading(note), insertHeading].filter(
-			(name): name is string => name !== null && name.trim() !== '',
-		);
+		const { insertPosition } = this.plugin.settings;
 		await this.editBody(note, (content) => [
 			planInsertHighlight(content, bodyLine, {
-				headings,
-				order: insertPosition === 'order' ? (order ?? null) : null,
+				headings: target.heading === null ? [] : [target.heading],
+				order:
+					insertPosition === 'order' ? (target.order ?? null) : null,
 			}),
 		]);
 		await this.addEntryStrings(note, [entry]);
+		if (target.remember && target.heading !== null)
+			await this.setNoteHeading(note, target.heading);
 	}
 
-	/** ノートごとに決めた、ハイライトを入れる見出しの名前（プロパティ pdf-highlights-heading。無ければ null） */
+	/** ノートごとに決めた、ハイライトを入れる見出し（プロパティ pdf-highlights-heading。`## Summary` の形。無ければ null） */
 	noteHeading(note: TFile): string | null {
 		const value: unknown =
 			this.plugin.app.metadataCache.getFileCache(note)?.frontmatter?.[

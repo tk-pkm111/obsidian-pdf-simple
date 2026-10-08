@@ -27,7 +27,7 @@ function addInsertHeadingItem(
 				() =>
 					void plugin.actions.setInsertHeading(
 						file,
-						heading.selected ? null : heading.name,
+						heading.selected ? null : heading.heading,
 					),
 			),
 	);

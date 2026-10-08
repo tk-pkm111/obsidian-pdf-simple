@@ -71,9 +71,11 @@ export const ja = {
 	'notice.unlinked': 'PDF とのつながりを外しました。',
 	'notice.nothingToUndo': '取り消せるハイライトがありません。',
 	'notice.insertHeadingSet':
-		'このノートでは、PDF のハイライトを「{name}」の下に入れます。',
+		'このノートでは、PDF のハイライトを「{heading}」の下に入れます。',
 	'notice.insertHeadingCleared':
-		'ハイライトを入れる見出しの指定を外しました（設定の場所に入れます）。',
+		'ハイライトを入れる見出しの指定を外しました（設定どおりに入れます）。',
+	'notice.insertHeadingSkipped':
+		'見出しを選ばなかったので、ハイライトしませんでした。',
 	'notice.penText': 'ペンを本文にしました。',
 	'notice.penHeading':
 		'ペンを見出し {level} にしました。選んだ文字は見出しとしてノートに入ります。',
@@ -100,6 +102,9 @@ export const ja = {
 	'modal.chooseHeading': '見出しの大きさを選ぶ',
 	'modal.headingNone': '本文（見出しにしない）',
 	'modal.noPdfs': 'vault に PDF がありません。',
+	'modal.insertHeadingTitle': 'ハイライトを入れる見出しを選ぶ',
+	'modal.insertHeadingBody':
+		'このノートには、設定の「ハイライトを入れる見出し」が 2 つ以上あります。どの見出しの下に入れますか？ 選んだ見出しはこのノートに記録され（プロパティ pdf-highlights-heading）、以後のハイライトはそこに入ります。見出しを右クリックすると変えられます。',
 	'modal.orphansTitle': '本文に無いハイライト項目を整理',
 	'modal.orphansBody':
 		'どのノートの本文にも ^hl-… が無いハイライト {count} 件を、プロパティから削除します。',
@@ -139,8 +144,16 @@ export const ja = {
 	'settings.groupNote': 'ノート',
 	'settings.insertHeading': 'ハイライトを入れる見出し',
 	'settings.insertHeadingDesc':
-		'この名前の見出しがあるノートでは、その見出しの下に入れます。空にするか、ノートにその見出しが無ければ、本文の最後（Excalidraw のデータや末尾の %% コメントの手前）に入れます。ノートごとに変えるときは、ノートの見出しを右クリックします。',
-	'settings.insertHeadingPlaceholder': '例: Summary',
+		'ノートにこの見出しがあれば、ハイライトはその見出しの下に入ります。無ければノートの最後に入ります。',
+	'settings.insertHeadingDescFormat':
+		'1 行に 1 つ、Markdown の見出しと同じ形で書きます（例: ## Summary）。# の数と大文字・小文字まで同じ見出しだけが対象です。# を付けずに書くと、見出しの大きさは問いません。',
+	'settings.insertHeadingDescConflict':
+		'書いた見出しが 1 つのノートに 2 つ以上あるときは、最初にハイライトするときに、どれに入れるかを聞きます。選んだ見出しはそのノートに記録され、以後はそこに入ります。ノートの見出しを右クリックして選ぶこともできます。',
+	'settings.insertHeadingDescEnd':
+		'ノートの最後に、ほかのプラグインが使うデータ（Excalidraw の図のデータや、%% で囲んだ隠しコメントなど）があるときは、その手前に入れます。',
+	'settings.insertHeadingPlaceholder': '## Summary\n## ハイライト',
+	'settings.invalidHeading':
+		'「{line}」は見出しとして読めません。# の後に空白を入れて「## Summary」のように書いてください。',
 	'settings.insertPosition': 'ハイライトの並べ方',
 	'settings.insertPositionDesc':
 		'入れる場所の中での並べ方。PDF の順にすると、章の見出しを先に引いておけば、本文はその章の下に入ります。',

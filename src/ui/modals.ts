@@ -208,6 +208,34 @@ export class AddColorModal extends Modal {
 	}
 }
 
+/**
+ * ハイライトを入れる見出しを選ぶ（設定の見出しがノートに 2 つ以上あるとき）。
+ * 見出しごとのボタンを出す。選ばずに閉じたら null。
+ */
+export function chooseInsertHeading(
+	app: App,
+	headings: readonly string[],
+): Promise<string | null> {
+	return new Promise((resolve) => {
+		let chosen: string | null = null;
+		const modal = new ConfirmationModal(app)
+			.setTitle(t('modal.insertHeadingTitle'))
+			.setContent(t('modal.insertHeadingBody'));
+		headings.forEach((heading, i) =>
+			modal.addButton((button) => {
+				button.setButtonText(heading).onClick(() => {
+					chosen = heading;
+				});
+				if (i === 0) button.setCta().setInitialFocus();
+			}),
+		);
+		modal
+			.addCancelButton(t('modal.cancel'))
+			.setCloseCallback(() => resolve(chosen))
+			.open();
+	});
+}
+
 /** 削除の確認（はいなら onConfirm） */
 export function confirmDelete(
 	app: App,

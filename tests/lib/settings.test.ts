@@ -83,11 +83,18 @@ describe('normalizeSettings', () => {
 			insertHeading: '## メモ',
 		});
 		expect(heading.insertPosition).toBe('order');
-		expect(heading.insertHeading).toBe('メモ');
+		expect(heading.insertHeading).toBe('## メモ');
 		expect(
 			normalizeSettings({ settingsVersion: 2, insertPosition: 'heading' })
 				.insertHeading,
-		).toBe('ハイライト');
+		).toBe('## ハイライト');
+		expect(
+			normalizeSettings({
+				settingsVersion: 3,
+				insertPosition: 'heading',
+				insertHeading: 'メモ',
+			}).insertHeading,
+		).toBe('## メモ');
 		// 見出しの下でなかったときの値（保存されていた既定値）は使わない
 		expect(
 			normalizeSettings({

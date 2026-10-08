@@ -159,7 +159,7 @@ export function registerCommands(plugin: PdfToolsPlugin): void {
 				: null;
 			if (!file || !heading) return false;
 			if (!checking)
-				void plugin.actions.setInsertHeading(file, heading.name);
+				void plugin.actions.setInsertHeading(file, heading.heading);
 			return true;
 		},
 	});

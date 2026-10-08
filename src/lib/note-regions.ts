@@ -1,3 +1,11 @@
+import {
+	headingForm,
+	headingName,
+	headingSpecs,
+	matchesHeading,
+	parseHeadingSpec,
+	type HeadingSpec,
+} from './heading-spec';
 import { findBlockId } from './highlight-entry';
 import {
 	bodyStartLine,
@@ -56,25 +64,6 @@ export function scanLines(lines: readonly LineInfo[]): LineScan {
 	return scan;
 }
 
-/** 見出しの行の名前（行頭の #、末尾の # の並びとブロック ID を除く） */
-export function headingName(text: string): string {
-	return text
-		.replace(/^\s{0,3}#{1,6}(?=[ \t]|$)/, '')
-		.replace(/[ \t]\^[A-Za-z0-9-]+[ \t]*$/, '')
-		.replace(/(?:^|[ \t])#+[ \t]*$/, '')
-		.trim();
-}
-
-/** 見出しの名前を比べる形（前の # を除き、空白を 1 つにし、小文字に）。設定に `## Summary` と書いてもよい */
-export function headingKey(name: string): string {
-	return name
-		.trim()
-		.replace(/^#+/, '')
-		.replace(/\s+/g, ' ')
-		.trim()
-		.toLowerCase();
-}
-
 /** コメントの中の行 index について、そのコメントが始まった行 */
 function commentOpening(scan: LineScan, index: number, from: number): number {
 	let i = index;
@@ -91,7 +80,7 @@ function excalidrawStart(
 	for (let i = from; i < lines.length; i++) {
 		const text = lines[i]?.text ?? '';
 		if (scan.fenced[i] || headingLevel(text) === 0) continue;
-		if (headingKey(headingName(text)) !== EXCALIDRAW_DATA) continue;
+		if (headingName(text).toLowerCase() !== EXCALIDRAW_DATA) continue;
 		return scan.commented[i] ? commentOpening(scan, i, from) : i;
 	}
 	return lines.length;
@@ -126,6 +115,34 @@ export function contentEndLine(
 	);
 }
 
+/** 本文（frontmatter の次の行から、本文の最後まで） */
+function bodyRange(
+	lines: readonly LineInfo[],
+	scan: LineScan,
+): { start: number; end: number } {
+	const start = bodyStartLine(lines);
+	return {
+		start,
+		end: Math.max(start, contentEndLine(lines, scan, start)),
+	};
+}
+
+/** ハイライトを入れる先にできる見出しの行か（ハイライトの見出し・コードやコメントの中・名前の無いものは除く） */
+function isTargetHeading(
+	lines: readonly LineInfo[],
+	scan: LineScan,
+	index: number,
+): boolean {
+	const text = lines[index]?.text ?? '';
+	return (
+		!scan.fenced[index] &&
+		!scan.commented[index] &&
+		headingLevel(text) > 0 &&
+		!findBlockId(text) &&
+		headingName(text) !== ''
+	);
+}
+
 /** ハイライトを入れてよい範囲 */
 export interface InsertRegion {
 	/** 入れてよい行 [start, end) */
@@ -137,37 +154,28 @@ export interface InsertRegion {
 	level: number;
 }
 
-/** key の名前の見出しの節（次の同じか上の階層の見出しまで。ハイライトの見出しでは終えない） */
-function findSection(
+/** 見出しの行 index の節（次の同じか上の階層の見出しまで。ハイライトの見出しでは終えない） */
+function sectionAt(
 	lines: readonly LineInfo[],
 	scan: LineScan,
-	from: number,
+	index: number,
 	to: number,
-	key: string,
-): InsertRegion | null {
-	const skip = (i: number) => scan.fenced[i] || scan.commented[i];
-	for (let i = from; i < to; i++) {
-		const text = lines[i]?.text ?? '';
-		const level = headingLevel(text);
-		if (skip(i) || level === 0 || findBlockId(text)) continue;
-		if (headingKey(headingName(text)) !== key) continue;
-		let end = to;
-		for (let j = i + 1; j < to; j++) {
-			const next = lines[j]?.text ?? '';
-			const nextLevel = headingLevel(next);
-			if (skip(j) || nextLevel === 0 || nextLevel > level) continue;
-			// 入れたハイライトの見出しで節が切れないように
-			if (findBlockId(next)) continue;
-			end = j;
-			break;
-		}
-		return { start: i + 1, end, head: i, level };
+): InsertRegion {
+	const level = headingLevel(lines[index]?.text ?? '');
+	for (let j = index + 1; j < to; j++) {
+		const next = lines[j]?.text ?? '';
+		const nextLevel = headingLevel(next);
+		if (scan.fenced[j] || scan.commented[j]) continue;
+		if (nextLevel === 0 || nextLevel > level) continue;
+		// 入れたハイライトの見出しで節が切れないように
+		if (findBlockId(next)) continue;
+		return { start: index + 1, end: j, head: index, level };
 	}
-	return null;
+	return { start: index + 1, end: to, head: index, level };
 }
 
 /**
- * ハイライトを入れる範囲: headings の名前の見出し（前にあるものほど優先）の節。
+ * ハイライトを入れる範囲: headings の指定に合う見出し（前にあるものほど優先。同じ指定ならノートの上のもの）の節。
  * どれもノートに無ければ、本文の最初から本文の最後まで。
  */
 export function insertRegion(
@@ -175,30 +183,68 @@ export function insertRegion(
 	scan: LineScan,
 	headings: readonly string[],
 ): InsertRegion {
-	const bodyStart = bodyStartLine(lines);
-	const end = Math.max(bodyStart, contentEndLine(lines, scan, bodyStart));
-	for (const name of headings) {
-		const key = headingKey(name);
-		if (key === '') continue;
-		const section = findSection(lines, scan, bodyStart, end, key);
-		if (section) return section;
+	const body = bodyRange(lines, scan);
+	for (const value of headings) {
+		const spec = parseHeadingSpec(value);
+		if (!spec) continue;
+		for (let i = body.start; i < body.end; i++)
+			if (
+				isTargetHeading(lines, scan, i) &&
+				matchesHeading(spec, lines[i]?.text ?? '')
+			)
+				return sectionAt(lines, scan, i, body.end);
 	}
-	return { start: bodyStart, end, head: 0, level: 0 };
+	return { start: body.start, end: body.end, head: 0, level: 0 };
+}
+
+/** 指定のどれかに合う見出し（入れる先にできるもの）の形（`## Summary`）。ノートの上から順に、重ねずに */
+export function findHeadings(
+	content: string,
+	specs: readonly HeadingSpec[],
+): string[] {
+	const lines = splitLines(content);
+	const scan = scanLines(lines);
+	const body = bodyRange(lines, scan);
+	const found: string[] = [];
+	for (let i = body.start; i < body.end; i++) {
+		const text = lines[i]?.text ?? '';
+		if (!isTargetHeading(lines, scan, i)) continue;
+		if (!specs.some((spec) => matchesHeading(spec, text))) continue;
+		const form = headingForm(text);
+		if (!found.includes(form)) found.push(form);
+	}
+	return found;
 }
 
 /**
- * その行が、ハイライトを入れる先にできる見出しなら、その名前（無ければ null）。
+ * ハイライトを入れる見出しを決める。
+ * - そのノートで決めた見出し（own）がノートにあれば、それ
+ * - 無ければ、設定の見出し（1 行に 1 つ）のうちノートにあるもの。1 つならそれ、無ければ null（本文の最後）
+ * - 2 つ以上なら choices（どれに入れるかを聞く）
+ */
+export function resolveInsertHeading(
+	content: string,
+	own: string | null,
+	settings: string,
+): { heading: string | null } | { choices: string[] } {
+	const ownSpec = own === null ? null : parseHeadingSpec(own);
+	if (ownSpec && findHeadings(content, [ownSpec]).length > 0)
+		return { heading: own };
+	const found = findHeadings(content, headingSpecs(settings));
+	return found.length > 1
+		? { choices: found }
+		: { heading: found[0] ?? null };
+}
+
+/**
+ * その行が、ハイライトを入れる先にできる見出しなら、その形（`## Summary`。無ければ null）。
  * ハイライトの見出し・本文の最後より後ろ（Excalidraw のデータなど）・コードやコメントの中は除く。
  */
 export function targetHeadingAt(content: string, index: number): string | null {
 	const lines = splitLines(content);
 	const scan = scanLines(lines);
-	const bodyStart = bodyStartLine(lines);
-	if (index < bodyStart || index >= contentEndLine(lines, scan, bodyStart))
-		return null;
-	const text = lines[index]?.text ?? '';
-	if (scan.fenced[index] || scan.commented[index]) return null;
-	if (headingLevel(text) === 0 || findBlockId(text)) return null;
-	const name = headingName(text);
-	return name === '' ? null : name;
+	const body = bodyRange(lines, scan);
+	if (index < body.start || index >= body.end) return null;
+	if (!isTargetHeading(lines, scan, index)) return null;
+	return headingForm(lines[index]?.text ?? '');
 }

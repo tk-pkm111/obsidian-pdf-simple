@@ -1,4 +1,5 @@
 import { ENTRIES_PROPERTY, HEADING_PROPERTY } from './highlight-entry';
+import { headingLevel } from './note-lines';
 import { isColorName } from './pdf-subpath';
 import type { PaletteEntry } from './types';
 
@@ -26,7 +27,10 @@ export interface PdfToolsSettings {
 	defaultHeading: number;
 	/** 入れる場所の中での並べ方 */
 	insertPosition: InsertPosition;
-	/** ハイライトを入れる見出しの名前（その見出しがあるノートでは、その節に入れる。空なら本文の最後） */
+	/**
+	 * ハイライトを入れる見出し（入力欄の文字のまま。1 行に 1 つ、`## Summary` か `Summary`）。
+	 * その見出しがあるノートでは、その節に入れる。無ければ本文の最後
+	 */
 	insertHeading: string;
 	/** 行頭に `- ` を付ける */
 	bulletList: boolean;
@@ -173,11 +177,15 @@ export function normalizeSettings(raw: unknown): PdfToolsSettings {
 			? 'order'
 			: position;
 	// 版 4 で、見出しを「並べ方」と別の設定にした（空なら本文の最後）。
-	// 版 3 までは「見出しの下」のときだけ使い、空なら「ハイライト」だった。ほかのときの値（既定値）は使わない
+	// 版 3 までは「見出しの下」のときだけ使い、# が無ければ ## を付け、空なら「## ハイライト」だった。
+	// ほかのときの値（保存されていた既定値）は使わない
+	const legacyText = text(data.insertHeading, '').trim();
 	const legacyHeading =
-		text(data.insertHeading, '')
-			.trim()
-			.replace(/^#+\s*/, '') || 'ハイライト';
+		legacyText === ''
+			? '## ハイライト'
+			: headingLevel(legacyText) > 0
+				? legacyText
+				: `## ${legacyText}`;
 	const insertHeading =
 		version >= 4
 			? text(data.insertHeading, DEFAULT_SETTINGS.insertHeading)

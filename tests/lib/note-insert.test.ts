@@ -159,11 +159,15 @@ describe('指定した見出しの下に足す', () => {
 		).toBe('## Summary\n\na ^hl-1\n\n## Notes\n');
 	});
 
-	it('名前は大文字・小文字、前の #、末尾の # を区別しない', () => {
+	it('大文字・小文字と # の数まで同じ見出しだけ（# が無ければ大きさは問わない）', () => {
 		const content = '## Summary ##\n\n## Notes\n';
-		for (const name of ['summary', '## Summary', '  SUMMARY  '])
+		for (const name of ['## Summary', 'Summary', '  Summary  '])
 			expect(insert(content, 'a ^hl-1', under(name))).toBe(
 				'## Summary ##\n\na ^hl-1\n\n## Notes\n',
+			);
+		for (const name of ['summary', '### Summary', 'SUMMARY'])
+			expect(insert(content, 'a ^hl-1', under(name))).toBe(
+				'## Summary ##\n\n## Notes\n\na ^hl-1\n',
 			);
 	});
 
