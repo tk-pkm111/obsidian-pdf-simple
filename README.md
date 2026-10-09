@@ -30,11 +30,10 @@ The PDF file itself is never modified. The note keeps only the text (`quoted tex
 
 ## Installation
 
-Until PDF Simple is listed in the community directory, install it with [BRAT](https://github.com/TfTHacker/obsidian42-brat):
+1. Open **Settings → Community plugins**. If community plugins are off, turn them on.
+2. Select **Browse**, search for **PDF Simple**, and select **Install**, then **Enable**.
 
-1. Install and enable **BRAT** from **Settings → Community plugins**.
-2. Run **BRAT: Add a beta plugin for testing** from the command palette and enter `tk-pkm111/obsidian-pdf-simple`.
-3. Enable **PDF Simple** in **Settings → Community plugins**.
+You can also open [PDF Simple in the community directory](https://community.obsidian.md/plugins/pdf-simple) and select **Add to Obsidian**.
 
 The plugin writes to your notes (it never modifies PDF files), so back up important vaults before trying it.
 
