@@ -356,6 +356,11 @@ export class Menu {
 
 export function setIcon(_el: unknown, _icon: string): void {}
 
+/** Obsidian の表示言語（テストは日本語で書いているので ja） */
+export function getLanguage(): string {
+	return 'ja';
+}
+
 export function setTooltip(_el: unknown, _tooltip: string): void {}
 
 /** 本物は Obsidian 同梱の pdf.js を返す。テストでは pdf.js に触らない（src/pdf/ は E2E で確かめる） */

@@ -72,7 +72,10 @@ export class PdfToolbar extends Component {
 		const kind = pen.querySelector('.pdf-simple-pen-kind');
 		kind?.setText(level > 0 && !off ? `H${level}` : '');
 		const label = color ? colorLabel(color) : '';
-		const penLabel = `${label}・${headingKindLabel(level)}`;
+		const penLabel = t('toolbar.penLabel', {
+			color: label,
+			kind: headingKindLabel(level),
+		});
 		setTooltip(
 			pen,
 			off

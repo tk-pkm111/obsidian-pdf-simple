@@ -2,7 +2,7 @@
 
 **PDF は、なぞるだけ。** Obsidian で PDF を読みながら文字をなぞると、ハイライトした文がノートにたまっていくプラグインです。書き写しも、整理も、もういりません。
 
-> English: Highlight PDFs in Obsidian's built-in viewer and collect the highlighted text in a paired note, with jumps both ways. The UI is currently Japanese only.
+> English: Highlight PDFs in Obsidian's built-in viewer and collect the highlighted text in a paired note, with jumps both ways. The UI follows Obsidian's language (English or Japanese). See the [English guide](#english).
 
 https://github.com/user-attachments/assets/5667a2b6-7cd8-47cd-9c57-350b813780ce
 
@@ -26,6 +26,8 @@ PDF ファイル自体は書き換えません。ノートに残るのはテキ�
 3. PDF を開いて、文字をマウスでなぞる。PDF と同じ名前のノートができて、なぞった文が入ります。
 4. 必要なら「設定 → PDF Simple」で、ハイライトを入れる見出しや PDF の保存先を決める。
 
+画面の文言は、Obsidian の言語が日本語なら日本語、それ以外なら英語で出ます。
+
 ## インストール
 
 コミュニティプラグインに登録されるまでは、[BRAT](https://github.com/TfTHacker/obsidian42-brat) で入れる。
@@ -37,6 +39,23 @@ PDF ファイル自体は書き換えません。ノートに残るのはテキ�
 以前の名前（PDF Tools、`tk-pkm111/obsidian-pdf-tools`）で入れていた場合は、PDF Tools を削除してから入れ直す（BRAT の一覧からも外す）。ノートのハイライトはそのまま使える。設定は入れ直しになる。
 
 開発中のため、大事な保管庫で使うときはバックアップを取っておくこと（PDF ファイル自体は書き換えないが、ノートには書き込む）。
+
+## English
+
+PDF Simple lets you highlight PDFs in Obsidian's built-in viewer and collects the highlighted text in a note paired with the PDF. A getting started screen opens on first load (the video is in Japanese); open it again with the command "Show getting started".
+
+- **Trace to highlight**: select text in the PDF with the mouse. It is highlighted right away, and the text is added to the paired note, keeping its paragraphs and lists.
+- **Pen**: the pen at the top right of the PDF switches colors and heading levels (H1 to H3). Mark chapter headings first, and body text goes under its chapter in PDF order.
+- **Jump both ways**: click the dot after a highlight in the note to open the PDF there, and click a highlight in the PDF to jump to the note. Edit the note text freely.
+- **Capture regions**: draw a rectangle on the PDF to save it as a PNG and embed it in the note.
+- **Where highlights go**: choose headings to insert under. Highlights go before Excalidraw data or hidden `%%` comments at the end of a note.
+- **PDF storage**: highlighted PDFs can be moved into a folder automatically, and Obsidian updates the links.
+
+The PDF file is never modified. The note keeps only the text (`quoted text ^hl-xxxxxx`), and positions and colors are stored in the note property `pdf-highlights` (hidden in the properties panel).
+
+To get started, install the plugin (until it is listed in the community directory, add `tk-pkm111/obsidian-pdf-simple` with [BRAT](https://github.com/TfTHacker/obsidian42-brat)), open a PDF, and select text with the mouse. A note with the PDF's name is created and the text is added. Optionally, set the headings for highlights and the PDF storage folder in **Settings → PDF Simple**.
+
+**Network use**: the getting started video is loaded from GitHub (github.com) only when you press play. The plugin makes no other network requests and never sends your PDFs or notes anywhere.
 
 ## 使い方（くわしく）
 
@@ -108,6 +127,10 @@ PDF ファイル自体は書き換えません。ノートに残るのはテキ�
 ## ネット通信について
 
 使い方の動画は、「使い方を見る」の画面で再生ボタンを押したときだけ、GitHub（github.com）から読み込みます。それ以外の通信はしません。PDF やノートの内容を外へ送ることはありません。
+
+## ライセンス
+
+MIT（[LICENSE](LICENSE)）
 
 ## 開発
 

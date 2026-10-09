@@ -64,10 +64,10 @@ docs/              設計メモ
 - dev-vault をユーザーが Obsidian で開いて `npm run dev` を動かしているときは、ソースを保存するたびにその dev-vault に反映される。E2E は dev-vault のコピー（`E2E_VAULT`）で行う。
 - ユーザーの本番 Vault（`~/Documents/Obsidian Vaults/` 配下など）と本番の Obsidian（起動中のアプリ・Obsidian CLI）には絶対に触らない。動作確認は `dev-vault/` と `npm run e2e` の隔離インスタンスのみ。
 - Fitness Log のハーネスと同時に動かせるよう、E2E のプロファイルは `pdf-simple-e2e-profile`、ポートは 9334（Fitness Log は 9333）。開発用 Vault のフォルダ名はどちらも `dev-vault` なので、Obsidian の Vault 一覧では同じ名前で並ぶ。
-- UI 文言は日本語で `src/i18n/ja.ts` に集約する。英単語を混ぜるときは sentence case（例: "vault" は小文字）。
+- UI 文言は `src/i18n/ja.ts`（日本語）と `src/i18n/en.ts`（英語）に集約する。Obsidian の言語が日本語なら日本語、それ以外は英語（`getLanguage()`）。文言を足すときは両方に足す（キーと `{name}` などの差し込みが一致することを tests/i18n.test.ts が調べる）。英語は sentence case（例: "vault" は小文字）。
 - CSS のクラスは `pdf-simple-` を接頭辞にする。SVG 要素の `cls` は空白区切りにしない（配列で渡す）。
 - `minAppVersion` は `1.13.0`（開発機の Obsidian は 1.14.4）。1.14 以降専用の API を使う場合は manifest と versions.json を更新する。
 
 ## 未決事項
 
-ライセンス、英語 UI（i18n の仕組みはある）。設計上の未決事項は `docs/implementation-plan.md` の最後の節。
+なし（ライセンスは MIT、英語 UI あり。2026-10-09 に決めた）。コミュニティプラグインへの申請は、ユーザーが community.obsidian.md で行う（設計書 §23）。設計上の未決事項は `docs/implementation-plan.md` の最後の節。

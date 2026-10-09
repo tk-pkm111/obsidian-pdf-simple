@@ -21,6 +21,7 @@ export const ja = {
 	'command.showWelcome': '使い方を見る',
 
 	// PDF の右上のボタン
+	'toolbar.penLabel': '{color}・{kind}',
 	'toolbar.penHighlight': 'ペン: {color}（選んだらすぐ塗る）',
 	'toolbar.penPopup': 'ペン: {color}（色を選んでから塗る）',
 	'toolbar.penNone': 'ペン: 塗らない（選ぶだけ）',
