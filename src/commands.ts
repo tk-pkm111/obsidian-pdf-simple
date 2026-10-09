@@ -4,6 +4,7 @@ import type PdfSimplePlugin from './main';
 import { cleanOrphans } from './orphans';
 import { colorLabel } from './ui/labels';
 import { PdfSuggestModal } from './ui/modals';
+import { WelcomeModal } from './ui/welcome';
 import { MAX_PEN_HEADING } from './lib/settings';
 import { isPdfView } from './viewer/dom';
 import type { ViewTools } from './viewer/tools';
@@ -239,6 +240,13 @@ export function registerCommands(plugin: PdfSimplePlugin): void {
 			}
 			return true;
 		},
+	});
+
+	plugin.addCommand({
+		id: 'show-welcome',
+		name: t('command.showWelcome'),
+		icon: 'circle-help',
+		callback: () => new WelcomeModal(plugin.app).open(),
 	});
 
 	plugin.addCommand({

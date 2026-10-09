@@ -23,6 +23,7 @@ import { PdfStorage } from './pdf-storage';
 import { RegionActions } from './region-actions';
 import { PdfSimpleSettingTab } from './settings-tab';
 import { BodyClass } from './ui/body-class';
+import { WelcomeModal } from './ui/welcome';
 import { HOVER_SOURCE } from './viewer/overlay-input';
 import { SelectionController } from './viewer/selection-controller';
 import { ViewerManager } from './viewer/viewer-manager';
@@ -85,6 +86,14 @@ export default class PdfSimplePlugin extends Plugin {
 			this.highlights.start();
 			this.viewer.start();
 			this.selection.start();
+			// はじめて読み込んだときだけ、使い方の画面を開く
+			if (!this.settings.welcomeShown) {
+				new WelcomeModal(this.app).open();
+				void this.applySettings({
+					...this.settings,
+					welcomeShown: true,
+				});
+			}
 		});
 	}
 

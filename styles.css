@@ -360,3 +360,208 @@ body.pdf-simple-hide-entries
 	border-radius: 50%;
 	background-color: var(--pdf-simple-hl);
 }
+
+/* ---------------------------------------------------------------------------
+   使い方の画面（はじめて読み込んだときに 1 回だけ開く）
+*/
+.modal.pdf-simple-welcome {
+	--dialog-width: min(940px, 94vw);
+	width: min(940px, 94vw);
+	max-width: 94vw;
+}
+
+/* 広い画面では左に動画、右にできることの一覧。狭い画面とスマホでは縦に並べる */
+.pdf-simple-welcome-main {
+	display: grid;
+	grid-template-columns: minmax(0, 1.5fr) minmax(220px, 1fr);
+	gap: var(--size-4-4);
+	align-items: start;
+}
+
+@media (max-width: 760px) {
+	.pdf-simple-welcome-main {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.is-mobile .pdf-simple-welcome-main {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.pdf-simple-welcome-lead {
+	margin: 0 0 var(--size-4-4);
+	color: var(--text-muted);
+	line-height: 1.6;
+}
+
+.pdf-simple-welcome-video {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	border-radius: var(--radius-l);
+	overflow: hidden;
+	background-color: #0c0b16;
+}
+
+.pdf-simple-welcome-video video {
+	display: block;
+	width: 100%;
+	height: 100%;
+	background-color: #000;
+}
+
+/* 動画の表紙（通信しない。押すと動画を読み込む） */
+.pdf-simple-welcome-poster {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--size-4-2);
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+	cursor: pointer;
+	color: #fff;
+	background:
+		radial-gradient(circle at 15% 10%, rgba(127, 109, 242, 0.45), transparent 55%),
+		radial-gradient(circle at 90% 95%, rgba(255, 212, 0, 0.18), transparent 50%),
+		linear-gradient(160deg, #0c0b16, #151226 60%, #0b0a12);
+}
+
+.pdf-simple-welcome-poster:hover .pdf-simple-welcome-play {
+	transform: scale(1.06);
+	background-color: rgba(255, 255, 255, 0.24);
+}
+
+.pdf-simple-welcome-logo {
+	display: flex;
+	align-items: center;
+	gap: 0.28em;
+	font-size: clamp(28px, 6vw, 44px);
+	font-weight: 800;
+	letter-spacing: -0.01em;
+	line-height: 1.1;
+}
+
+.pdf-simple-welcome-mark {
+	padding: 0 0.18em;
+	border-radius: 0.14em;
+	color: #16141f;
+	background-color: #ffd400;
+	transform: skewX(-6deg);
+}
+
+.pdf-simple-welcome-sub {
+	font-size: var(--font-ui-medium);
+	color: rgba(255, 255, 255, 0.82);
+}
+
+.pdf-simple-welcome-play {
+	display: grid;
+	place-items: center;
+	width: 64px;
+	height: 64px;
+	margin-top: var(--size-4-2);
+	border-radius: 50%;
+	background-color: rgba(255, 255, 255, 0.16);
+	border: 1.5px solid rgba(255, 255, 255, 0.5);
+	transition: transform 120ms ease-out, background-color 120ms ease-out;
+}
+
+.pdf-simple-welcome-play svg {
+	width: 28px;
+	height: 28px;
+	margin-left: 4px;
+	fill: currentColor;
+}
+
+.pdf-simple-welcome-note {
+	font-size: var(--font-ui-smaller);
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.pdf-simple-welcome-error {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--size-4-2);
+	padding: var(--size-4-4);
+	text-align: center;
+	color: #e8e8ef;
+}
+
+.pdf-simple-welcome-error-icon svg {
+	width: 28px;
+	height: 28px;
+}
+
+/* できることの一覧 */
+.pdf-simple-welcome-steps {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-4-2);
+}
+
+.pdf-simple-welcome-step {
+	display: flex;
+	gap: var(--size-4-3);
+	padding: var(--size-4-2) var(--size-4-3);
+	border-radius: var(--radius-m);
+	background-color: var(--background-secondary);
+}
+
+.pdf-simple-welcome-step-icon {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	border-radius: var(--radius-s);
+	color: var(--text-on-accent);
+	background-color: var(--interactive-accent);
+}
+
+.pdf-simple-welcome-step-icon svg {
+	width: 18px;
+	height: 18px;
+}
+
+.pdf-simple-welcome-step-title {
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-semibold);
+}
+
+.pdf-simple-welcome-step-body {
+	margin-top: 2px;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	line-height: 1.5;
+}
+
+.pdf-simple-welcome-footer {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--size-4-3);
+	margin-top: var(--size-4-4);
+}
+
+.pdf-simple-welcome-hint {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-faint);
+}
+
+.pdf-simple-welcome-buttons {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-4);
+	margin-left: auto;
+}

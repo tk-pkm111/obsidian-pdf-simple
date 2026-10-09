@@ -42,6 +42,7 @@ describe('registerCommands', () => {
 			'pen-heading-2',
 			'pen-heading-3',
 			'capture-region',
+			'show-welcome',
 			'undo-last-highlight',
 			'highlight-selection-yellow',
 			'highlight-selection-red',

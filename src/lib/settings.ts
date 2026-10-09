@@ -44,6 +44,8 @@ export interface PdfSimpleSettings {
 	pdfFolder: string;
 	/** PDF にハイライトしたとき・ノートに添付したときに、保存先へ自動で移す */
 	autoMovePdf: boolean;
+	/** 使い方の画面を一度開いた（はじめて読み込んだときだけ開くため） */
+	welcomeShown: boolean;
 }
 
 /** 既定の色（白い紙面の上で読みやすい蛍光ペンの色） */
@@ -70,6 +72,7 @@ export const DEFAULT_SETTINGS: Readonly<PdfSimpleSettings> = {
 	hideEntriesProperty: true,
 	pdfFolder: '',
 	autoMovePdf: true,
+	welcomeShown: false,
 };
 
 /** `#rgb` / `#rrggbb` を小文字の `#rrggbb` に。違えば null */
@@ -231,6 +234,7 @@ export function normalizeSettings(raw: unknown): PdfSimpleSettings {
 		),
 		pdfFolder: text(data.pdfFolder, DEFAULT_SETTINGS.pdfFolder),
 		autoMovePdf: bool(data.autoMovePdf, DEFAULT_SETTINGS.autoMovePdf),
+		welcomeShown: bool(data.welcomeShown, DEFAULT_SETTINGS.welcomeShown),
 	};
 }
 

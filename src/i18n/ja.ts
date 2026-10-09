@@ -18,6 +18,7 @@ export const ja = {
 	'command.penHeading': 'ペンを見出し {level} にする',
 	'command.captureRegion': '範囲を画像として取り込む',
 	'command.undoLastHighlight': '直前のハイライトを取り消す',
+	'command.showWelcome': '使い方を見る',
 
 	// PDF の右上のボタン
 	'toolbar.penHighlight': 'ペン: {color}（選んだらすぐ塗る）',
@@ -128,7 +129,36 @@ export const ja = {
 		'英小文字で始まる、英小文字・数字・ハイフンの名前にしてください。',
 	'modal.duplicateColorName': 'その識別名はもう使われています。',
 
+	// 使い方の画面
+	'welcome.title': 'PDF Simple へようこそ',
+	'welcome.lead':
+		'PDF の文字をなぞるだけで、ハイライトした文がノートにたまっていきます。まずは 2 分の動画で、使い方をひととおり見てみましょう。',
+	'welcome.videoTitle': '2 分でわかる使い方',
+	'welcome.play': '使い方の動画を再生する',
+	'welcome.videoNote': '再生すると、GitHub から動画を読み込みます',
+	'welcome.videoError':
+		'動画を読み込めませんでした。インターネットに接続しているか確かめてください。',
+	'welcome.openInBrowser': 'ブラウザで開く',
+	'welcome.step1Title': 'なぞってハイライト',
+	'welcome.step1Body':
+		'PDF の文字をマウスで選ぶと、すぐに塗られて、その文がノートに入ります。',
+	'welcome.step2Title': 'ペンで色と見出し',
+	'welcome.step2Body':
+		'PDF の右上のペンで、色や見出しの大きさを切り替えます。',
+	'welcome.step3Title': '表と裏を行き来',
+	'welcome.step3Body':
+		'ノートの点を押すと PDF へ、PDF のハイライトを押すとノートへ移ります。',
+	'welcome.step4Title': '入れる場所と保存先',
+	'welcome.step4Body':
+		'「設定 → PDF Simple」で、ハイライトを入れる見出しや PDF の保存先を決められます。',
+	'welcome.hint': 'この画面は、コマンド「使い方を見る」でいつでも開けます。',
+	'welcome.more': 'GitHub で詳しく見る',
+	'welcome.start': 'はじめる',
+
 	// 設定
+	'settings.groupHelp': '使い方',
+	'settings.showWelcome': '使い方を見る',
+	'settings.showWelcomeDesc': '動画と、できることの一覧を開きます。',
 	'settings.colors': '色',
 	'settings.addColor': '色を追加',
 	'settings.colorsEmpty': '色がありません。',
