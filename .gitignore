@@ -35,3 +35,5 @@ dev-vault/PDF/*
 # 参照用に取得した外部リポジトリ（npm run references:fetch で再取得できる）
 references/
 
+# プロモーション動画の書き出し（MP4・コマ）
+promo/out/

@@ -1,0 +1,1345 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF Simple 使い方ガイド</title>
+<!--
+  PDF Simple のプロモーション（使い方）動画。1920×1080 の 1 枚の舞台を、時刻 t から決まった形で描く。
+  - ブラウザで開くと再生できる（スペースで再生・停止、←→ で 5 秒戻る・進む）
+  - ?render を付けると書き出し用（promo/render.mjs が window.__render(t) を呼んで 1 コマずつ撮る）
+  CSS のアニメーションや transition は使わない（どの t でも同じ絵になるように、動きはすべて JS で計算する）。
+-->
+<style>
+:root {
+	--accent: #7f6df2;
+	--accent-2: #a995ff;
+	--hl: #ffd400;
+	--ui: system-ui, "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+	--jp: "Hiragino Sans", "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
+	--mincho: "Hiragino Mincho ProN", "Hiragino Mincho Pro", serif;
+	--mono: "SF Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: #050508; overflow: hidden; }
+body { font-family: var(--jp); color: #ececf3; -webkit-font-smoothing: antialiased; font-feature-settings: "palt"; }
+#viewport { position: absolute; inset: 0; }
+#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: #0a0a12; }
+svg.i { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- 背景 ---------- */
+#bg { position: absolute; inset: 0; background: linear-gradient(160deg, #0c0b16 0%, #110f1e 55%, #0b0a12 100%); }
+.glow { position: absolute; border-radius: 50%; filter: blur(90px); }
+.g1 { width: 900px; height: 900px; background: rgba(127, 109, 242, .30); left: -260px; top: -380px; }
+.g2 { width: 760px; height: 760px; background: rgba(255, 212, 0, .10); right: -240px; bottom: -360px; }
+.g3 { width: 620px; height: 620px; background: rgba(80, 150, 255, .12); right: 120px; top: 120px; }
+.dots { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1.4px); background-size: 34px 34px; mask-image: radial-gradient(ellipse at 50% 45%, #000 30%, transparent 75%); }
+
+/* ---------- アプリの窓 ---------- */
+#cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+.app { position: absolute; left: 200px; top: 56px; width: 1520px; height: 790px; border-radius: 18px; background: #1e1e1e; overflow: hidden;
+	box-shadow: 0 70px 160px -40px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,.07), inset 0 1px 0 rgba(255,255,255,.04); }
+.titlebar { position: absolute; left: 0; right: 0; top: 0; height: 40px; z-index: 10; background: #171717; display: flex; align-items: center; gap: 9px; padding: 0 18px; border-bottom: 1px solid #262626; }
+.tl { width: 13px; height: 13px; border-radius: 50%; display: block; }
+.tl.r { background: #ff5f57; } .tl.y { background: #febc2e; } .tl.g { background: #28c840; }
+.titlebar .ttl { flex: 1; text-align: center; color: #85858f; font-size: 15px; margin-right: 66px; letter-spacing: .02em; }
+.panes { position: absolute; left: 0; right: 0; top: 40px; bottom: 0; transform-origin: 0 0; }
+.pane-note { position: absolute; left: 0; top: 0; bottom: 0; width: 700px; perspective: 2800px; z-index: 2; }
+.flipper { position: absolute; inset: 0; transform-style: preserve-3d; }
+.face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; background: #1e1e1e; overflow: hidden; }
+.face.back { transform: rotateY(180deg); background: #2a2a2a; }
+.divider { position: absolute; top: 0; bottom: 0; left: 700px; width: 1px; background: #2e2e2e; z-index: 3; }
+.pane-pdf { position: absolute; top: 0; bottom: 0; left: 701px; right: 0; background: #2a2a2a; overflow: hidden; }
+.vh { position: absolute; left: 0; right: 0; top: 0; height: 46px; display: flex; align-items: center; gap: 4px; padding: 0 12px 0 24px; border-bottom: 1px solid #2a2a2a; color: #a7a7b2; font-size: 16px; background: #1e1e1e; z-index: 2; }
+.vh .crumb { flex: 1; white-space: nowrap; }
+.vh .crumb b { color: #6f6f7a; font-weight: 400; margin: 0 6px; }
+.ibtn { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; color: #9c9ca8; position: relative; flex: none; }
+.ibtn svg { width: 19px; height: 19px; }
+.ibtn.hover { background: rgba(255,255,255,.09); color: #ededf3; }
+.ibtn.active { background: rgba(127,109,242,.32); color: #e2dbff; }
+
+/* ノート */
+.note-scroll { position: absolute; left: 0; right: 0; top: 46px; bottom: 0; overflow: hidden; }
+.note-body { max-width: 780px; margin: 0 auto; padding: 30px 56px 120px; }
+.inline-title { font-size: 38px; font-weight: 700; color: #f3f3f6; letter-spacing: .01em; line-height: 1.3; }
+.props { margin: 14px 0 6px; display: flex; align-items: center; gap: 12px; font-size: 17px; color: #8d8d98; padding: 9px 0 14px; border-bottom: 1px solid #2d2d2d; }
+.props .pi { width: 17px; height: 17px; color: #77777f; }
+.props .k { width: 96px; }
+.props .v { color: #ab95ff; text-decoration: underline; text-decoration-color: rgba(171,149,255,.45); text-underline-offset: 4px; }
+.item { overflow: hidden; position: relative; }
+.item .in { position: relative; border-radius: 6px; }
+.item .flash { position: absolute; left: -12px; right: -12px; top: 4px; bottom: 0; border-radius: 8px; background: rgba(127,109,242,.30); opacity: 0; }
+.item.p .in, .item.b .in { font-size: 22px; line-height: 1.68; color: #dedee5; padding: 12px 0 2px; }
+.item.h .in { font-size: 29px; font-weight: 700; color: #f5f5f8; padding: 24px 0 0; line-height: 1.35; }
+.item.img .in { padding: 14px 0 4px; }
+.tx { position: relative; }
+.typed { color: #f0e7c2; }
+.caret { display: inline-block; width: 2px; height: 1.05em; background: #e9e9ef; vertical-align: -0.15em; margin-left: 1px; opacity: 0; }
+.dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: var(--hl); margin-left: 9px; vertical-align: .12em; position: relative; }
+.dot::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 2px solid rgba(255,212,0,.0); }
+.dot.ring::after { border-color: rgba(255,212,0,.65); }
+.img-card { width: 430px; border-radius: 10px; overflow: hidden; background: #fff; box-shadow: 0 10px 26px rgba(0,0,0,.4); padding: 10px 14px 8px; display: inline-block; vertical-align: bottom; }
+
+/* PDF ビュー */
+.pdf-toolbar { position: absolute; left: 0; right: 0; top: 0; height: 46px; display: flex; align-items: center; gap: 2px; padding: 0 10px; background: #232323; border-bottom: 1px solid #2f2f2f; color: #a7a7b2; z-index: 2; }
+.pagebox { padding: 5px 11px; background: #2d2d2d; border-radius: 6px; font-size: 14px; color: #c9c9d1; margin: 0 8px; font-family: var(--ui); }
+.tb-sep { width: 1px; height: 22px; background: #3a3a3a; margin: 0 6px; }
+.spacer { flex: 1; }
+.pen-swatch { position: absolute; left: 9px; right: 9px; bottom: 5px; height: 3px; border-radius: 2px; background: var(--hl); }
+.pen-kind { position: absolute; right: -4px; top: -3px; font: 800 10px/1 var(--ui); background: var(--accent); color: #fff; border-radius: 5px; padding: 3px 4px; opacity: 0; }
+.pdf-view { position: absolute; left: 0; right: 0; top: 46px; bottom: 0; overflow: hidden; }
+.page { position: absolute; left: 50%; top: 22px; width: 600px; margin-left: -300px; background: #fff; border-radius: 2px; box-shadow: 0 12px 40px rgba(0,0,0,.45); font-family: var(--mincho); color: #1b1b20; padding: 46px 54px 56px; }
+.page .txt { position: relative; z-index: 1; }
+.hl-layer { position: absolute; inset: 0; z-index: 0; }
+.pg-title { font-size: 25px; font-weight: 600; letter-spacing: .02em; }
+.pg-sub { font-size: 13.5px; color: #555; margin-top: 4px; }
+.pg-meta { font-size: 11.5px; color: #8a8a90; margin-top: 6px; font-family: var(--jp); }
+.pg-h { font-size: 16.5px; font-weight: 600; margin-top: 18px; margin-bottom: 2px; }
+.ln { font-size: 14.6px; line-height: 1.95; white-space: nowrap; }
+.pg-fig { margin: 8px 0 6px; padding: 6px 0 0; }
+.fig-cap { font-size: 12.5px; color: #333; margin-top: 2px; text-align: center; font-family: var(--jp); }
+.pg-num { position: absolute; bottom: 18px; left: 0; right: 0; text-align: center; font-size: 11px; color: #999; font-family: var(--ui); }
+.hl { position: absolute; border-radius: 3px; }
+.hl-badge { position: absolute; font: 800 11px/1 var(--ui); color: #2b2100; background: var(--hl); border-radius: 4px; padding: 3px 4px; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+.region { position: absolute; border: 2.5px solid rgba(255,196,0,.95); background: rgba(255,212,0,.10); border-radius: 4px; }
+.region.drag { border-style: dashed; border-color: #6f8dff; background: rgba(90,130,255,.10); }
+.region-badge { position: absolute; left: 6px; top: 6px; width: 26px; height: 22px; border-radius: 5px; background: #ffc400; color: #2b2100; display: grid; place-items: center; }
+.region-badge svg { width: 15px; height: 15px; }
+.pdf-flash { position: absolute; border-radius: 6px; border: 3px solid rgba(255,196,0,.9); }
+
+/* ペンのメニュー */
+.menu { position: absolute; top: 46px; right: 52px; width: 236px; background: #2b2b2e; border: 1px solid #3c3c42; border-radius: 10px; box-shadow: 0 18px 40px rgba(0,0,0,.5); padding: 6px; font-size: 14px; color: #dadae2; z-index: 5; transform-origin: 85% 0; }
+.menu .sec { font-size: 11.5px; color: #8b8b96; padding: 7px 10px 4px; }
+.menu .row { display: flex; align-items: center; gap: 9px; padding: 6px 10px; border-radius: 6px; }
+.menu .row.hover { background: rgba(127,109,242,.35); color: #fff; }
+.menu .ck { width: 14px; height: 14px; margin-left: auto; color: var(--accent-2); opacity: 0; }
+.menu .sw-row { display: flex; gap: 8px; padding: 4px 10px 8px; }
+.menu .sw { width: 22px; height: 22px; border-radius: 50%; position: relative; }
+.menu .sw.on::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid #fff; }
+.menu .hk { width: 22px; font: 700 12px/1 var(--ui); color: #9d9da8; }
+.menu .sepl { height: 1px; background: #3a3a40; margin: 4px 6px; }
+
+.tooltip { position: absolute; padding: 7px 11px; background: #3a3a40; color: #f2f2f7; border-radius: 7px; font-size: 15px; white-space: nowrap; box-shadow: 0 8px 22px rgba(0,0,0,.45); opacity: 0; z-index: 30; }
+
+/* ---------- 重ねるカード ---------- */
+#dim { position: absolute; inset: 0; background: rgba(6,6,12,.62); opacity: 0; }
+.panel { position: absolute; background: #1f1f23; border: 1px solid #34343b; border-radius: 16px; box-shadow: 0 50px 120px -30px rgba(0,0,0,.8); opacity: 0; overflow: hidden; }
+#settings { left: 430px; top: 236px; width: 1060px; height: 390px; display: flex; }
+.set-side { width: 250px; background: #1a1a1d; border-right: 1px solid #2d2d33; padding: 26px 14px; }
+.side-h { font-size: 13px; color: #7d7d88; padding: 10px 12px 6px; }
+.side-i { font-size: 16px; color: #c7c7d1; padding: 8px 12px; border-radius: 7px; }
+.side-i.on { background: rgba(127,109,242,.28); color: #fff; }
+.set-main { flex: 1; padding: 30px 38px; }
+.set-group { font-size: 15px; color: #a3a3ae; font-weight: 600; margin: 4px 0 10px; }
+.set-item { display: flex; align-items: center; gap: 26px; padding: 16px 0; border-bottom: 1px solid #2c2c32; }
+.set-info { flex: 1; }
+.set-name { font-size: 19px; color: #f0f0f5; font-weight: 600; }
+.set-desc { font-size: 14.5px; color: #9a9aa6; margin-top: 5px; }
+.set-ta { width: 300px; min-height: 92px; background: #141417; border: 1px solid #44444d; border-radius: 9px; padding: 11px 14px; font: 17px/1.55 var(--mono); color: #f3f3f8; white-space: pre; }
+.set-ta.focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(127,109,242,.25); }
+.set-in, .set-dd { width: 300px; background: #141417; border: 1px solid #3a3a42; border-radius: 9px; padding: 10px 14px; font-size: 16px; color: #d5d5de; }
+.set-ta .caret { height: 1.1em; }
+#tpl { left: 560px; top: 104px; width: 800px; padding: 34px 50px 30px; }
+.tpl-title { font-size: 32px; font-weight: 700; color: #f3f3f6; margin-bottom: 6px; }
+.tpl-h { font-size: 25px; font-weight: 700; color: #f2f2f6; margin-top: 18px; position: relative; display: flex; align-items: baseline; gap: 10px; }
+.tpl-h .hs { color: #6f6f7c; font-weight: 600; font-family: var(--mono); font-size: 20px; }
+.tpl-h .glow-bar { position: absolute; left: -16px; right: -16px; top: -6px; bottom: -6px; border-radius: 10px; background: rgba(255,212,0,.10); border: 1.5px solid rgba(255,212,0,.5); opacity: 0; }
+.tpl-check { font-size: 19px; color: #c9c9d2; margin-top: 8px; display: flex; align-items: center; gap: 10px; }
+.tpl-check i { width: 18px; height: 18px; border: 2px solid #6d6d78; border-radius: 5px; display: block; }
+.tpl-slot { overflow: hidden; }
+.tpl-slot .in { font-size: 20px; color: #e3e3ea; padding: 10px 0 0; line-height: 1.6; }
+.tpl-data { margin-top: 22px; padding-top: 14px; border-top: 1px dashed #3a3a44; color: #6b6b77; position: relative; }
+.tpl-data .dh { font-size: 23px; font-weight: 700; color: #6d6d79; }
+.tpl-data .dl { font-size: 16px; margin-top: 6px; font-family: var(--mono); }
+.tpl-data .chip { position: absolute; right: 0; top: 16px; font-size: 14px; color: #a7a7b3; border: 1px solid #44444e; border-radius: 99px; padding: 4px 12px; }
+.note-label { position: absolute; font-size: 17px; color: #ffe17a; background: rgba(255,212,0,.12); border: 1px solid rgba(255,212,0,.4); border-radius: 99px; padding: 6px 14px; white-space: nowrap; opacity: 0; }
+.chip-fly { position: absolute; font-size: 18px; color: #2a2200; background: #ffd84a; border-radius: 10px; padding: 9px 14px; box-shadow: 0 12px 30px rgba(255,200,0,.25), 0 6px 14px rgba(0,0,0,.35); white-space: nowrap; opacity: 0; }
+#choose { left: 990px; top: 452px; width: 520px; padding: 26px 28px 22px; z-index: 6; }
+.ch-title { font-size: 21px; font-weight: 700; color: #f3f3f7; }
+.ch-body { font-size: 15.5px; color: #b3b3be; margin-top: 10px; line-height: 1.6; }
+.ch-btns { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+.btn { padding: 9px 16px; border-radius: 8px; background: #34343b; color: #e9e9f0; font-size: 15px; font-family: var(--mono); }
+.btn.jp { font-family: var(--jp); }
+.btn.cta { background: var(--accent); color: #fff; }
+.btn.hover { filter: brightness(1.18); box-shadow: 0 0 0 3px rgba(169,149,255,.35); }
+/* STEP 8: 設定の「PDF の置き場所」と、左のファイル一覧 */
+#settings2 { left: 430px; top: 150px; width: 1060px; height: 548px; display: flex; }
+.s2-group { font-size: 17px; color: #ececf3; font-weight: 700; margin: 2px 4px 12px; }
+.s2-card { background: #26262c; border: 1px solid #313138; border-radius: 14px; padding: 2px 22px; margin-bottom: 22px; }
+.s2-card.dim, .s2-group.dim { opacity: .42; }
+.s2-row { display: flex; align-items: center; gap: 26px; padding: 16px 0; }
+.s2-sep { height: 1px; background: #35353d; }
+.s2-in { position: relative; height: 46px; font: 17px/24px var(--mono); color: #f3f3f8; }
+.s2-in .ph { position: absolute; left: 14px; top: 10px; color: #5f5f6b; }
+.s2-in.focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(127,109,242,.25); }
+.toggle { width: 54px; height: 30px; border-radius: 99px; background: #3d3d46; position: relative; flex: none; margin-right: 6px; }
+.toggle .knob { position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.45); }
+.sidebar { position: absolute; left: 0; top: 0; bottom: 0; width: 420px; background: #1b1b1e; border-right: 1px solid #2e2e34; z-index: 4; padding: 12px; transform: translateX(-105%); box-shadow: 16px 0 40px rgba(0,0,0,.35); }
+.sb-head { display: flex; gap: 2px; padding: 0 4px 10px; margin-bottom: 8px; border-bottom: 1px solid #2a2a30; color: #8f8f9a; }
+.sb-vault { font-size: 14px; color: #85858f; padding: 4px 10px 6px; letter-spacing: .02em; }
+.trow.active { background: rgba(127,109,242,.22); color: #fff; }
+.trow { display: flex; align-items: center; gap: 10px; font-size: 19px; color: #d8d8e0; height: 46px; padding: 0 10px; border-radius: 8px; position: relative; }
+.trow .ic { width: 22px; height: 22px; color: #9a9aa8; flex: none; }
+.trow .chev { width: 16px; height: 16px; color: #777784; flex: none; }
+.trow.ind1 { padding-left: 36px; } .trow.ind2 { padding-left: 62px; }
+.trow .pdfic { width: 22px; height: 22px; color: #ff6b6b; flex: none; }
+.trow .ftag { margin-left: auto; font-size: 12px; color: #c46a6a; border: 1px solid #5a3434; border-radius: 6px; padding: 2px 6px; font-family: var(--ui); }
+.trow.pulse { background: rgba(255,212,0,.14); }
+.tslot { overflow: hidden; }
+.toast { position: absolute; right: 230px; top: 92px; background: #2c2c33; border: 1px solid #45454f; color: #f1f1f6; font-size: 17px; padding: 14px 20px; border-radius: 10px; box-shadow: 0 18px 40px rgba(0,0,0,.55); opacity: 0; z-index: 8; }
+
+/* ---------- 飛ぶハイライト ---------- */
+#fly { position: absolute; inset: 0; pointer-events: none; }
+.fly { position: absolute; left: 0; top: 0; transform-origin: 0 0; border-radius: 8px; padding: 2px 6px; background: rgba(255,212,0,.92); color: #262000; box-shadow: 0 16px 40px rgba(255,200,0,.28), 0 8px 18px rgba(0,0,0,.35); opacity: 0; white-space: normal; }
+.fly.p, .fly.b { font-size: 22px; line-height: 1.68; }
+.fly.h { font-size: 29px; font-weight: 700; line-height: 1.35; white-space: nowrap; }
+.fly.img { padding: 0; background: transparent; box-shadow: 0 18px 46px rgba(0,0,0,.5); }
+
+/* ---------- 字幕と進み具合 ---------- */
+#captions { position: absolute; left: 0; right: 0; top: 862px; height: 170px; }
+.cap { position: absolute; left: 200px; top: 10px; width: 1200px; }
+.tag { display: inline-flex; align-items: center; height: 30px; padding: 0 13px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), #9b7bff); color: #fff; font: 800 15px/1 var(--ui); letter-spacing: .12em; box-shadow: 0 8px 24px rgba(127,109,242,.35); }
+.head { font-size: 50px; font-weight: 700; color: #fbfbfe; margin-top: 12px; letter-spacing: .01em; white-space: nowrap; line-height: 1.2; }
+.head em { font-style: normal; color: var(--hl); }
+.subwrap { position: relative; height: 44px; margin-top: 10px; }
+.sub { position: absolute; left: 0; top: 0; font-size: 27px; color: #b9b9c8; white-space: nowrap; }
+.tip-pill { position: absolute; right: 200px; top: 64px; max-width: 560px; display: flex; gap: 12px; align-items: center; padding: 12px 18px; border-radius: 14px; background: rgba(255,212,0,.10); border: 1px solid rgba(255,212,0,.38); color: #ffe98f; font-size: 20px; opacity: 0; }
+.tip-pill b { font: 800 14px/1 var(--ui); letter-spacing: .1em; color: #2a2200; background: var(--hl); border-radius: 6px; padding: 5px 7px; }
+#progress { position: absolute; left: 200px; width: 1520px; top: 1046px; height: 6px; }
+#progress .track { position: absolute; inset: 0; border-radius: 3px; background: rgba(255,255,255,.08); }
+#progress .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: linear-gradient(90deg, var(--accent), #c7a8ff 60%, var(--hl)); }
+.tick { position: absolute; top: -3px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: #2a2a36; border: 2px solid #4a4a5c; }
+.tick.on { background: #fff; border-color: #fff; }
+
+/* ---------- タイトル ---------- */
+.title-layer { position: absolute; inset: 0; opacity: 0; }
+.card3d { position: absolute; width: 300px; height: 396px; transform-style: preserve-3d; }
+.card3d .cf { position: absolute; inset: 0; border-radius: 18px; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; box-shadow: 0 40px 90px -20px rgba(0,0,0,.7); }
+.cf.front { background: linear-gradient(180deg, #24242b, #1b1b21); border: 1px solid #36363f; padding: 28px 26px; }
+.cf.back { background: #fff; transform: rotateY(180deg); padding: 30px 28px; }
+.cl { height: 12px; border-radius: 6px; background: #4a4a56; margin-top: 16px; }
+.cl.t { height: 18px; width: 70%; background: #e9e9f1; margin-top: 4px; }
+.cl.h { height: 15px; width: 45%; background: #cfcfe0; margin-top: 26px; }
+.cl .d, .cdot { display: inline-block; }
+.cline { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+.cline .bar { height: 12px; border-radius: 6px; background: #5a5a68; }
+.cline .d { width: 10px; height: 10px; border-radius: 50%; background: var(--hl); }
+.bl { height: 9px; border-radius: 4px; background: #d8d8de; margin-top: 13px; }
+.bl.t { height: 14px; width: 62%; background: #2a2a30; margin-top: 0; }
+.bl.m { background: linear-gradient(90deg, rgba(255,212,0,.85), rgba(255,212,0,.85)); }
+.pdf-tag { position: absolute; right: 18px; bottom: 16px; font: 800 13px/1 var(--ui); color: #fff; background: #e5484d; border-radius: 6px; padding: 5px 7px; }
+.logo { position: absolute; isolation: isolate; font: 800 136px/1 var(--ui); letter-spacing: -.02em; white-space: nowrap; color: #fff; }
+.logo .w2 { position: relative; display: inline-block; margin-left: .1em; }
+.logo .ch { display: inline-block; }
+.marker { position: absolute; left: -12px; right: -16px; top: 18%; bottom: 6%; background: var(--hl); border-radius: 10px; transform-origin: 0 50%; z-index: -1; transform: skewX(-6deg) scaleX(0); }
+.tagline { position: absolute; font-size: 44px; font-weight: 700; color: #ededf5; white-space: nowrap; letter-spacing: .02em; }
+.subline { position: absolute; font-size: 24px; color: #9d9db0; white-space: nowrap; letter-spacing: .04em; }
+.tagline { isolation: isolate; }
+.w-hl { position: relative; display: inline-block; }
+.w-hl .marker { left: -6px; right: -4px; top: 6%; bottom: -2%; border-radius: 8px; }
+#tagline2 { font-size: 56px; letter-spacing: .03em; }
+#subline2 { font-size: 27px; color: #a6a6bb; letter-spacing: .04em; }
+
+/* ---------- カーソル ---------- */
+#cursor { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 100; }
+.cur { position: absolute; left: 0; top: 0; width: 34px; height: 34px; transform-origin: 0 0; }
+.cur svg { position: absolute; left: 0; top: 0; width: 34px; height: 34px; overflow: visible; filter: drop-shadow(0 4px 8px rgba(0,0,0,.45)); }
+.ripple { position: absolute; width: 80px; height: 80px; margin: -40px 0 0 -40px; border-radius: 50%; border: 3px solid rgba(169,149,255,.9); opacity: 0; }
+#fade { position: absolute; inset: 0; background: #000; opacity: 0; z-index: 200; }
+
+/* ---------- 再生用の操作（書き出しでは出さない） ---------- */
+#controls { position: fixed; left: 0; right: 0; bottom: 0; height: 52px; display: flex; align-items: center; gap: 14px; padding: 0 18px; background: rgba(12,12,18,.92); color: #ddd; font: 14px var(--ui); z-index: 1000; }
+#controls button { background: #2c2c36; color: #fff; border: 0; border-radius: 6px; padding: 7px 14px; font: inherit; cursor: pointer; }
+#controls input { flex: 1; }
+.render #controls { display: none; }
+</style>
+</head>
+<body>
+<div id="viewport">
+<div id="stage">
+	<div id="bg"><div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div><div class="dots"></div></div>
+
+	<div id="cam">
+		<div class="app" id="app">
+			<div class="titlebar"><i class="tl r"></i><i class="tl y"></i><i class="tl g"></i><div class="ttl">読書ノート — Obsidian</div></div>
+			<div class="panes">
+				<div class="sidebar" id="sidebar">
+					<div class="sb-head">
+						<span class="ibtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+						<span class="ibtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 10v6M9 13h6"/><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span>
+						<span class="ibtn"><svg class="i" viewBox="0 0 24 24"><path d="m3 16 4 4 4-4M7 20V4M11 4h10M11 8h7M11 12h4"/></svg></span>
+					</div>
+					<div class="sb-vault">読書ノート</div>
+					<div class="trow"><svg class="i chev" viewBox="0 0 24 24" style="transform:rotate(90deg)"><path d="m9 18 6-6-6-6"/></svg><svg class="i ic" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></svg>Library</div>
+					<div class="trow ind1" id="s-pdfdir"><svg class="i chev" id="s-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg><svg class="i ic" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></svg>PDF</div>
+					<div class="tslot" id="s-slot"><div class="trow ind2" id="s-moved"><svg class="i pdfic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>focus-reading.pdf<span class="ftag">PDF</span></div></div>
+					<div class="trow"><svg class="i chev" viewBox="0 0 24 24" style="transform:rotate(90deg)"><path d="m9 18 6-6-6-6"/></svg><svg class="i ic" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></svg>Notes</div>
+					<div class="trow ind1"><svg class="i ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>読みながら書く</div>
+					<div class="tslot" id="s-origslot"><div class="trow active" id="s-pdf"><svg class="i pdfic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>focus-reading.pdf<span class="ftag">PDF</span></div></div>
+				</div>
+				<div class="pane-note" id="pane-note">
+					<div class="flipper" id="flipper">
+						<div class="face front">
+							<div class="vh"><span class="crumb">Notes<b>/</b>読みながら書く</span><span class="ibtn" id="note-flip"><svg class="i" viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg></span></div>
+							<div class="note-scroll"><div class="note-body" id="note-body">
+								<div class="inline-title">読みながら書く</div>
+								<div class="props"><span class="pi"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><span class="k">pdf</span><span class="v">reading-study.pdf</span></div>
+								<div id="items">
+									<div class="item h" data-id="h1"><div class="in"><i class="flash"></i><span class="tx">1. はじめに</span><i class="dot"></i></div></div>
+									<div class="item p" data-id="s1"><div class="in"><i class="flash"></i><span class="tx">読みながら要点を書き出すと、内容は記憶に残りやすくなる。</span><i class="dot"></i></div></div>
+									<div class="item h" data-id="h2"><div class="in"><i class="flash"></i><span class="tx">2. 方法</span><i class="dot"></i></div></div>
+									<div class="item p" data-id="s3"><div class="in"><i class="flash"></i><span class="tx">参加者 60 名が、同じ文章を次の三つの方法で読んだ。</span><i class="dot"></i></div></div>
+									<div class="item b" data-id="b"><div class="in"><i class="flash"></i><span class="tx">・何もせずに読む<br>・ハイライトだけ引く<span class="typed"></span><i class="caret"></i><br>・引いた文をノートにまとめる</span><i class="dot"></i></div></div>
+									<div class="item h" data-id="h3"><div class="in"><i class="flash"></i><span class="tx">3. 結果</span><i class="dot"></i></div></div>
+									<div class="item img" data-id="fig"><div class="in"><i class="flash"></i><span class="tx img-card" id="note-fig"></span><i class="dot"></i></div></div>
+									<div class="item p" data-id="s2"><div class="in"><i class="flash"></i><span class="tx">ノートにまとめた群は、1 週間後も内容をよく覚えていた。</span><i class="dot"></i></div></div>
+								</div>
+							</div></div>
+						</div>
+						<div class="face back" id="back-face"></div>
+					</div>
+				</div>
+				<div class="divider" id="divider"></div>
+				<div class="pane-pdf" id="pane-pdf">
+					<div class="pdf-toolbar" id="pdf-toolbar">
+						<span class="ibtn"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg></span>
+						<span class="pagebox">1 / 3</span>
+						<span class="ibtn"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3M8 11h6"/></svg></span>
+						<span class="ibtn"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3M8 11h6M11 8v6"/></svg></span>
+						<span class="spacer"></span>
+						<span class="ibtn" id="pen-btn"><svg class="i" viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg><i class="pen-swatch"></i><i class="pen-kind" id="pen-kind">H2</i></span>
+						<span class="ibtn" id="crop-btn"><svg class="i" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg></span>
+						<span class="tb-sep"></span>
+						<span class="ibtn" id="pdf-back"><svg class="i" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span>
+					</div>
+					<div class="pdf-view" id="pdf-view">
+						<div class="page" id="page">
+							<div class="hl-layer" id="hl-layer"></div>
+							<div class="txt">
+								<div class="pg-title">読みながら書く</div>
+								<div class="pg-sub">― ハイライトと要約が記憶に与える影響 ―</div>
+								<div class="pg-meta">サンプル論文（架空のデータです）</div>
+								<div class="pg-h"><span data-hl="h1">1. はじめに</span></div>
+								<div class="ln">本を読んでも、その内容の多くは数日のうちに</div>
+								<div class="ln">忘れてしまう。<span data-hl="s1">読みながら要点を書き出すと、</span></div>
+								<div class="ln"><span data-hl="s1">内容は記憶に残りやすくなる。</span>そこで本研究では、</div>
+								<div class="ln">書き出し方の違いが記憶に与える影響を調べた。</div>
+								<div class="pg-h"><span data-hl="h2">2. 方法</span></div>
+								<div class="ln"><span data-hl="s3">参加者 60 名が、同じ文章を次の三つの方法で読んだ。</span></div>
+								<div class="ln"><span data-hl="b">・何もせずに読む</span></div>
+								<div class="ln"><span data-hl="b">・ハイライトだけ引く</span></div>
+								<div class="ln"><span data-hl="b">・引いた文をノートにまとめる</span></div>
+								<div class="pg-h"><span data-hl="h3">3. 結果</span></div>
+								<div class="pg-fig" id="fig">
+									<svg id="fig-svg" viewBox="0 0 492 168" width="492" height="168" font-family="Hiragino Sans, sans-serif">
+										<line x1="44" y1="132" x2="476" y2="132" stroke="#9a9aa2" stroke-width="1"/>
+										<line x1="44" y1="12" x2="44" y2="132" stroke="#9a9aa2" stroke-width="1"/>
+										<line x1="44" y1="52" x2="476" y2="52" stroke="#e1e1e6" stroke-dasharray="3 4"/>
+										<line x1="44" y1="92" x2="476" y2="92" stroke="#e1e1e6" stroke-dasharray="3 4"/>
+										<text x="36" y="56" font-size="11" fill="#888" text-anchor="end">60%</text>
+										<text x="36" y="96" font-size="11" fill="#888" text-anchor="end">30%</text>
+										<rect x="92" y="103" width="72" height="29" rx="3" fill="#c5c7cf"/>
+										<rect x="222" y="77" width="72" height="55" rx="3" fill="#95acd8"/>
+										<rect x="352" y="41" width="72" height="91" rx="3" fill="#4d67b3"/>
+										<text x="128" y="97" font-size="12" fill="#555" text-anchor="middle">22%</text>
+										<text x="258" y="71" font-size="12" fill="#555" text-anchor="middle">41%</text>
+										<text x="388" y="35" font-size="12.5" fill="#2a3f80" font-weight="700" text-anchor="middle">68%</text>
+										<text x="128" y="152" font-size="12" fill="#444" text-anchor="middle">何もしない</text>
+										<text x="258" y="152" font-size="12" fill="#444" text-anchor="middle">ハイライト</text>
+										<text x="388" y="152" font-size="12" fill="#444" text-anchor="middle">ノート</text>
+									</svg>
+									<div class="fig-cap">図 1　1 週間後に覚えていた内容の割合</div>
+								</div>
+								<div class="ln"><span data-hl="s2">ノートにまとめた群は、1 週間後も内容を</span></div>
+								<div class="ln"><span data-hl="s2">よく覚えていた。</span></div>
+							</div>
+							<div class="pg-num">1</div>
+						</div>
+						<div class="page" id="page2">
+							<div class="hl-layer" id="hl-layer2"></div>
+							<div class="txt">
+								<div class="pg-title">集中して読むために</div>
+								<div class="pg-sub">― 読書の負担を減らす三つの工夫 ―</div>
+								<div class="pg-meta">サンプル資料（架空の内容です）</div>
+								<div class="pg-h">1. 目的を決める</div>
+								<div class="ln"><span data-hl2="n1">読む前に目的を一つ決めると、</span></div>
+								<div class="ln"><span data-hl2="n1">必要な箇所がすぐに見つかる。</span></div>
+								<div class="ln">目的が決まっていれば、すべてを読む必要はない。</div>
+								<div class="pg-h">2. 残し方を決める</div>
+								<div class="ln">要点は、その場でノートに残す。あとで探す</div>
+								<div class="ln">時間がなくなり、読み返しも速くなる。</div>
+								<div class="pg-h">3. 置き場所を決める</div>
+								<div class="ln">資料は一つのフォルダに集める。どこに置いたか</div>
+								<div class="ln">迷わなくなり、次に読むものも探しやすい。</div>
+							</div>
+							<div class="pg-num">1</div>
+						</div>
+					</div>
+					<div class="menu" id="pen-menu">
+						<div class="sec">色</div>
+						<div class="sw-row">
+							<i class="sw on" style="background:#ffd400"></i><i class="sw" style="background:#ff6666"></i><i class="sw" style="background:#5fb236"></i><i class="sw" style="background:#2ea8e5"></i><i class="sw" style="background:#a28ae5"></i><i class="sw" style="background:#f19837"></i>
+						</div>
+						<div class="sepl"></div>
+						<div class="sec">書き方</div>
+						<div class="row" data-kind="0"><span class="hk">¶</span>本文<svg class="i ck" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+						<div class="row" data-kind="1"><span class="hk">H1</span>見出し 1<svg class="i ck" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+						<div class="row" data-kind="2"><span class="hk">H2</span>見出し 2<svg class="i ck" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+						<div class="row" data-kind="3"><span class="hk">H3</span>見出し 3<svg class="i ck" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+						<div class="sepl"></div>
+						<div class="sec">塗り方</div>
+						<div class="row" data-act="0">選んだらすぐ塗る<svg class="i ck" viewBox="0 0 24 24" style="opacity:1"><path d="M20 6 9 17l-5-5"/></svg></div>
+						<div class="row" data-act="1">色を選んでから塗る</div>
+						<div class="row" data-act="2">塗らない（選ぶだけ）</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="tooltip" id="tip-flip">PDF を開く（裏面）</div>
+	<div class="tooltip" id="tip-back">ノートに戻る（表面）</div>
+	<div class="tooltip" id="tip-pen">ペン: 黄（選んだらすぐ塗る）</div>
+	<div class="tooltip" id="tip-crop">範囲を画像として取り込む</div>
+
+	<div id="dim"></div>
+	<div class="panel" id="settings">
+		<div class="set-side">
+			<div class="side-h">オプション</div>
+			<div class="side-i">エディタ</div>
+			<div class="side-i">ファイルとリンク</div>
+			<div class="side-h" style="margin-top:14px">コミュニティプラグイン</div>
+			<div class="side-i on">PDF Simple</div>
+		</div>
+		<div class="set-main">
+			<div class="set-group">ノート</div>
+			<div class="set-item">
+				<div class="set-info"><div class="set-name">ハイライトを入れる見出し</div><div class="set-desc">ノートにこの見出しがあれば、ハイライトはその下に入ります。<br>1 行に 1 つ、Markdown の見出しの形で書きます。</div></div>
+				<div class="set-ta" id="set-ta"><span id="set-typed"></span><i class="caret" id="set-caret"></i></div>
+			</div>
+			<div class="set-item" style="border-bottom:0">
+				<div class="set-info"><div class="set-name">ハイライトの並べ方</div><div class="set-desc">入れる場所の中での並べ方。</div></div>
+				<div class="set-dd">PDF の順</div>
+			</div>
+		</div>
+	</div>
+	<div class="panel" id="settings2">
+		<div class="set-side">
+			<div class="side-h">オプション</div>
+			<div class="side-i">エディタ</div>
+			<div class="side-i">ファイルとリンク</div>
+			<div class="side-h" style="margin-top:14px">コミュニティプラグイン</div>
+			<div class="side-i on">PDF Simple</div>
+		</div>
+		<div class="set-main">
+			<div class="s2-group">PDF の置き場所</div>
+			<div class="s2-card">
+				<div class="s2-row">
+					<div class="set-info"><div class="set-name">PDF の保存先</div><div class="set-desc">ノートと組にした PDF を置くフォルダ。無ければ作ります。</div></div>
+					<div class="set-in s2-in" id="s2-in"><span class="ph" id="s2-ph">例: Library/PDF</span><span id="s2-typed"></span><i class="caret" id="s2-caret"></i></div>
+				</div>
+				<div class="s2-sep"></div>
+				<div class="s2-row">
+					<div class="set-info"><div class="set-name">ハイライトしたら保存先へ移す</div><div class="set-desc">PDF にハイライトしたときに、保存先へ自動で移します。<br>PDF へのリンクは、新しい場所に自動で直ります。</div></div>
+					<div class="toggle" id="s2-toggle"><i class="knob"></i></div>
+				</div>
+			</div>
+			<div class="s2-group dim">表と裏</div>
+			<div class="s2-card dim"><div class="s2-row"><div class="set-info"><div class="set-name">切り替え方</div></div><div class="set-dd">同じタブで入れ替える</div></div></div>
+		</div>
+	</div>
+	<div class="panel" id="tpl">
+		<div class="tpl-title">別の本のノート</div>
+		<div class="tpl-h"><span class="hs">##</span>Next Action</div>
+		<div class="tpl-check"><i></i>要約を書く</div>
+		<div class="tpl-check"><i></i>図にまとめる</div>
+		<div class="tpl-h" id="tpl-sum"><i class="glow-bar"></i><span class="hs">##</span>Summary</div>
+		<div class="tpl-slot" id="tpl-slot1"><div class="in">要点を書き出すと、記憶に残りやすい。<i class="dot"></i></div></div>
+		<div class="tpl-slot" id="tpl-slot2"><div class="in">1 週間後も、内容をよく覚えていた。<i class="dot"></i></div></div>
+		<div class="tpl-h" id="tpl-hl"><span class="hs">##</span>ハイライト</div>
+		<div class="tpl-data" id="tpl-data"><div class="dh"># Excalidraw Data</div><div class="dl">%% 図のデータ %%</div><span class="chip">ほかのプラグインのデータ</span></div>
+	</div>
+	<div class="chip-fly" id="chip1">要点を書き出すと、記憶に残りやすい。</div>
+	<div class="chip-fly" id="chip2">1 週間後も、内容をよく覚えていた。</div>
+	<div class="note-label" id="label-once">2 回目からは聞かずに、ここへ</div>
+	<div class="note-label" id="label-data">末尾のデータの手前に入ります</div>
+	<div class="panel" id="choose">
+		<div class="ch-title">ハイライトを入れる見出しを選ぶ</div>
+		<div class="ch-body">このノートには、設定の見出しが 2 つあります。<br>どの見出しの下に入れますか？</div>
+		<div class="ch-btns"><span class="btn cta" id="ch-sum">## Summary</span><span class="btn" id="ch-hl">## ハイライト</span><span class="btn jp">キャンセル</span></div>
+	</div>
+	<div class="trow" id="t-flyer" style="position:absolute;opacity:0;background:#2b2b33;box-shadow:0 16px 36px rgba(0,0,0,.5)"><svg class="i pdfic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>focus-reading.pdf<span class="ftag">PDF</span></div>
+	<div class="toast" id="toast">PDF を「Library/PDF」に移しました。</div>
+
+	<div id="fly"></div>
+
+	<div id="captions">
+		<div class="cap" id="cap">
+			<div class="tag" id="cap-tag">STEP 1</div>
+			<div class="head" id="cap-head"></div>
+			<div class="subwrap"><div class="sub" id="cap-sub-a"></div><div class="sub" id="cap-sub-b"></div></div>
+		</div>
+		<div class="tip-pill" id="tip-pill"><b>TIP</b><span>Alt（Option）を押しながら選ぶと、塗らずに選ぶだけ</span></div>
+	</div>
+	<div id="progress"><div class="track"></div><div class="fill" id="progress-fill"></div></div>
+
+	<div class="title-layer" id="intro">
+		<div class="card3d" id="card"><div class="cf front"><div class="cl t"></div><div class="cline"><div class="bar" style="width:78%"></div></div><div class="cl h"></div><div class="cline"><div class="bar" style="width:62%"></div><i class="d"></i></div><div class="cline"><div class="bar" style="width:84%"></div></div><div class="cline"><div class="bar" style="width:40%"></div><i class="d"></i></div><div class="cl h"></div><div class="cline"><div class="bar" style="width:70%"></div><i class="d"></i></div><div class="cline"><div class="bar" style="width:55%"></div></div></div><div class="cf back"><div class="bl t"></div><div class="bl" style="width:92%;margin-top:20px"></div><div class="bl m" style="width:86%"></div><div class="bl" style="width:95%"></div><div class="bl" style="width:70%"></div><div class="bl" style="width:90%;margin-top:22px"></div><div class="bl m" style="width:64%"></div><div class="bl" style="width:88%"></div><div class="bl" style="width:93%"></div><div class="bl" style="width:52%"></div><span class="pdf-tag">PDF</span></div></div>
+		<div class="logo" id="logo"><span class="w1">PDF</span> <span class="w2"><i class="marker" id="marker"></i>Simple</span></div>
+		<div class="tagline" id="tagline">PDF を読むだけで、ノートが育つ。</div>
+		<div class="subline" id="subline">Obsidian プラグイン　｜　2 分でわかる使い方</div>
+	</div>
+	<div class="title-layer" id="outro">
+		<div class="logo" id="logo2"><span class="w1">PDF</span> <span class="w2"><i class="marker" id="marker2"></i>Simple</span></div>
+		<div class="tagline" id="tagline2">PDF は、<span class="w-hl"><i class="marker" id="marker3"></i>なぞるだけ</span>。</div>
+		<div class="subline" id="subline2">書き写しも、整理も、もういらない。</div>
+	</div>
+
+	<div id="cursor"><div class="ripple" id="ripple"></div><div class="cur" id="cur">
+		<svg id="c-arrow" viewBox="0 0 34 34"><path d="M7 3 L7 26 L12.6 20.6 L16.6 29.6 L20.4 28 L16.5 19.3 L24.5 19.3 Z" fill="#111" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/></svg>
+		<svg id="c-ibeam" viewBox="0 0 34 34"><path d="M12 5.5h3.2a1.8 1.8 0 0 1 1.8 1.8v19.4a1.8 1.8 0 0 1-1.8 1.8H12M22 5.5h-3.2a1.8 1.8 0 0 0-1.8 1.8v19.4a1.8 1.8 0 0 0 1.8 1.8H22" fill="none" stroke="#fff" stroke-width="4.2" stroke-linecap="round"/><path d="M12 5.5h3.2a1.8 1.8 0 0 1 1.8 1.8v19.4a1.8 1.8 0 0 1-1.8 1.8H12M22 5.5h-3.2a1.8 1.8 0 0 0-1.8 1.8v19.4a1.8 1.8 0 0 0 1.8 1.8H22" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round"/></svg>
+		<svg id="c-cross" viewBox="0 0 34 34"><path d="M17 4v26M4 17h26" stroke="#fff" stroke-width="4.4" stroke-linecap="round"/><path d="M17 4v26M4 17h26" stroke="#111" stroke-width="1.8" stroke-linecap="round"/></svg>
+	</div></div>
+	<div id="fade"></div>
+</div>
+</div>
+<div id="controls"><button id="play">▶ 再生</button><input id="seek" type="range" min="0" max="124.2" step="0.01" value="0"><span id="time">0.0s</span></div>
+
+<script>
+(() => {
+'use strict';
+const RENDER = new URLSearchParams(location.search).has('render');
+if (RENDER) document.documentElement.classList.add('render');
+const W = 1920, H = 1080;
+// STEP 8 のはじまりと、締め（ロゴ）のはじまり。締めは 8.4 秒
+const S8 = 105.0, OUT = 115.8, DURATION = OUT + 8.4;
+
+/* ================= 数学 ================= */
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const mix = (a, b, p) => a + (b - a) * p;
+const E = {
+	lin: (x) => x,
+	io: (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2),
+	out: (x) => 1 - Math.pow(1 - x, 3),
+	out5: (x) => 1 - Math.pow(1 - x, 5),
+	in: (x) => x * x * x,
+	back: (x) => { const c1 = 1.6, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); },
+	expo: (x) => (x >= 1 ? 1 : 1 - Math.pow(2, -10 * x)),
+};
+const tw = (t, a, b, from, to, ease = E.io) => mix(from, to, ease(prog(t, a, b)));
+/** a〜b の間だけ 1（前後 fi / fo 秒で出入り） */
+const env = (t, a, b, fi = 0.4, fo = 0.4, ease = E.out) => Math.min(ease(prog(t, a, a + fi)), 1 - E.in(prog(t, b - fo, b)));
+/** キーフレーム [[t, v], …]（間は ease） */
+function kf(t, frames, ease = E.io) {
+	if (t <= frames[0][0]) return frames[0][1];
+	for (let i = 1; i < frames.length; i++) {
+		const [t1, v1] = frames[i];
+		const [t0, v0] = frames[i - 1];
+		if (t <= t1) return mix(v0, v1, ease(prog(t, t0, t1)));
+	}
+	return frames[frames.length - 1][1];
+}
+
+/* ================= DOM ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const stage = $('#stage');
+let stageScale = 1;
+function rectOf(el) {
+	const r = el.getBoundingClientRect();
+	const s = stage.getBoundingClientRect();
+	return { x: (r.left - s.left) / stageScale, y: (r.top - s.top) / stageScale, w: r.width / stageScale, h: r.height / stageScale };
+}
+const centerOf = (r) => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
+function css(el, props) { for (const k in props) el.style[k] = props[k]; }
+const px = (v) => `${v.toFixed(2)}px`;
+
+/* ================= 時間割 ================= */
+// ハイライト: drag は選ぶ（なぞる）時間、fly はノートへ飛ぶ時間（終わりが着地）
+const HL = {
+	s1: { drag: [20.6, 22.0], fly: [22.1, 23.2], kind: 'p' },
+	s2: { drag: [26.5, 27.7], fly: [27.8, 28.9], kind: 'p' },
+	h1: { drag: [39.0, 39.6], fly: [39.7, 40.6], kind: 'h', badge: 'H2' },
+	h2: { drag: [41.6, 42.1], fly: [42.2, 43.0], kind: 'h', badge: 'H2' },
+	h3: { drag: [43.9, 44.4], fly: [44.5, 45.3], kind: 'h', badge: 'H2' },
+	s3: { drag: [50.1, 51.2], fly: [51.3, 52.3], kind: 'p' },
+	b: { drag: [58.1, 59.6], fly: [59.7, 60.8], kind: 'b' },
+	fig: { drag: [81.4, 82.8], fly: [82.9, 84.0], kind: 'img' },
+};
+// STEP 8 の新しい PDF（ノートへは飛ばさない。ハイライトした瞬間に PDF が保存先へ移る）
+const HL2 = { n1: { drag: [110.4, 111.3] } };
+const CAPS = [
+	{ t: [8.7, 18.8], tag: 'CONCEPT', head: 'ノートが<em>“表”</em>、PDF が<em>“裏”</em>', subs: [[8.7, '右上のボタンで、いつでも裏返せます。'], [15.0, '並べて開けば、読みながらノートが育っていきます。']] },
+	{ t: [19.0, 32.8], tag: 'STEP 1', head: 'なぞるだけで、<em>ハイライト</em>', subs: [[19.0, '指を離した瞬間に塗られ、その文がノートに入ります。']] },
+	{ t: [33.0, 46.8], tag: 'STEP 2', head: 'ペンで、色と<em>見出し</em>を切り替え', subs: [[33.0, '見出しにすると、本文に戻すまで続けて引けます。']] },
+	{ t: [47.0, 56.8], tag: 'STEP 3', head: 'ノートは自動で<em>“PDF の順”</em>に', subs: [[47.0, '章の見出しを先に引けば、本文はその章の下に入ります。']] },
+	{ t: [57.0, 65.8], tag: 'STEP 4', head: '段落も箇条書きも、<em>そのままの形</em>で', subs: [[57.0, '行の折り返しはつなぎ、箇条書きの切れ目は残します。']] },
+	{ t: [66.0, 78.8], tag: 'STEP 5', head: '点で PDF へ、<em>ハイライトでノートへ</em>', subs: [[66.0, 'ノートの点を押すと PDF の該当箇所へ。逆もワンクリック。'], [72.3, 'ノートの文は自由に書き換えて OK。つながりは点が保ちます。']] },
+	{ t: [79.0, 89.8], tag: 'STEP 6', head: '図は、<em>囲んで画像に</em>', subs: [[79.0, '右上の四角のボタンを押して、ドラッグで囲むだけ。']] },
+	{ t: [90.0, 104.6], tag: 'STEP 7', head: '入れる場所も<em>決められる</em>', subs: [[90.0, '設定に見出しを書いておくと、その見出しの下に入ります。'], [96.0, '見出しが 2 つあるノートでは、最初に 1 回選ぶだけ。'], [100.7, 'ノートの末尾にあるデータ（Excalidraw など）の手前に入ります。']] },
+	{ t: [S8, OUT - 0.2], tag: 'STEP 8', head: 'PDF は保存先へ<em>自動で整理</em>', subs: [[S8, '設定で、PDF を集めるフォルダを決めておきます。'], [109.6, 'あとは、新しい PDF にハイライトするだけ。'], [111.9, 'その瞬間、PDF は保存先へ。リンクも自動で直ります。']] },
+];
+const CLICKS = [10.4, 12.9, 35.0, 36.5, 48.3, 49.3, 67.6, 71.0, 73.3, 80.5, 97.5, 106.4, 108.6];
+const SHAPES = [[20.25, 22.15, 'ibeam'], [26.25, 27.85, 'ibeam'], [38.15, 39.7, 'ibeam'], [41.35, 42.2, 'ibeam'], [43.75, 44.5, 'ibeam'], [49.9, 51.3, 'ibeam'], [57.95, 59.7, 'ibeam'], [73.15, 75.9, 'ibeam'], [80.5, 82.95, 'cross'], [106.2, 107.95, 'ibeam'], [110.25, 111.35, 'ibeam']];
+// 音の合図（BGM の区切りと、ハイライト・クリック・字幕以外の効果音）。描く処理の時刻と合わせる
+const MUSIC = { drumsIn: 19.0, lightFrom: 90.0, lightTo: 109.4, outro: OUT, end: DURATION - 0.3 };
+const SFX = [
+	{ t: 0.25, type: 'swell', dur: 1.6 },
+	{ t: 1.0, type: 'flip', dur: 1.0 }, { t: 2.4, type: 'flip', dur: 0.9 },
+	{ t: 2.6, type: 'logo' }, { t: 3.5, type: 'marker', dur: 0.5 }, { t: 4.0, type: 'text' }, { t: 4.7, type: 'text' },
+	{ t: 6.7, type: 'lowWhoosh', dur: 0.8 }, { t: 7.2, type: 'swell', dur: 1.2 },
+	{ t: 10.5, type: 'flip', dur: 0.9 }, { t: 13.1, type: 'flip', dur: 0.9 }, { t: 14.6, type: 'slide', dur: 1.1 },
+	{ t: 24.6, type: 'scroll', dur: 0.8 },
+	{ t: 33.2, type: 'zoom', dur: 1.0 }, { t: 35.0, type: 'menu' }, { t: 36.6, type: 'menuClose' }, { t: 36.8, type: 'zoom', dur: 1.1 }, { t: 37.0, type: 'scroll', dur: 0.9 },
+	{ t: 47.2, type: 'zoom', dur: 0.7 }, { t: 48.3, type: 'menu' }, { t: 49.35, type: 'menuClose' }, { t: 49.4, type: 'zoom', dur: 0.6 },
+	{ t: 52.6, type: 'scroll', dur: 0.8 }, { t: 61.0, type: 'scroll', dur: 0.6 },
+	{ t: 67.7, type: 'scroll', dur: 0.8 }, { t: 68.5, type: 'flash', note: 88 }, { t: 70.6, type: 'scroll', dur: 0.4 }, { t: 71.1, type: 'flash', note: 84 },
+	{ t: 73.5, type: 'typing', end: 75.2, n: 8 },
+	{ t: 79.1, type: 'scroll', dur: 0.8 }, { t: 83.0, type: 'scroll', dur: 0.6 },
+	{ t: 90.4, type: 'panel' }, { t: 91.2, type: 'typing', end: 93.5, n: 21 }, { t: 94.0, type: 'panelOut' },
+	{ t: 94.4, type: 'panel' }, { t: 95.2, type: 'chip' }, { t: 95.7, type: 'menu' }, { t: 97.6, type: 'menuClose' },
+	{ t: 97.9, type: 'chipFly', dur: 1.0, note: 79 }, { t: 99.2, type: 'chip' }, { t: 99.5, type: 'chipFly', dur: 0.95, note: 81 },
+	{ t: 100.5, type: 'text' }, { t: 100.9, type: 'text' }, { t: 104.4, type: 'panelOut' },
+	{ t: 105.2, type: 'panel' }, { t: 106.6, type: 'typing', end: 107.8, n: 11 }, { t: 108.6, type: 'toggle' },
+	{ t: 109.3, type: 'panelOut' }, { t: 109.3, type: 'slide', dur: 0.8, pan0: -0.6, pan1: -0.2 }, { t: 109.35, type: 'pageSwap', dur: 0.7 },
+	{ t: 110.4, type: 'select', dur: 0.9 }, { t: 111.31, type: 'pop' },
+	{ t: 111.75, type: 'chip' }, { t: 111.9, type: 'move', dur: 0.9 }, { t: 112.8, type: 'land', note: 84 }, { t: 112.95, type: 'toast' },
+	{ t: OUT, type: 'lowWhoosh', dur: 0.9 },
+	{ t: OUT + 1.3, type: 'logo' }, { t: OUT + 2.3, type: 'marker', dur: 0.5 }, { t: OUT + 2.9, type: 'text' },
+	{ t: OUT + 3.6, type: 'marker', dur: 0.5 }, { t: OUT + 4.4, type: 'text' },
+];
+// PDF のページとノートのスクロール（px。init で場所を測って決める）
+let PAGE_SCROLL = [[0, 0]];
+let NOTE_SCROLL = [[0, 0]];
+
+/* ================= 組み立て ================= */
+const HLS = {}; // id → { spans, rects(div[]), boxes(page 座標), badge, item, tx, dot, flyEl, h }
+const HLS2 = {}; // STEP 8 の新しい PDF: id → { spec, boxes, rects }
+let figRegion, regionEl, regionBadge, pdfFlash;
+let penFocus;
+
+function buildBackFace() {
+	// 裏返したときに見える PDF（右のペインの PDF ビューの写し。ハイライトは無し）
+	const back = $('#back-face');
+	const toolbar = $('#pdf-toolbar').cloneNode(true);
+	const view = $('#pdf-view').cloneNode(true);
+	// STEP 8 で使う 2 枚目の PDF は写さない（1 枚目と重なって見えるため）
+	view.querySelector('#page2')?.remove();
+	for (const el of [toolbar, ...toolbar.querySelectorAll('[id]'), view, ...view.querySelectorAll('[id]')]) el.removeAttribute('id');
+	toolbar.querySelectorAll('.ibtn')[toolbar.querySelectorAll('.ibtn').length - 1].id = 'back-flip';
+	back.append(toolbar, view);
+}
+
+function measure() {
+	const page = $('#page');
+	const pr = page.getBoundingClientRect();
+	const layer = $('#hl-layer');
+	for (const id of Object.keys(HL)) {
+		const spec = HL[id];
+		const info = (HLS[id] = { spec });
+		if (id === 'fig') {
+			const fr = $('#fig').getBoundingClientRect();
+			info.box = { x: (fr.left - pr.left) / stageScale - 10, y: (fr.top - pr.top) / stageScale - 6, w: fr.width / stageScale + 20, h: fr.height / stageScale + 10 };
+		} else {
+			info.boxes = $$(`#page [data-hl="${id}"]`).map((span) => {
+				const r = span.getBoundingClientRect();
+				return { x: (r.left - pr.left) / stageScale - 2, y: (r.top - pr.top) / stageScale + 3, w: r.width / stageScale + 4, h: r.height / stageScale - 4 };
+			});
+			info.rects = info.boxes.map((b) => {
+				const d = document.createElement('div');
+				d.className = 'hl';
+				css(d, { left: px(b.x), top: px(b.y), width: px(b.w), height: px(b.h) });
+				layer.appendChild(d);
+				return d;
+			});
+			if (spec.badge) {
+				const badge = document.createElement('div');
+				badge.className = 'hl-badge';
+				badge.textContent = spec.badge;
+				css(badge, { left: px(info.boxes[0].x - 4), top: px(info.boxes[0].y - 20) });
+				layer.appendChild(badge);
+				info.badge = badge;
+			}
+		}
+		const item = $(`.item[data-id="${id}"]`);
+		info.item = item;
+		info.in = item.querySelector('.in');
+		info.tx = item.querySelector('.tx');
+		info.dot = item.querySelector('.dot');
+		info.flash = item.querySelector('.flash');
+		info.h = item.getBoundingClientRect().height / stageScale;
+		// 飛ぶ文（ノートの文と同じ見た目で、黄色の札にのせる）
+		const fly = document.createElement('div');
+		fly.className = `fly ${spec.kind}`;
+		if (spec.kind === 'img') fly.appendChild(makeFigCard());
+		else fly.innerHTML = item.querySelector('.tx').innerHTML;
+		$('#fly').appendChild(fly);
+		info.fly = fly;
+	}
+	// STEP 8 の新しい PDF のハイライト
+	const p2 = $('#page2').getBoundingClientRect();
+	for (const id of Object.keys(HL2)) {
+		const boxes = $$(`#page2 [data-hl2="${id}"]`).map((span) => {
+			const r = span.getBoundingClientRect();
+			return { x: (r.left - p2.left) / stageScale - 2, y: (r.top - p2.top) / stageScale + 3, w: r.width / stageScale + 4, h: r.height / stageScale - 4 };
+		});
+		const rects = boxes.map((b) => {
+			const d = document.createElement('div');
+			d.className = 'hl';
+			css(d, { left: px(b.x), top: px(b.y), width: px(b.w), height: px(b.h) });
+			$('#hl-layer2').appendChild(d);
+			return d;
+		});
+		HLS2[id] = { spec: HL2[id], boxes, rects };
+	}
+	// 画像の範囲の枠
+	figRegion = HLS.fig.box;
+	regionEl = document.createElement('div');
+	regionEl.className = 'region';
+	regionBadge = document.createElement('div');
+	regionBadge.className = 'region-badge';
+	regionBadge.innerHTML = '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>';
+	regionEl.appendChild(regionBadge);
+	layer.appendChild(regionEl);
+	pdfFlash = document.createElement('div');
+	pdfFlash.className = 'pdf-flash';
+	layer.appendChild(pdfFlash);
+	// ペンのボタンに寄るカメラの中心
+	penFocus = centerOf(rectOf($('#pen-btn')));
+	// スクロール量: s2 と図が見えるように
+	const view = $('#pdf-view').getBoundingClientRect();
+	const viewH = view.height / stageScale;
+	const pageTop = 22;
+	const s2Bottom = pageTop + Math.max(...HLS.s2.boxes.map((b) => b.y + b.h));
+	const figBottom = pageTop + figRegion.y + figRegion.h;
+	const sS2 = Math.max(0, s2Bottom - viewH + 40);
+	const sFig = Math.max(0, Math.min(sS2, figBottom - viewH + 70));
+	PAGE_SCROLL = [[0, 0], [24.6, 0], [25.4, sS2], [37.0, sS2], [37.9, 0], [66.0, 0], [67.7, 0], [68.5, sS2], [79.1, sS2], [79.9, sFig], [999, sFig]];
+}
+
+function makeFigCard() {
+	const card = document.createElement('div');
+	card.className = 'img-card';
+	const svg = $('#fig-svg').cloneNode(true);
+	svg.removeAttribute('id');
+	svg.setAttribute('width', '402');
+	svg.setAttribute('height', '137');
+	const cap = document.createElement('div');
+	cap.className = 'fig-cap';
+	cap.textContent = $('.fig-cap').textContent;
+	card.append(svg, cap);
+	return card;
+}
+
+/* ================= 描く ================= */
+let T = 0;
+function render(t) {
+	T = t;
+	renderBg(t);
+	renderTitle(t);
+	renderWindow(t);
+	renderPdf(t);
+	renderNote(t);
+	renderCards(t);
+	renderCaptions(t);
+	renderProgress(t);
+	renderFlights(t);
+	renderTooltips(t);
+	renderCursor(t);
+	css($('#fade'), { opacity: String(Math.max(1 - prog(t, 0, 0.8), prog(t, DURATION - 0.8, DURATION))) });
+}
+
+function renderBg(t) {
+	css($('.g1'), { transform: `translate(${Math.sin(t * 0.21) * 60}px, ${Math.cos(t * 0.17) * 40}px)` });
+	css($('.g2'), { transform: `translate(${Math.cos(t * 0.15) * 70}px, ${Math.sin(t * 0.19) * 50}px)` });
+	css($('.g3'), { transform: `translate(${Math.sin(t * 0.12 + 1) * 80}px, ${Math.cos(t * 0.1) * 60}px)`, opacity: String(0.6 + 0.4 * Math.sin(t * 0.3)) });
+}
+
+/* ---------- タイトルと締め ---------- */
+function letters(el) {
+	// 文字ごとに span（初回だけ）
+	if (el.dataset.split) return $$('.ch', el);
+	for (const part of $$('.w1, .w2', el)) {
+		const nodes = [...part.childNodes].filter((n) => n.nodeType === 3);
+		for (const n of nodes) {
+			const frag = document.createDocumentFragment();
+			for (const c of n.textContent) {
+				const s = document.createElement('span');
+				s.className = 'ch';
+				s.textContent = c;
+				frag.appendChild(s);
+			}
+			n.replaceWith(frag);
+		}
+	}
+	el.dataset.split = '1';
+	return $$('.ch', el);
+}
+
+function renderTitle(t) {
+	// 導入（0〜8 秒）
+	const intro = $('#intro');
+	const introOn = t < 8.2;
+	css(intro, { opacity: introOn ? String(1 - E.in(prog(t, 6.7, 7.5))) : '0', visibility: introOn ? 'visible' : 'hidden', filter: `blur(${tw(t, 6.7, 7.5, 0, 10, E.in)}px)` });
+	if (introOn) {
+		const card = $('#card');
+		const appear = E.out5(prog(t, 0.2, 1.1));
+		const flip = tw(t, 1.0, 2.0, 0, 180, E.io) + tw(t, 2.4, 3.3, 0, 180, E.io);
+		const slide = E.io(prog(t, 2.4, 3.3));
+		const cx = mix(810, 520, slide);
+		const scale = mix(0.86, 1, appear) * mix(1.12, 1, slide);
+		css(card, { left: px(cx - 150), top: px(540 - 198 + tw(t, 0.2, 1.1, 60, 0, E.out5)), opacity: String(appear), transform: `perspective(1600px) rotateY(${flip - 24 * (1 - appear)}deg) rotateZ(${mix(-4, 0, appear)}deg) scale(${scale})` });
+		const chars = letters($('#logo'));
+		chars.forEach((c, i) => {
+			const p = E.out5(prog(t, 2.6 + i * 0.045, 3.3 + i * 0.045));
+			css(c, { opacity: String(p), transform: `translateY(${(1 - p) * 70}px)`, filter: `blur(${(1 - p) * 10}px)` });
+		});
+		const logoX = 760;
+		css($('#logo'), { left: px(logoX), top: px(372) });
+		const mk = E.io(prog(t, 3.5, 4.0));
+		css($('#marker'), { transform: `skewX(-6deg) scaleX(${mk})` });
+		css($('#logo .w2'), { color: mk > 0.55 ? '#16141f' : '#ffffff' });
+		const tg = E.out5(prog(t, 4.0, 4.8));
+		css($('#tagline'), { left: px(logoX + 6), top: px(540), opacity: String(tg), transform: `translateY(${(1 - tg) * 24}px)` });
+		const sl = E.out5(prog(t, 4.7, 5.4));
+		css($('#subline'), { left: px(logoX + 8), top: px(618), opacity: String(sl), transform: `translateY(${(1 - sl) * 18}px)` });
+	}
+	// 締め（OUT から）
+	const outro = $('#outro');
+	const outroOn = t > OUT + 0.4;
+	css(outro, { opacity: outroOn ? '1' : '0', visibility: outroOn ? 'visible' : 'hidden' });
+	if (outroOn) {
+		const chars = letters($('#logo2'));
+		chars.forEach((c, i) => {
+			const p = E.out5(prog(t, OUT + 1.3 + i * 0.045, OUT + 2.1 + i * 0.045));
+			css(c, { opacity: String(p), transform: `translateY(${(1 - p) * 70}px)`, filter: `blur(${(1 - p) * 10}px)` });
+		});
+		css($('#logo2'), { left: px(960 - $('#logo2').offsetWidth / 2), top: px(388) });
+		const mk = E.io(prog(t, OUT + 2.3, OUT + 2.8));
+		css($('#marker2'), { transform: `skewX(-6deg) scaleX(${mk})` });
+		css($('#logo2 .w2'), { color: mk > 0.55 ? '#16141f' : '#ffffff' });
+		const tg = E.out5(prog(t, OUT + 2.9, OUT + 3.7));
+		css($('#tagline2'), { left: px(960 - $('#tagline2').offsetWidth / 2), top: px(560), opacity: String(tg), transform: `translateY(${(1 - tg) * 24}px)` });
+		// 「なぞるだけ」に、ロゴと同じ黄色のマーカーを引く
+		const m3 = E.io(prog(t, OUT + 3.6, OUT + 4.1));
+		css($('#marker3'), { transform: `skewX(-6deg) scaleX(${m3})` });
+		css($('#tagline2 .w-hl'), { color: m3 > 0.55 ? '#16141f' : '#ededf5' });
+		const sl = E.out5(prog(t, OUT + 4.4, OUT + 5.1));
+		css($('#subline2'), { left: px(960 - $('#subline2').offsetWidth / 2), top: px(660), opacity: String(sl), transform: `translateY(${(1 - sl) * 18}px)` });
+	}
+}
+
+/* ---------- 窓・カメラ・表裏 ---------- */
+function renderWindow(t) {
+	const inP = E.out5(prog(t, 7.2, 8.4));
+	const outP = E.in(prog(t, OUT, OUT + 0.8));
+	const show = Math.min(inP, 1 - outP);
+	css($('#cam'), { visibility: show > 0 ? 'visible' : 'hidden' });
+	// カメラ（窓の枠はそのままで、中身だけを寄せる。ペンのボタンに寄る・メニューを読むときに少し寄る）
+	let s = 1, fx = 960, fy = 540, cx = 960, cy = 540;
+	const zoom = (a, b, c, d, scale, focus, screen) => {
+		const p = E.io(prog(t, a, b)) * (1 - E.io(prog(t, c, d)));
+		s = mix(1, scale, p);
+		fx = mix(960, focus.x, p); fy = mix(540, focus.y, p);
+		cx = mix(960, screen.x, p); cy = mix(540, screen.y, p);
+	};
+	if (penFocus && t > 33 && t < 39) zoom(33.2, 34.2, 36.8, 37.9, 1.7, penFocus, { x: 1390, y: 168 });
+	if (penFocus && t > 47 && t < 51) zoom(47.2, 47.9, 49.4, 50.0, 1.4, penFocus, { x: 1440, y: 160 });
+	const O = { x: 200, y: 96 };
+	css($('.panes'), { transform: `translate(${cx - O.x - (fx - O.x) * s}px, ${cy - O.y - (fy - O.y) * s}px) scale(${s})` });
+	const intro = mix(0.94, 1, inP) * mix(1, 0.96, outP);
+	css($('#cam'), { opacity: String(show), transform: `translate(0px, ${(1 - inP) * 60}px) translate(${960 * (1 - intro)}px, ${540 * (1 - intro)}px) scale(${intro})` });
+	// 表裏（はじめは 1 枚。裏返して戻したあと、左右に並べる）
+	const flip = tw(t, 10.5, 11.4, 0, 180, E.io) + tw(t, 13.1, 14.0, 0, 180, E.io);
+	css($('#flipper'), { transform: `rotateY(${flip}deg)` });
+	const split = E.io(prog(t, 14.6, 15.7));
+	// STEP 8: ノートを閉じて、左にファイル一覧を出す（PDF は左へ広がる）
+	const s8 = E.io(prog(t, 109.3, 110.0));
+	const noteW = mix(1520, 700, split) * (1 - s8);
+	css($('#pane-note'), { width: px(noteW), opacity: String(1 - E.out(prog(t, 109.3, 109.75))) });
+	css($('#divider'), { opacity: String(split * (1 - s8)), left: px(noteW) });
+	css($('#pane-pdf'), { left: px(mix(701, 421, s8)), opacity: String(E.out(prog(t, 14.9, 15.8))), transform: `translateX(${(1 - E.out5(prog(t, 14.8, 15.9))) * 140}px)` });
+	css($('#sidebar'), { transform: `translateX(${(1 - s8) * -105}%)` });
+}
+
+/* ---------- PDF ---------- */
+/** 選択（青）→ ハイライト（黄） */
+function paintHl(info, t) {
+		const [d0, d1] = info.spec.drag;
+		const total = info.boxes.reduce((sum, b) => sum + b.w, 0);
+		const f = E.io(prog(t, d0, d1)) * total;
+		let acc = 0;
+		info.edge = null;
+		info.rects.forEach((el, i) => {
+			const b = info.boxes[i];
+			if (t < d0) { css(el, { opacity: '0' }); return; }
+			if (t < d1) {
+				const w = clamp(f - acc, 0, b.w);
+				css(el, { opacity: w > 0 ? '1' : '0', width: px(w), background: 'rgba(76,128,255,.34)', mixBlendMode: 'normal', transform: 'none' });
+				if (w > 0) info.edge = { i, w };
+			} else {
+				const pop = E.back(prog(t, d1, d1 + 0.35));
+				const flash = Math.max(0, 1 - prog(t, d1, d1 + 0.6));
+				css(el, { opacity: '1', width: px(b.w), background: `rgba(255,${212 - flash * 20},${flash * 40},${0.62 + flash * 0.2})`, mixBlendMode: 'multiply', transform: `scaleY(${mix(0.55, 1, pop)})` });
+			}
+			acc += b.w;
+		});
+		if (info.badge) {
+			const p = E.back(prog(t, d1 + 0.1, d1 + 0.45));
+			css(info.badge, { opacity: String(prog(t, d1 + 0.1, d1 + 0.3)), transform: `scale(${mix(0.4, 1, p)})` });
+		}
+}
+
+function renderPdf(t) {
+	// STEP 8 で新しい PDF に入れ替える（いまのページは左へ、新しいページは右から）
+	const swap = E.io(prog(t, 109.3, 110.0));
+	css($('#page'), { transform: `translate(${-swap * 1150}px, ${-kf(t, PAGE_SCROLL)}px)`, opacity: String(1 - E.out(prog(t, 109.3, 109.85))), visibility: swap < 1 ? 'visible' : 'hidden' });
+	css($('#page2'), { transform: `translateX(${(1 - swap) * 1150}px)`, visibility: swap > 0 ? 'visible' : 'hidden' });
+	$('#pdf-toolbar .pagebox').textContent = swap > 0.5 ? '1 / 2' : '1 / 3';
+	for (const id of Object.keys(HLS)) if (id !== 'fig') paintHl(HLS[id], t);
+	for (const info of Object.values(HLS2)) paintHl(info, t);
+	// 画像の範囲
+	const [r0, r1] = HL.fig.drag;
+	if (t < r0) css(regionEl, { opacity: '0' });
+	else {
+		const p = E.io(prog(t, r0, r1));
+		const b = figRegion;
+		const drag = t < r1;
+		regionEl.className = drag ? 'region drag' : 'region';
+		css(regionEl, { opacity: '1', left: px(b.x), top: px(b.y), width: px(Math.max(4, b.w * p)), height: px(Math.max(4, b.h * p)) });
+		css(regionBadge, { opacity: drag ? '0' : String(prog(t, r1, r1 + 0.3)), transform: `scale(${mix(0.5, 1, E.back(prog(t, r1, r1 + 0.4)))})` });
+	}
+	// 点を押したときの PDF 側の点滅（s2）
+	const fl = HLS.s2;
+	const flashP = env(t, 68.5, 69.9, 0.15, 0.6);
+	const pulse = 0.5 + 0.5 * Math.sin((t - 68.5) * 14);
+	const u = unionBox(fl.boxes);
+	css(pdfFlash, { opacity: String(flashP * (0.55 + 0.45 * pulse)), left: px(u.x - 6), top: px(u.y - 6), width: px(u.w + 12), height: px(u.h + 12) });
+	// ツールバー: ペンとメニュー、範囲のボタン
+	const kind = t >= 36.5 && t < 49.3 ? '2' : '0';
+	const penKind = $('#pen-kind');
+	css(penKind, { opacity: kind === '2' ? String(E.out(prog(t, 36.55, 36.85))) : t >= 49.3 ? String(1 - prog(t, 49.3, 49.5)) : '0', transform: `scale(${kind === '2' ? mix(0.4, 1, E.back(prog(t, 36.55, 36.9))) : 1})` });
+	const menuOpen = Math.max(env(t, 35.0, 36.8, 0.22, 0.2), env(t, 48.3, 49.55, 0.22, 0.2));
+	css($('#pen-menu'), { opacity: String(menuOpen), transform: `translateY(${(1 - menuOpen) * -8}px) scale(${mix(0.96, 1, menuOpen)})`, visibility: menuOpen > 0 ? 'visible' : 'hidden' });
+	for (const row of $$('#pen-menu [data-kind]')) {
+		const k = row.dataset.kind;
+		row.classList.toggle('hover', (t > 35.95 && t < 36.7 && k === '2') || (t > 48.95 && t < 49.5 && k === '0'));
+		row.querySelector('.ck').style.opacity = k === kind ? '1' : '0';
+	}
+	$('#pen-btn').classList.toggle('hover', (t > 34.6 && t < 36.8) || (t > 47.95 && t < 49.5));
+	$('#pen-btn').classList.toggle('active', menuOpen > 0.5);
+	$('#crop-btn').classList.toggle('hover', t > 80.1 && t < 80.5);
+	$('#crop-btn').classList.toggle('active', t >= 80.5 && t < 82.95);
+	$('#note-flip').classList.toggle('hover', t > 9.95 && t < 10.55);
+	const back = $('#back-flip');
+	if (back) back.classList.toggle('hover', t > 12.45 && t < 13.05);
+}
+
+function unionBox(boxes) {
+	const x = Math.min(...boxes.map((b) => b.x));
+	const y = Math.min(...boxes.map((b) => b.y));
+	const r = Math.max(...boxes.map((b) => b.x + b.w));
+	const btm = Math.max(...boxes.map((b) => b.y + b.h));
+	return { x, y, w: r - x, h: btm - y };
+}
+
+/* ---------- ノート ---------- */
+const TYPED = '（効果は小さい）';
+function renderNote(t) {
+	for (const id of Object.keys(HLS)) {
+		const info = HLS[id];
+		const land = info.spec.fly[1];
+		const open = E.io(prog(t, land - 0.5, land - 0.05));
+		const done = t > land + 0.6;
+		css(info.item, { height: done ? '' : px(info.h * open) });
+		css(info.in, { opacity: String(E.out(prog(t, land - 0.12, land + 0.25))) });
+		const pop = E.back(prog(t, land + 0.05, land + 0.42));
+		css(info.dot, { transform: `scale(${pop})` });
+		info.dot.classList.toggle('ring', t > land + 0.1 && t < land + 0.9);
+		const fl = id === 's1' ? env(t, 71.1, 72.6, 0.15, 0.9) : 0;
+		css(info.flash, { opacity: String(fl * 0.9) });
+	}
+	// 文の書き換え（箇条書きの 2 行目に自分の考えを書き足す。点（つながり）はそのまま）
+	const edit = HLS.b.item;
+	const n = Math.floor(TYPED.length * prog(t, 73.5, 75.2));
+	edit.querySelector('.typed').textContent = TYPED.slice(0, n);
+	const caretOn = t > 73.3 && t < 76.4 && (t < 75.3 || Math.floor((t - 75.3) * 2.2) % 2 === 0);
+	css(edit.querySelector('.caret'), { opacity: caretOn ? '1' : '0' });
+	// スクロール
+	css($('#note-body'), { transform: `translateY(${-kf(t, NOTE_SCROLL)}px)` });
+}
+
+/* ---------- 飛ぶ ---------- */
+function renderFlights(t) {
+	for (const id of Object.keys(HLS)) {
+		const info = HLS[id];
+		const [f0, f1] = info.spec.fly;
+		if (t < f0 || t > f1 + 0.05) { css(info.fly, { opacity: '0', visibility: 'hidden' }); continue; }
+		const u = prog(t, f0, f1);
+		const e = E.io(u);
+		const target = rectOf(info.tx);
+		let src;
+		if (id === 'fig') {
+			const page = rectOf($('#page'));
+			src = { x: page.x + figRegion.x, y: page.y + figRegion.y, w: figRegion.w, h: figRegion.h };
+		} else {
+			src = unionRects(info.rects.map(rectOf));
+		}
+		const kind = info.spec.kind;
+		if (kind === 'p' || kind === 'b') css(info.fly, { width: px(target.w + 12) });
+		const fw = info.fly.offsetWidth;
+		const fh = info.fly.offsetHeight;
+		const s0 = Math.min(1.2, Math.max(0.35, src.h / fh, Math.min(src.w / fw, 1)));
+		const scale = mix(s0, 1, e);
+		const sx = src.x + src.w / 2, sy = src.y + src.h / 2;
+		const tx = target.x - 6 + fw / 2, ty = target.y - 2 + fh / 2;
+		const lift = Math.min(220, Math.abs(sx - tx) * 0.28 + 60);
+		const cx = (sx + tx) / 2, cy = Math.min(sy, ty) - lift;
+		const bx = (1 - e) * (1 - e) * sx + 2 * (1 - e) * e * cx + e * e * tx;
+		const by = (1 - e) * (1 - e) * sy + 2 * (1 - e) * e * cy + e * e * ty;
+		const op = Math.min(E.out(prog(u, 0, 0.14)), 1 - E.in(prog(u, 0.86, 1)));
+		const rot = Math.sin(u * Math.PI) * (tx < sx ? -3 : 3);
+		css(info.fly, { visibility: 'visible', opacity: String(op), transform: `translate(${px(bx - (fw * scale) / 2)}, ${px(by - (fh * scale) / 2)}) rotate(${rot}deg) scale(${scale})` });
+	}
+}
+function unionRects(rs) {
+	const x = Math.min(...rs.map((r) => r.x)), y = Math.min(...rs.map((r) => r.y));
+	const r = Math.max(...rs.map((q) => q.x + q.w)), b = Math.max(...rs.map((q) => q.y + q.h));
+	return { x, y, w: r - x, h: b - y };
+}
+
+/* ---------- カード（設定・テンプレート・ファイル） ---------- */
+const SET_TEXT = '## Summary\n## ハイライト';
+function renderCards(t) {
+	const dim = Math.max(env(t, 90.3, 104.9, 0.5, 0.5), env(t, 104.9, 109.5, 0.01, 0.4));
+	css($('#dim'), { opacity: String(dim) });
+	// 設定
+	const st = env(t, 90.4, 94.4, 0.5, 0.4);
+	css($('#settings'), { opacity: String(st), transform: `translateY(${(1 - st) * 26}px) scale(${mix(0.97, 1, st)})`, visibility: st > 0 ? 'visible' : 'hidden' });
+	const n = Math.floor(SET_TEXT.length * prog(t, 91.2, 93.5));
+	$('#set-typed').textContent = SET_TEXT.slice(0, n);
+	$('#set-ta').classList.toggle('focus', t > 91.0 && t < 94.2);
+	css($('#set-caret'), { opacity: t > 91.0 && t < 94.2 && (t < 93.5 || Math.floor((t - 93.5) * 2.2) % 2 === 0) ? '1' : '0' });
+	// テンプレートのノート
+	const tp = env(t, 94.4, 105.0, 0.55, 0.5);
+	css($('#tpl'), { opacity: String(tp), transform: `translateY(${(1 - tp) * 30}px) scale(${mix(0.97, 1, tp)})`, visibility: tp > 0 ? 'visible' : 'hidden' });
+	const slotOpen = (el, a, b) => {
+		const h = el.dataset.h ? Number(el.dataset.h) : (el.dataset.h = String(el.scrollHeight)) && el.scrollHeight;
+		const p = E.io(prog(t, a, b));
+		css(el, { height: px(h * p) });
+		css(el.querySelector('.in'), { opacity: String(E.out(prog(t, b - 0.1, b + 0.3))) });
+		css(el.querySelector('.dot'), { transform: `scale(${E.back(prog(t, b, b + 0.4))})` });
+	};
+	slotOpen($('#tpl-slot1'), 98.4, 98.9);
+	slotOpen($('#tpl-slot2'), 99.95, 100.45);
+	css($('#tpl-sum .glow-bar'), { opacity: String(env(t, 97.9, 101.2, 0.3, 0.6) * 0.95) });
+	// 選ぶ画面
+	const ch = env(t, 95.7, 97.9, 0.3, 0.25, E.back);
+	css($('#choose'), { opacity: String(Math.min(1, ch)), transform: `scale(${mix(0.9, 1, ch)})`, visibility: ch > 0 ? 'visible' : 'hidden' });
+	$('#ch-sum').classList.toggle('hover', t > 97.2 && t < 97.7);
+	// 飛ぶ札
+	const chip = (el, appearAt, flyA, flyB, slot) => {
+		const sum = rectOf($(slot));
+		const start = { x: 1360, y: 150 };
+		const p = E.io(prog(t, flyA, flyB));
+		const ap = E.out5(prog(t, appearAt, appearAt + 0.4));
+		const w = el.offsetWidth, h = el.offsetHeight;
+		const tx = sum.x + 4, ty = sum.y + 10;
+		const cx = (start.x + tx) / 2, cy = Math.min(start.y, ty) - 120;
+		const bx = (1 - p) * (1 - p) * start.x + 2 * (1 - p) * p * cx + p * p * tx;
+		const by = (1 - p) * (1 - p) * start.y + 2 * (1 - p) * p * cy + p * p * ty;
+		const op = Math.min(ap, 1 - prog(t, flyB - 0.12, flyB));
+		css(el, { opacity: String(op), left: px(bx), top: px(by), transform: `scale(${mix(1.06, 0.92, p)}) rotate(${Math.sin(p * Math.PI) * -4}deg)`, visibility: op > 0 ? 'visible' : 'hidden' });
+		return { w, h };
+	};
+	chip($('#chip1'), 95.2, 97.9, 98.9, '#tpl-slot1');
+	chip($('#chip2'), 99.2, 99.5, 100.45, '#tpl-slot2');
+	const lo = env(t, 100.5, 104.6, 0.4, 0.4);
+	const s2r = rectOf($('#tpl-slot2'));
+	css($('#label-once'), { opacity: String(lo), left: px(s2r.x + 470), top: px(s2r.y + 6), transform: `translateX(${(1 - lo) * -14}px)` });
+	const ld = env(t, 100.9, 104.6, 0.4, 0.4);
+	const dr = rectOf($('#tpl-data'));
+	css($('#label-data'), { opacity: String(ld), left: px(dr.x + 300), top: px(dr.y - 26), transform: `translateY(${(1 - ld) * 10}px)` });
+	renderStep8(t);
+}
+
+/* ---------- STEP 8: PDF の置き場所 ---------- */
+const PDF_DIR = 'Library/PDF';
+function renderStep8(t) {
+	// 設定: 保存先を入れて、自動で移すをオンにする
+	const st = env(t, S8 + 0.2, S8 + 4.4, 0.5, 0.4);
+	css($('#settings2'), { opacity: String(st), transform: `translateY(${(1 - st) * 26}px) scale(${mix(0.97, 1, st)})`, visibility: st > 0 ? 'visible' : 'hidden' });
+	const typed = Math.floor(PDF_DIR.length * prog(t, S8 + 1.6, S8 + 2.8));
+	$('#s2-typed').textContent = PDF_DIR.slice(0, typed);
+	css($('#s2-ph'), { opacity: typed > 0 ? '0' : '1' });
+	const focus = t > S8 + 1.4 && t < S8 + 3.0;
+	$('#s2-in').classList.toggle('focus', focus);
+	css($('#s2-caret'), { opacity: focus && (t < S8 + 2.8 || Math.floor((t - S8 - 2.8) * 2.2) % 2 === 0) ? '1' : '0' });
+	const on = E.out5(prog(t, S8 + 3.6, S8 + 3.9));
+	css($('#s2-toggle'), { background: `rgb(${mix(61, 127, on)}, ${mix(61, 109, on)}, ${mix(70, 242, on)})` });
+	css($('#s2-toggle .knob'), { transform: `translateX(${on * 24}px)` });
+	// ファイル一覧: 開いた PDF（vault の直下）が、ハイライトした瞬間に保存先へ
+	const rowH = 46;
+	css($('#s-origslot'), { height: px(rowH * (1 - E.io(prog(t, 111.9, 112.4)))) });
+	css($('#s-slot'), { height: px(rowH * E.io(prog(t, 112.2, 112.7))) });
+	css($('#s-moved'), { opacity: String(E.out(prog(t, 112.7, 113.0))) });
+	$('#s-moved').classList.toggle('active', t > 112.8);
+	css($('#s-chev'), { transform: `rotate(${tw(t, 111.8, 112.2, 0, 90)}deg)` });
+	const pulse = t > 111.4 && t < 111.95;
+	$('#s-pdf').classList.toggle('pulse', pulse);
+	$('#s-pdf').classList.toggle('active', !pulse);
+	const fl = $('#t-flyer');
+	if (t > 111.85 && t < 112.85) {
+		const fp = E.io(prog(t, 111.9, 112.8));
+		const from = rectOf($('#s-pdf'));
+		const to = rectOf($('#s-slot'));
+		const bx = mix(from.x, from.x + 52, fp);
+		const by = mix(from.y, to.y, fp) - Math.sin(fp * Math.PI) * 70;
+		css(fl, { opacity: String(Math.min(1, prog(t, 111.85, 112.0)) * (1 - prog(t, 112.7, 112.85))), left: px(bx), top: px(by), width: px(from.w - 52 * fp), transform: `scale(${1 + Math.sin(fp * Math.PI) * 0.05})` });
+	} else css(fl, { opacity: '0' });
+	// 通知（Obsidian と同じく右上）
+	const toast = env(t, 112.95, OUT - 0.3, 0.35, 0.4, E.back);
+	css($('#toast'), { opacity: String(Math.min(1, toast)), left: px(1720 - 24 - $('#toast').offsetWidth), top: px(156 - (1 - Math.min(1, toast)) * 12), right: 'auto' });
+}
+
+/* ---------- 字幕 ---------- */
+function renderCaptions(t) {
+	const cap = CAPS.find((c) => t >= c.t[0] - 0.01 && t <= c.t[1] + 0.01);
+	const el = $('#cap');
+	if (!cap) { css(el, { opacity: '0' }); }
+	else {
+		const inP = E.out5(prog(t, cap.t[0], cap.t[0] + 0.7));
+		const outP = E.in(prog(t, cap.t[1] - 0.35, cap.t[1]));
+		css(el, { opacity: String(Math.min(inP, 1 - outP)) });
+		$('#cap-tag').textContent = cap.tag;
+		const head = $('#cap-head');
+		if (head.dataset.k !== cap.tag) { head.innerHTML = cap.head; head.dataset.k = cap.tag; }
+		css($('#cap-tag'), { transform: `translateY(${(1 - inP) * 18}px)` });
+		css(head, { transform: `translateY(${(1 - inP) * 34 - outP * 10}px)`, clipPath: `inset(0 ${(1 - E.out5(prog(t, cap.t[0] + 0.05, cap.t[0] + 0.9))) * 100}% 0 0)` });
+		// 説明（同じ字幕の中で入れ替わる）
+		let idx = 0;
+		for (let i = 0; i < cap.subs.length; i++) if (t >= cap.subs[i][0]) idx = i;
+		const a = $('#cap-sub-a'), b = $('#cap-sub-b');
+		const cur = cap.subs[idx];
+		const prev = idx > 0 ? cap.subs[idx - 1] : null;
+		const sp = idx === 0 ? E.out5(prog(t, cap.t[0] + 0.2, cap.t[0] + 0.9)) : E.out5(prog(t, cur[0], cur[0] + 0.6));
+		a.textContent = cur[1];
+		css(a, { opacity: String(sp), transform: `translateY(${(1 - sp) * 22}px)` });
+		if (prev) {
+			b.textContent = prev[1];
+			const op = 1 - E.out(prog(t, cur[0], cur[0] + 0.35));
+			css(b, { opacity: String(op), transform: `translateY(${(1 - op) * -18}px)` });
+		} else css(b, { opacity: '0' });
+	}
+	// ヒント（STEP 1 の Alt）
+	const tip = env(t, 29.3, 32.7, 0.5, 0.35);
+	css($('#tip-pill'), { opacity: String(tip), transform: `translateX(${(1 - tip) * 30}px)` });
+}
+
+function renderProgress(t) {
+	const p = prog(t, 8.7, OUT);
+	const vis = env(t, 8.4, OUT + 0.4, 0.5, 0.4);
+	css($('#progress'), { opacity: String(vis) });
+	css($('#progress-fill'), { width: `${p * 100}%` });
+	const ticks = $$('.tick');
+	CAPS.forEach((c, i) => ticks[i].classList.toggle('on', t >= c.t[0]));
+}
+
+/* ---------- ツールチップ ---------- */
+function renderTooltips(t) {
+	const show = (id, anchorSel, a, b, dx = 0) => {
+		const el = $(id);
+		const anchor = $(anchorSel);
+		const v = anchor ? env(t, a, b, 0.18, 0.15) : 0;
+		if (v <= 0 || !anchor) { css(el, { opacity: '0' }); return; }
+		const r = rectOf(anchor);
+		css(el, { opacity: String(v), left: px(r.x + r.w / 2 - el.offsetWidth / 2 + dx), top: px(r.y + r.h + 10 + (1 - v) * -6) });
+	};
+	show('#tip-flip', '#note-flip', 9.95, 10.5, -70);
+	show('#tip-back', '#back-flip', 12.4, 12.95, -70);
+	show('#tip-pen', '#pen-btn', 34.65, 35.05, -30);
+	show('#tip-crop', '#crop-btn', 80.1, 80.5, -40);
+}
+
+/* ---------- カーソル ---------- */
+const P = (x, y) => () => ({ x, y });
+const at = (sel, fx = 0.5, fy = 0.5) => () => { const el = $(sel); if (!el) return { x: 960, y: 540 }; const r = rectOf(el); return { x: r.x + r.w * fx, y: r.y + r.h * fy }; };
+const off = (fn, dx, dy) => () => { const p = fn(); return { x: p.x + dx, y: p.y + dy }; };
+const infoOf = (id) => HLS[id] ?? HLS2[id];
+const hlStart = (id) => () => { const r = rectOf(infoOf(id).rects[0]); return { x: r.x + 2, y: r.y + r.h * 0.55 }; };
+const hlEnd = (id) => () => { const rs = infoOf(id).rects; const r = rectOf(rs[rs.length - 1]); return { x: r.x + r.w - 2, y: r.y + r.h * 0.55 }; };
+const hlMid = (id) => () => centerOf(rectOf(HLS[id].rects[0]));
+const dotOf = (id) => () => centerOf(rectOf(HLS[id].dot));
+const caretOf = (id) => () => { const r = rectOf(HLS[id].item.querySelector('.caret')); return { x: r.x + 1, y: r.y + r.h * 0.6 }; };
+const figCorner = (c) => () => { const p = rectOf($('#page')); const b = figRegion; return c === 'tl' ? { x: p.x + b.x, y: p.y + b.y } : { x: p.x + b.x + b.w, y: p.y + b.y + b.h }; };
+const CUR = [
+	{ t: [8.7, 9.1], to: P(1230, 640) },
+	// 表裏の切り替えボタン（1 枚のときは窓の右上。裏返る間に位置が鏡写しになるので、座標で指す）
+	{ t: [9.3, 10.2], to: P(1690, 119) },
+	{ t: [11.7, 12.6], to: P(1692, 119) },
+	{ t: [13.5, 14.3], to: P(1250, 650) },
+	{ t: [19.4, 20.4], to: hlStart('s1') },
+	{ t: [20.6, 22.0], drag: 's1' },
+	{ t: [22.4, 23.2], to: off(hlEnd('s1'), 40, 70) },
+	{ t: [25.6, 26.4], to: hlStart('s2') },
+	{ t: [26.5, 27.7], drag: 's2' },
+	{ t: [28.1, 28.9], to: off(hlEnd('s2'), 70, -70) },
+	{ t: [34.0, 34.8], to: at('#pen-btn') },
+	{ t: [35.6, 36.3], to: at('#pen-menu [data-kind="2"]', 0.3, 0.5) },
+	{ t: [36.9, 38.2], to: hlStart('h1') },
+	{ t: [39.0, 39.6], drag: 'h1' },
+	{ t: [40.8, 41.4], to: hlStart('h2') },
+	{ t: [41.6, 42.1], drag: 'h2' },
+	{ t: [43.2, 43.8], to: hlStart('h3') },
+	{ t: [43.9, 44.4], drag: 'h3' },
+	{ t: [44.8, 45.6], to: off(hlEnd('h3'), 70, 50) },
+	{ t: [47.3, 48.1], to: at('#pen-btn') },
+	{ t: [48.55, 49.1], to: at('#pen-menu [data-kind="0"]', 0.3, 0.5) },
+	{ t: [49.55, 50.0], to: hlStart('s3') },
+	{ t: [50.1, 51.2], drag: 's3' },
+	{ t: [51.6, 52.4], to: off(hlEnd('s3'), 40, 60) },
+	{ t: [57.3, 58.0], to: hlStart('b') },
+	{ t: [58.1, 59.6], drag: 'b' },
+	{ t: [60.0, 60.8], to: off(hlEnd('b'), 70, 50) },
+	{ t: [66.4, 67.4], to: dotOf('s2') },
+	{ t: [69.8, 70.8], to: hlMid('s1') },
+	{ t: [72.4, 73.2], to: caretOf('b') },
+	{ t: [75.9, 76.7], to: off(caretOf('b'), 80, 70) },
+	{ t: [79.6, 80.3], to: at('#crop-btn') },
+	{ t: [80.8, 81.3], to: figCorner('tl') },
+	{ t: [81.4, 82.8], region: true },
+	{ t: [83.2, 84.0], to: off(figCorner('br'), 60, 50) },
+	{ t: [88.6, 89.6], to: P(1640, 812) },
+	{ t: [96.4, 97.3], to: at('#ch-sum') },
+	{ t: [98.0, 98.9], to: P(1470, 760) },
+	{ t: [105.6, 106.3], to: at('#s2-in', 0.12, 0.55) },
+	{ t: [107.9, 108.5], to: at('#s2-toggle', 0.5, 0.5) },
+	{ t: [109.0, 109.7], to: P(1330, 620) },
+	{ t: [109.9, 110.35], to: hlStart('n1') },
+	{ t: [110.4, 111.3], drag: 'n1' },
+	{ t: [111.5, 112.2], to: off(hlEnd('n1'), 60, 70) },
+];
+function dragEdge(id) {
+	const info = infoOf(id);
+	if (!info.edge) return hlStart(id)();
+	const r = rectOf(info.rects[info.edge.i]);
+	return { x: r.x + r.w, y: r.y + r.h * 0.55 };
+}
+function targetOf(seg) {
+	if (seg.drag) return seg.t[0] <= T && T <= seg.t[1] ? dragEdge(seg.drag) : hlEnd(seg.drag)();
+	if (seg.region) {
+		const tl = figCorner('tl')(), br = figCorner('br')();
+		const p = E.io(prog(T, seg.t[0], seg.t[1]));
+		return { x: mix(tl.x, br.x, p), y: mix(tl.y, br.y, p) };
+	}
+	return seg.to();
+}
+function renderCursor(t) {
+	const vis = env(t, 8.7, OUT - 0.1, 0.4, 0.5);
+	const cur = $('#cur');
+	if (vis <= 0) { css($('#cursor'), { opacity: '0' }); return; }
+	let pos = CUR[0].to();
+	for (let i = 0; i < CUR.length; i++) {
+		const seg = CUR[i];
+		if (t < seg.t[0]) break;
+		if (t <= seg.t[1] && !seg.drag && !seg.region && i > 0) {
+			const from = targetOf(CUR[i - 1]);
+			const to = targetOf(seg);
+			const p = E.io(prog(t, seg.t[0], seg.t[1]));
+			const arc = Math.sin(p * Math.PI) * Math.min(40, Math.hypot(to.x - from.x, to.y - from.y) * 0.08);
+			pos = { x: mix(from.x, to.x, p), y: mix(from.y, to.y, p) - arc };
+		} else pos = targetOf(seg);
+	}
+	let shape = 'arrow';
+	for (const [a, b, s] of SHAPES) if (t >= a && t <= b) shape = s;
+	$('#c-arrow').style.display = shape === 'arrow' ? '' : 'none';
+	$('#c-ibeam').style.display = shape === 'ibeam' ? '' : 'none';
+	$('#c-cross').style.display = shape === 'cross' ? '' : 'none';
+	const hot = shape === 'arrow' ? { x: 7, y: 3 } : { x: 17, y: 17 };
+	let press = 1, ripple = 0, rippleAge = 0;
+	for (const c of CLICKS) {
+		if (t >= c - 0.08 && t <= c + 0.16) press = Math.min(press, 0.84 + 0.16 * Math.abs(t - c) / 0.16);
+		if (t >= c && t <= c + 0.5) { ripple = 1; rippleAge = (t - c) / 0.5; }
+	}
+	css($('#cursor'), { opacity: String(vis), transform: `translate(${px(pos.x)}, ${px(pos.y)})` });
+	css(cur, { transform: `translate(${-hot.x}px, ${-hot.y}px) scale(${press})`, transformOrigin: `${hot.x}px ${hot.y}px` });
+	css($('#ripple'), { opacity: String(ripple ? (1 - rippleAge) * 0.9 : 0), transform: `scale(${mix(0.2, 1.2, E.out(rippleAge))})` });
+}
+
+/* ================= 初期化 ================= */
+function buildTicks() {
+	const prog = $('#progress');
+	CAPS.forEach((c) => {
+		const d = document.createElement('div');
+		d.className = 'tick';
+		d.style.left = `${((c.t[0] - 8.7) / (OUT - 8.7)) * 100}%`;
+		prog.appendChild(d);
+	});
+}
+
+function fit() {
+	if (RENDER) { stageScale = 1; css(stage, { transform: 'none' }); return; }
+	const vw = window.innerWidth, vh = window.innerHeight - 52;
+	stageScale = Math.min(vw / W, vh / H);
+	css(stage, { transform: `translate(${(vw - W * stageScale) / 2}px, ${(vh - H * stageScale) / 2}px) scale(${stageScale})` });
+}
+
+async function init() {
+	fit();
+	await document.fonts.ready;
+	// ノートの画像（外側の img-card はノート側の .tx が持つので、中身だけ入れる）
+	$('#note-fig').replaceChildren(...makeFigCard().childNodes);
+	buildBackFace();
+	buildTicks();
+	// 測るときは、すべて表に出して、カメラ・スクロールは初期のまま
+	css($('#cam'), { transform: 'none', opacity: '1', visibility: 'visible' });
+	css($('#pane-note'), { width: '700px' });
+	css($('#pane-pdf'), { opacity: '1', transform: 'none' });
+	for (const it of $$('.item')) css(it, { height: '' });
+	measure();
+	// ノートのスクロール: 図が入って下まで伸びたら、最後の文が見えるように
+	const scroll = $('.note-scroll').getBoundingClientRect().height / stageScale;
+	const body = $('#note-body').getBoundingClientRect().height / stageScale - 120;
+	const over = Math.max(0, body - scroll + 30);
+	const beforeFig = Math.max(0, body - HLS.fig.h - scroll + 30);
+	NOTE_SCROLL = [[0, 0], [52.6, 0], [53.4, Math.min(beforeFig, over) * 0.5], [61.0, Math.min(beforeFig, over) * 0.5], [61.6, beforeFig], [66.2, beforeFig], [66.8, beforeFig], [70.6, beforeFig], [71.0, 0], [76.8, 0], [83.0, 0], [83.6, over], [999, over]];
+	render(0);
+	window.__ready = true;
+}
+
+window.__duration = DURATION;
+window.__timeline = { DURATION, HL, CAPS, CLICKS, SFX, MUSIC };
+window.__render = (t) => { render(t); return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true)))); };
+
+/* ================= 再生（ブラウザで開いたとき） ================= */
+if (!RENDER) {
+	let playing = false, startAt = 0, from = 0;
+	const seek = $('#seek'), time = $('#time'), play = $('#play');
+	const setT = (t) => { const v = clamp(t, 0, DURATION); render(v); seek.value = String(v); time.textContent = `${v.toFixed(1)}s`; return v; };
+	const loop = (now) => {
+		if (!playing) return;
+		const t = from + (now - startAt) / 1000;
+		if (t >= DURATION) { playing = false; play.textContent = '▶ 再生'; setT(DURATION); return; }
+		setT(t);
+		requestAnimationFrame(loop);
+	};
+	const toggle = () => {
+		playing = !playing;
+		play.textContent = playing ? '❚❚ 停止' : '▶ 再生';
+		if (playing) { from = Number(seek.value) >= DURATION ? 0 : Number(seek.value); startAt = performance.now(); requestAnimationFrame(loop); }
+	};
+	play.addEventListener('click', toggle);
+	seek.addEventListener('input', () => { playing = false; play.textContent = '▶ 再生'; setT(Number(seek.value)); });
+	window.addEventListener('keydown', (e) => {
+		if (e.code === 'Space') { e.preventDefault(); toggle(); }
+		if (e.code === 'ArrowRight') { from = setT(Number(seek.value) + 5); startAt = performance.now(); }
+		if (e.code === 'ArrowLeft') { from = setT(Number(seek.value) - 5); startAt = performance.now(); }
+	});
+	window.addEventListener('resize', () => { fit(); render(Number(seek.value)); });
+}
+init();
+})();
+</script>
+</body>
+</html>

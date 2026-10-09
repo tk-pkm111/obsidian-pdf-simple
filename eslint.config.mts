@@ -19,6 +19,8 @@ export default defineConfig(
 		'docs',
 		'scripts',
 		'.claude',
+		// プロモーション動画の元（ブラウザで動く HTML と書き出しスクリプト）
+		'promo',
 	]),
 	{
 		languageOptions: {
