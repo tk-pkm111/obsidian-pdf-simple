@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-pdf-simple",
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"description": "Obsidian plugin: highlight PDFs in the built-in viewer and collect the highlighted text in a paired note.",
 	"license": "MIT",
 	"private": true,
