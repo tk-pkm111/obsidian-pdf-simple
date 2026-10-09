@@ -40,6 +40,10 @@ export interface PdfToolsSettings {
 	pairingProperty: string;
 	/** ノートのプロパティ欄で pdf-highlights の行を隠す */
 	hideEntriesProperty: boolean;
+	/** ノートと組にした PDF を置くフォルダ（入力欄の文字のまま。空なら移さない） */
+	pdfFolder: string;
+	/** PDF にハイライトしたとき・ノートに添付したときに、保存先へ自動で移す */
+	autoMovePdf: boolean;
 }
 
 /** 既定の色（白い紙面の上で読みやすい蛍光ペンの色） */
@@ -64,6 +68,8 @@ export const DEFAULT_SETTINGS: Readonly<PdfToolsSettings> = {
 	flipMode: 'same-leaf',
 	pairingProperty: 'pdf',
 	hideEntriesProperty: true,
+	pdfFolder: '',
+	autoMovePdf: true,
 };
 
 /** `#rgb` / `#rrggbb` を小文字の `#rrggbb` に。違えば null */
@@ -223,6 +229,8 @@ export function normalizeSettings(raw: unknown): PdfToolsSettings {
 			data.hideEntriesProperty,
 			DEFAULT_SETTINGS.hideEntriesProperty,
 		),
+		pdfFolder: text(data.pdfFolder, DEFAULT_SETTINGS.pdfFolder),
+		autoMovePdf: bool(data.autoMovePdf, DEFAULT_SETTINGS.autoMovePdf),
 	};
 }
 

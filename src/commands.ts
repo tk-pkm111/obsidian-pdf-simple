@@ -165,6 +165,22 @@ export function registerCommands(plugin: PdfToolsPlugin): void {
 	});
 
 	plugin.addCommand({
+		id: 'move-pdf-to-folder',
+		name: t('command.movePdf'),
+		icon: 'folder-input',
+		checkCallback: (checking) => {
+			const note =
+				plugin.app.workspace.getActiveViewOfType(MarkdownView)?.file;
+			const pdf =
+				activePdfView(plugin)?.file ??
+				(note ? plugin.pairing.pdfFor(note) : null);
+			if (!pdf || !plugin.storage.canMove(pdf)) return false;
+			if (!checking) void plugin.storage.move(pdf);
+			return true;
+		},
+	});
+
+	plugin.addCommand({
 		id: 'clean-orphan-entries',
 		name: t('command.cleanOrphanEntries'),
 		icon: 'eraser',

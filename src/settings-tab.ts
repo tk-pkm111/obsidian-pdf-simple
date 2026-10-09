@@ -176,6 +176,26 @@ export class PdfToolsSettingTab extends PluginSettingTab {
 			},
 			{
 				type: 'group',
+				heading: t('settings.groupPdf'),
+				items: [
+					{
+						name: t('settings.pdfFolder'),
+						desc: t('settings.pdfFolderDesc'),
+						control: {
+							type: 'folder',
+							key: 'pdfFolder',
+							placeholder: t('settings.pdfFolderPlaceholder'),
+						},
+					},
+					{
+						name: t('settings.autoMovePdf'),
+						desc: t('settings.autoMovePdfDesc'),
+						control: { type: 'toggle', key: 'autoMovePdf' },
+					},
+				],
+			},
+			{
+				type: 'group',
 				heading: t('settings.groupFlip'),
 				items: [
 					{
@@ -255,7 +275,11 @@ export class PdfToolsSettingTab extends PluginSettingTab {
 				break;
 			case 'hideEntriesProperty':
 			case 'bulletList':
+			case 'autoMovePdf':
 				if (typeof value === 'boolean') next[key] = value;
+				break;
+			case 'pdfFolder':
+				if (typeof value === 'string') next.pdfFolder = value;
 				break;
 			case 'selectAction':
 				if (

@@ -19,6 +19,7 @@ import {
 } from './note/post-processor';
 import { createSeparatorGuard } from './note/separator-guard';
 import { RegionRenderer } from './pdf/render-region';
+import { PdfStorage } from './pdf-storage';
 import { RegionActions } from './region-actions';
 import { PdfToolsSettingTab } from './settings-tab';
 import { BodyClass } from './ui/body-class';
@@ -32,6 +33,7 @@ export default class PdfToolsPlugin extends Plugin {
 	settings!: PdfToolsSettings;
 	highlights!: HighlightService;
 	pairing!: PairingService;
+	storage!: PdfStorage;
 	writer!: NoteWriter;
 	actions!: HighlightActions;
 	regions!: RegionActions;
@@ -48,6 +50,7 @@ export default class PdfToolsPlugin extends Plugin {
 		if (needsMigration(raw)) await this.saveData(this.settings);
 		this.highlights = this.addChild(new HighlightService(this));
 		this.pairing = new PairingService(this);
+		this.storage = new PdfStorage(this);
 		this.writer = new NoteWriter(this);
 		this.actions = new HighlightActions(this);
 		this.regions = new RegionActions(this);

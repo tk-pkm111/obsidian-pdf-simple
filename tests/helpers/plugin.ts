@@ -10,6 +10,7 @@ import {
 } from '../../src/lib/settings';
 import type PdfToolsPlugin from '../../src/main';
 import { NoteWriter } from '../../src/note/note-writer';
+import { PdfStorage } from '../../src/pdf-storage';
 import { createFakeApp, type FakeApp } from './fake-app';
 
 export interface TestPlugin extends FakeApp {
@@ -17,6 +18,7 @@ export interface TestPlugin extends FakeApp {
 	highlights: HighlightService;
 	writer: NoteWriter;
 	pairing: PairingService;
+	storage: PdfStorage;
 }
 
 export const PDF_PATH = 'PDF/doc.pdf';
@@ -60,9 +62,10 @@ export async function createTestPlugin(
 	const highlights = new HighlightService(plugin);
 	const writer = new NoteWriter(plugin);
 	const pairing = new PairingService(plugin);
-	Object.assign(plugin, { highlights, writer, pairing });
+	const storage = new PdfStorage(plugin);
+	Object.assign(plugin, { highlights, writer, pairing, storage });
 	await fake.vault.createFolder('PDF');
 	await fake.vault.create(PDF_PATH, '%PDF-1.7');
 	highlights.load();
-	return { ...fake, plugin, highlights, writer, pairing };
+	return { ...fake, plugin, highlights, writer, pairing, storage };
 }

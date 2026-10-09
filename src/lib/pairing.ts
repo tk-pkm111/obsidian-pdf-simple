@@ -1,3 +1,4 @@
+import { uniqueFilePath } from './file-paths';
 import { splitLinktext } from './linktext';
 
 /**
@@ -63,11 +64,5 @@ export function uniqueNotePath(
 	basename: string,
 	exists: (path: string) => boolean,
 ): string {
-	const dir =
-		folder === '' || folder === '/' ? '' : `${folder.replace(/\/+$/, '')}/`;
-	for (let n = 0; n < 1000; n++) {
-		const candidate = `${dir}${basename}${n === 0 ? '' : ` ${n}`}.md`;
-		if (!exists(candidate)) return candidate;
-	}
-	throw new Error(`No free note name for ${basename}`);
+	return uniqueFilePath(folder, basename, 'md', exists);
 }

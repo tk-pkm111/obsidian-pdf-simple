@@ -34,6 +34,7 @@ describe('registerCommands', () => {
 			'recolor-highlight-at-cursor',
 			'remove-highlight-at-cursor',
 			'insert-under-heading',
+			'move-pdf-to-folder',
 			'clean-orphan-entries',
 			'toggle-instant-highlight',
 			'pen-text',

@@ -43,6 +43,8 @@ export class PairingService {
 	/** ノートのプロパティに PDF へのリンクを書く */
 	async attach(note: TFile, pdf: TFile): Promise<void> {
 		const { fileManager, metadataCache } = this.plugin.app;
+		// 保存先へ移す設定なら、先に移してから新しい場所へのリンクを書く
+		await this.plugin.storage.moveIfAuto(pdf);
 		const link = `[[${metadataCache.fileToLinktext(pdf, note.path)}]]`;
 		const property = this.plugin.settings.pairingProperty;
 		await fileManager.processFrontMatter(

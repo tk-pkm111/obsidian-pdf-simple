@@ -10,6 +10,7 @@ export const ja = {
 	'command.recolorHighlightAtCursor': 'カーソル行のハイライトの色を変える',
 	'command.removeHighlightAtCursor': 'カーソル行のハイライトを削除',
 	'command.cleanOrphanEntries': '本文に無いハイライト項目を整理',
+	'command.movePdf': 'PDF を保存先へ移す',
 	'command.insertUnderHeading':
 		'カーソルのある見出しの下に PDF のハイライトを入れる',
 	'command.toggleInstantHighlight': '選んだらすぐハイライトする（オン/オフ）',
@@ -48,6 +49,8 @@ export const ja = {
 	'menu.selectPopup': '色を選んでから塗る',
 	'menu.selectNone': '塗らない（選ぶだけ）',
 	'menu.openInPdf': 'PDF で開く',
+	'menu.movePdf': 'PDF の保存先へ移す',
+	'menu.movePairedPdf': '添付した PDF を保存先へ移す',
 	'menu.insertUnderHeading': 'PDF のハイライトをこの見出しの下に入れる',
 	'menu.clearInsertHeading': 'PDF のハイライトを入れる見出しの指定を外す',
 	'menu.attachPdf': 'PDF を添付…',
@@ -70,6 +73,8 @@ export const ja = {
 		'ノートの文は書き換えられていたので残しました（PDF のハイライトは外しました）。',
 	'notice.unlinked': 'PDF とのつながりを外しました。',
 	'notice.nothingToUndo': '取り消せるハイライトがありません。',
+	'notice.pdfMoved': 'PDF を「{folder}」に移しました。',
+	'notice.pdfMoveFailed': 'PDF を移せませんでした: {message}',
 	'notice.insertHeadingSet':
 		'このノートでは、PDF のハイライトを「{heading}」の下に入れます。',
 	'notice.insertHeadingCleared':
@@ -165,6 +170,14 @@ export const ja = {
 	'settings.hideEntriesProperty': 'プロパティ欄に記録を出さない',
 	'settings.hideEntriesPropertyDesc':
 		'ノートのプロパティ欄で、PDF 上の位置と色の記録（pdf-highlights）の行を隠します。記録はノートに残ります（ソースモードでは見えます）。',
+	'settings.groupPdf': 'PDF の置き場所',
+	'settings.pdfFolder': 'PDF の保存先',
+	'settings.pdfFolderDesc':
+		'ノートと組にした PDF を置くフォルダ。無ければ作ります。空なら PDF を移しません（このフォルダの中のフォルダに入っている PDF も、そのままにします）。',
+	'settings.pdfFolderPlaceholder': '例: Library/PDF',
+	'settings.autoMovePdf': 'ハイライトしたら保存先へ移す',
+	'settings.autoMovePdfDesc':
+		'PDF にハイライトしたときや、ノートに PDF を添付したときに、保存先へ自動で移します。PDF へのリンク（ノートのプロパティや埋め込み）は Obsidian が新しい場所に直します。オフにしても、PDF の右クリックメニューか、コマンド「PDF を保存先へ移す」で移せます。',
 	'settings.groupFlip': '表と裏',
 	'settings.flipMode': '切り替え方',
 	'settings.flipSameLeaf': '同じタブで入れ替える',

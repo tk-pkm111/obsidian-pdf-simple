@@ -136,6 +136,9 @@ export class HighlightActions {
 			if (!note) return;
 			const target = await this.insertTargetFor(note);
 			if (!target) return;
+			// 保存先へ移す設定なら、書く前に移す（記録には新しい場所へのリンクを書く）
+			const pathBefore = pdf.path;
+			await this.plugin.storage.moveIfAuto(pdf);
 			const id = generateId((candidate) =>
 				highlights.index.hasId(candidate),
 			);
@@ -165,7 +168,7 @@ export class HighlightActions {
 				});
 				await writer.insertHighlight(note, line, entry, {
 					...target,
-					order: this.orderOf(item, pdf.path),
+					order: this.orderOf(item, [pathBefore, pdf.path]),
 				});
 				this.lastCreated = id;
 			} catch (error) {
@@ -205,8 +208,12 @@ export class HighlightActions {
 	/**
 	 * PDF の順に入れるための位置。同じページのものは読む順（画像の範囲はテキスト層から求める）、
 	 * ほかのページのものはページで比べる。別の PDF のハイライトは比べない。
+	 * pdfPaths はその PDF のパス（保存先へ移した直後は、索引に移す前のパスが残っていることがあるので両方）。
 	 */
-	private orderOf(item: NewHighlight, pdfPath: string): InsertOrder {
+	private orderOf(
+		item: NewHighlight,
+		pdfPaths: readonly string[],
+	): InsertOrder {
 		let spans: SpanBox[] | null | undefined;
 		const position = (anchor: PdfAnchor): number => {
 			if (anchor.type === 'region' && spans === undefined)
@@ -218,7 +225,7 @@ export class HighlightActions {
 			key: { page: item.page, pos: position(item.anchor) },
 			keyOf: (id): OrderKey | null => {
 				const entry = index.entry(id);
-				if (!entry || entry.pdfPath !== pdfPath) return null;
+				if (!entry || !pdfPaths.includes(entry.pdfPath)) return null;
 				return {
 					page: entry.page,
 					pos: entry.page === item.page ? position(entry.anchor) : 0,

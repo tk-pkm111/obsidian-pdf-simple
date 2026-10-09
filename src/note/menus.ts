@@ -106,6 +106,13 @@ export function registerMenus(plugin: PdfToolsPlugin): void {
 							.setIcon('book-open')
 							.onClick(() => void plugin.flip.toPdf(view)),
 					);
+				if (paired && plugin.storage.canMove(paired))
+					menu.addItem((item) =>
+						item
+							.setTitle(t('menu.movePairedPdf'))
+							.setIcon('folder-input')
+							.onClick(() => void plugin.storage.move(paired)),
+					);
 				menu.addItem((item) =>
 					item
 						.setTitle(
@@ -140,6 +147,13 @@ export function registerMenus(plugin: PdfToolsPlugin): void {
 							else void plugin.flip.openNoteForFile(file);
 						}),
 				);
+				if (plugin.storage.canMove(file))
+					menu.addItem((item) =>
+						item
+							.setTitle(t('menu.movePdf'))
+							.setIcon('folder-input')
+							.onClick(() => void plugin.storage.move(file)),
+					);
 			}
 		}),
 	);
