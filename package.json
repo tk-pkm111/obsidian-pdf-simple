@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-pdf-simple",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"description": "Obsidian plugin for working with PDF files inside the vault.",
 	"private": true,
 	"main": "main.js",

@@ -1,7 +1,7 @@
 {
 	"id": "pdf-simple",
 	"name": "PDF Simple",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"minAppVersion": "1.13.0",
 	"description": "Highlight PDFs in the built-in viewer and keep only the highlighted text in a paired note, with jumps both ways.",
 	"author": "tk-pkm111",
