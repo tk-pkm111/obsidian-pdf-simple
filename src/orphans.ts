@@ -1,6 +1,6 @@
 import { Notice } from 'obsidian';
 import { t } from './i18n';
-import type PdfToolsPlugin from './main';
+import type PdfSimplePlugin from './main';
 import { noteName } from './ui/labels';
 import { confirmDelete } from './ui/modals';
 
@@ -10,7 +10,7 @@ const ORPHAN_PREVIEW = 8;
  * 本文に無いハイライト項目をプロパティから消す（確認してから）。
  * 段落の途中にあって認識されていないだけの ID は消さないよう、全ノートの本文を読んで確かめる。
  */
-export async function cleanOrphans(plugin: PdfToolsPlugin): Promise<void> {
+export async function cleanOrphans(plugin: PdfSimplePlugin): Promise<void> {
 	const { vault } = plugin.app;
 	const present = new Set<string>();
 	for (const file of vault.getMarkdownFiles()) {

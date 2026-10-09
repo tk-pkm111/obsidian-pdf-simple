@@ -2,12 +2,12 @@ import { Menu, type FileView } from 'obsidian';
 import { t } from '../i18n';
 import { normalizeSelectedText } from '../lib/text';
 import type { Highlight } from '../lib/types';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 import { noteName } from '../ui/labels';
 
 /** PDF 上のハイライトを右クリック（長押し）したときのメニュー */
 export function showHighlightMenu(
-	plugin: PdfToolsPlugin,
+	plugin: PdfSimplePlugin,
 	view: FileView,
 	highlight: Highlight,
 	evt: MouseEvent,

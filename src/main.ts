@@ -7,7 +7,7 @@ import { PairingService } from './index/pairing-service';
 import {
 	needsMigration,
 	normalizeSettings,
-	type PdfToolsSettings,
+	type PdfSimpleSettings,
 	type SelectAction,
 } from './lib/settings';
 import { createHighlightDecorations } from './note/decorations';
@@ -21,7 +21,7 @@ import { createSeparatorGuard } from './note/separator-guard';
 import { RegionRenderer } from './pdf/render-region';
 import { PdfStorage } from './pdf-storage';
 import { RegionActions } from './region-actions';
-import { PdfToolsSettingTab } from './settings-tab';
+import { PdfSimpleSettingTab } from './settings-tab';
 import { BodyClass } from './ui/body-class';
 import { HOVER_SOURCE } from './viewer/overlay-input';
 import { SelectionController } from './viewer/selection-controller';
@@ -29,8 +29,8 @@ import { ViewerManager } from './viewer/viewer-manager';
 
 // main.ts はプラグインのライフサイクル（読み込み・登録・解放）だけを担当する。
 // 機能の中身は src/ 配下の各モジュールに置く。
-export default class PdfToolsPlugin extends Plugin {
-	settings!: PdfToolsSettings;
+export default class PdfSimplePlugin extends Plugin {
+	settings!: PdfSimpleSettings;
 	highlights!: HighlightService;
 	pairing!: PairingService;
 	storage!: PdfStorage;
@@ -62,7 +62,7 @@ export default class PdfToolsPlugin extends Plugin {
 
 		registerCommands(this);
 		registerMenus(this);
-		this.addSettingTab(new PdfToolsSettingTab(this.app, this));
+		this.addSettingTab(new PdfSimpleSettingTab(this.app, this));
 		this.registerEditorExtension([
 			createHighlightDecorations(this),
 			createSeparatorGuard(this),
@@ -78,7 +78,7 @@ export default class PdfToolsPlugin extends Plugin {
 			this.hideEntries = this.addChild(
 				new BodyClass(
 					this.app,
-					'pdf-tools-hide-entries',
+					'pdf-simple-hide-entries',
 					() => this.settings.hideEntriesProperty,
 				),
 			);
@@ -89,7 +89,7 @@ export default class PdfToolsPlugin extends Plugin {
 	}
 
 	/** 設定を保存し、変わったところに合わせて索引・コマンド・描画を更新する */
-	async applySettings(next: PdfToolsSettings): Promise<void> {
+	async applySettings(next: PdfSimpleSettings): Promise<void> {
 		const previous = this.settings;
 		this.settings = normalizeSettings(next);
 		await this.saveData(this.settings);

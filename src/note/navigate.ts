@@ -11,7 +11,7 @@ import { findHighlightLines } from '../lib/note-lines';
 import { formatPdfSubpath } from '../lib/pdf-subpath';
 import { anchorKey } from '../lib/pdf-selection';
 import type { BlockRef, HighlightEntry } from '../lib/types';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 import { isPdfView } from '../viewer/dom';
 
 /** どこで開くか。newLeaf は Keymap.isModEvent の結果（false なら設定どおり） */
@@ -32,7 +32,7 @@ export interface OpenOptions {
  * 裏に隠れているタブへは飛ばない（その場で裏返すほうが自然なので）。
  */
 export function leafShowing(
-	plugin: PdfToolsPlugin,
+	plugin: PdfSimplePlugin,
 	path: string,
 	accept: (view: View) => boolean,
 	exclude: WorkspaceLeaf | null,
@@ -55,7 +55,7 @@ export function leafShowing(
 
 /** 開く先のタブ: Cmd / Ctrl 付きなら新しいタブ、設定が「分割」なら横に分割、それ以外は同じタブ */
 export function targetLeaf(
-	plugin: PdfToolsPlugin,
+	plugin: PdfSimplePlugin,
 	options: OpenOptions,
 ): WorkspaceLeaf {
 	const { workspace } = plugin.app;
@@ -67,7 +67,7 @@ export function targetLeaf(
 
 /** ノート → PDF の該当箇所 */
 export async function revealInPdf(
-	plugin: PdfToolsPlugin,
+	plugin: PdfSimplePlugin,
 	entry: Pick<HighlightEntry, 'pdfPath' | 'page' | 'anchor'>,
 	options: OpenOptions,
 ): Promise<void> {
@@ -106,7 +106,7 @@ export async function revealInPdf(
 
 /** PDF → ノートの該当行 */
 export async function revealBlock(
-	plugin: PdfToolsPlugin,
+	plugin: PdfSimplePlugin,
 	block: BlockRef,
 	options: OpenOptions,
 ): Promise<void> {

@@ -13,7 +13,7 @@ import {
 	planSetHeadingLevel,
 	type RemoveMode,
 } from '../lib/note-remove';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 
 function unique(values: readonly string[]): string[] {
 	return [...new Set(values)];
@@ -26,7 +26,7 @@ function unique(values: readonly string[]): string[] {
  * Editor で本文を変えたときは、プロパティを書く前に保存する（ディスク上の古い本文にプロパティを書いて上書きしないため）。
  */
 export class NoteWriter {
-	constructor(private readonly plugin: PdfToolsPlugin) {}
+	constructor(private readonly plugin: PdfSimplePlugin) {}
 
 	private editingView(file: TFile): MarkdownView | null {
 		let found: MarkdownView | null = null;

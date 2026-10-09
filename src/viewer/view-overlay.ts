@@ -2,7 +2,7 @@ import { Component, debounce, type FileView } from 'obsidian';
 import type { Box } from '../lib/geometry';
 import { paletteHex } from '../lib/settings';
 import type { Highlight } from '../lib/types';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 import {
 	LAYER_CLASS,
 	closestPage,
@@ -57,7 +57,7 @@ export class ViewOverlay extends Component implements OverlayHost {
 	private readonly flush = debounce(() => this.drawDirty(), 60);
 
 	constructor(
-		private readonly plugin: PdfToolsPlugin,
+		private readonly plugin: PdfSimplePlugin,
 		readonly view: FileView,
 	) {
 		super();

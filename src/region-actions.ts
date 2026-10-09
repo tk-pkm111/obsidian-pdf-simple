@@ -1,7 +1,7 @@
 import { Notice, type FileView } from 'obsidian';
 import { t } from './i18n';
 import { buildBodyLine, entryLabel } from './lib/highlight-entry';
-import type PdfToolsPlugin from './main';
+import type PdfSimplePlugin from './main';
 import { isPasswordError } from './pdf/pdfjs';
 import type { RenderedRegion } from './pdf/render-region';
 import type { CapturedRegion } from './viewer/region-capture';
@@ -20,7 +20,7 @@ function safeName(basename: string): string {
  * PDF 側にはその四角を描く（記録は region= のエントリ）。
  */
 export class RegionActions {
-	constructor(private readonly plugin: PdfToolsPlugin) {}
+	constructor(private readonly plugin: PdfSimplePlugin) {}
 
 	capture(view: FileView, captured: CapturedRegion): Promise<void> {
 		const pdf = view.file;

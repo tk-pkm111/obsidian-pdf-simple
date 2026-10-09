@@ -20,7 +20,7 @@ const prod = process.argv[2] === 'production';
 
 // ビルド成果物のコピー先（Vault 内のプラグインフォルダ）。
 // 既定は dev-vault。別の Vault で試すときは OBSIDIAN_PLUGIN_DIR で上書きする。
-//   OBSIDIAN_PLUGIN_DIR="/path/to/Vault/.obsidian/plugins/pdf-tools" npm run dev
+//   OBSIDIAN_PLUGIN_DIR="/path/to/Vault/.obsidian/plugins/pdf-simple" npm run dev
 const manifest = JSON.parse(readFileSync('manifest.json', 'utf8'));
 const pluginDir =
 	process.env.OBSIDIAN_PLUGIN_DIR ??

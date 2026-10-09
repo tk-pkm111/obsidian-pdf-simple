@@ -2,7 +2,7 @@ import { Component, type FileView } from 'obsidian';
 import { toLocalBoxes } from '../lib/geometry';
 import { normalizeRegion } from '../lib/pdf-selection';
 import type { PdfRegion } from '../lib/types';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 import {
 	CAPTURE_BOX_CLASS,
 	closestPage,
@@ -14,7 +14,7 @@ import type { ViewTools } from './tools';
 
 /** これより小さい四角（CSS px）は取り込まない（クリックの取り違え） */
 const MIN_SIZE = 6;
-const CAPTURING_CLASS = 'pdf-tools-capturing';
+const CAPTURING_CLASS = 'pdf-simple-capturing';
 
 export interface CaptureHost {
 	readonly view: FileView;
@@ -53,7 +53,7 @@ export class RegionCapture extends Component {
 	private suppressClick = false;
 
 	constructor(
-		private readonly plugin: PdfToolsPlugin,
+		private readonly plugin: PdfSimplePlugin,
 		private readonly host: CaptureHost,
 	) {
 		super();
@@ -231,10 +231,10 @@ export class RegionCapture extends Component {
 		const { current } = drag;
 		const percent = (value: number) => `${(value * 100).toFixed(3)}%`;
 		drag.box.setCssProps({
-			'--pdf-tools-x': percent(current.left),
-			'--pdf-tools-y': percent(current.top),
-			'--pdf-tools-w': percent(current.right - current.left),
-			'--pdf-tools-h': percent(current.bottom - current.top),
+			'--pdf-simple-x': percent(current.left),
+			'--pdf-simple-y': percent(current.top),
+			'--pdf-simple-w': percent(current.right - current.left),
+			'--pdf-simple-h': percent(current.bottom - current.top),
 		});
 	}
 

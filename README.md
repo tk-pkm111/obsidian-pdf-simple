@@ -1,6 +1,6 @@
-# PDF Tools（Obsidian プラグイン・開発中）
+# PDF Simple（Obsidian プラグイン・開発中）
 
-ノートを「表」、添付した PDF を「裏」として扱い、裏で引いたハイライトのテキストだけを表に溜めていくプラグイン。名前・id（`pdf-tools`）は仮。
+ノートを「表」、添付した PDF を「裏」として扱い、裏で引いたハイライトのテキストだけを表に溜めていくプラグイン。
 
 - PDF は Obsidian 本体の PDF ビューで読む。その上にハイライトを重ねて描く（PDF ファイル自体は書き換えない）。
 - ノートに残るのはテキストだけ（`引用したテキスト ^hl-xxxxxx`。色も箇条書きの記号も付けない）。行末の ID は、カーソルをその行に置いたときだけ薄く見え、それ以外は小さな色の点になる。見出しとして入れたり（`## 見出し ^hl-…`）、PDF の一部を画像として貼ったり（`![[画像]] ^hl-…`）もできる。
@@ -13,8 +13,10 @@
 コミュニティプラグインには未登録。[BRAT](https://github.com/TfTHacker/obsidian42-brat) で入れる。
 
 1. Obsidian のコミュニティプラグインで「BRAT」を入れて有効にする。
-2. コマンドパレットで BRAT の「Add a beta plugin for testing」を実行し（BRAT の設定画面の「Add beta plugin」でも同じ）、`tk-pkm111/obsidian-pdf-tools` を入れる。
-3. 設定 → コミュニティプラグインで「PDF Tools」を有効にする。
+2. コマンドパレットで BRAT の「Add a beta plugin for testing」を実行し（BRAT の設定画面の「Add beta plugin」でも同じ）、`tk-pkm111/obsidian-pdf-simple` を入れる。
+3. 設定 → コミュニティプラグインで「PDF Simple」を有効にする。
+
+以前の名前（PDF Tools、`tk-pkm111/obsidian-pdf-tools`）で入れていた場合は、PDF Tools を削除してから入れ直す（BRAT の一覧からも外す）。ノートのハイライトはそのまま使える。設定は入れ直しになる。
 
 開発中のため、大事な保管庫で使うときはバックアップを取っておくこと（PDF ファイル自体は書き換えないが、ノートには書き込む）。
 

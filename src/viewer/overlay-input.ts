@@ -1,6 +1,6 @@
 import { Component, Keymap, type FileView } from 'obsidian';
 import type { Highlight } from '../lib/types';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 import { isInsideAnnotation } from './dom';
 import { showHighlightMenu } from './highlight-menu';
 import type { Drawn } from './paint';
@@ -8,8 +8,8 @@ import type { ViewTools } from './tools';
 
 /** クリックとダブルクリック（単語の選択）を見分ける待ち時間 */
 const CLICK_DELAY = 250;
-const HOVER_CLASS = 'pdf-tools-hovering';
-export const HOVER_SOURCE = 'pdf-tools';
+const HOVER_CLASS = 'pdf-simple-hovering';
+export const HOVER_SOURCE = 'pdf-simple';
 
 /** 重ね描きの持ち主（ViewOverlay）に頼むこと */
 export interface OverlayHost {
@@ -41,7 +41,7 @@ export class OverlayInput extends Component {
 	private lastMove = 0;
 
 	constructor(
-		private readonly plugin: PdfToolsPlugin,
+		private readonly plugin: PdfSimplePlugin,
 		private readonly host: OverlayHost,
 	) {
 		super();

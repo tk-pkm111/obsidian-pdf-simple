@@ -17,7 +17,7 @@ import { joinPdfLines } from './lib/paragraphs';
 import { readingPosition, type SpanBox } from './lib/reading-order';
 import { escapeNoteText, normalizeSelectedText } from './lib/text';
 import type { BlockRef, Highlight, PdfAnchor } from './lib/types';
-import type PdfToolsPlugin from './main';
+import type PdfSimplePlugin from './main';
 import { revealBlock, revealInPdf, type OpenOptions } from './note/navigate';
 import { noteName } from './ui/labels';
 import {
@@ -54,7 +54,7 @@ export class HighlightActions {
 	private queue: Promise<unknown> = Promise.resolve();
 	private lastCreated: string | null = null;
 
-	constructor(private readonly plugin: PdfToolsPlugin) {}
+	constructor(private readonly plugin: PdfSimplePlugin) {}
 
 	/** 前の書き込みが終わってから task を実行する */
 	enqueue<T>(task: () => Promise<T>): Promise<T> {

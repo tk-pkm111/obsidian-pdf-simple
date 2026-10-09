@@ -1,6 +1,6 @@
 import { FileView, MarkdownView, Notice, type Command } from 'obsidian';
 import { t } from './i18n';
-import type PdfToolsPlugin from './main';
+import type PdfSimplePlugin from './main';
 import { cleanOrphans } from './orphans';
 import { colorLabel } from './ui/labels';
 import { PdfSuggestModal } from './ui/modals';
@@ -11,14 +11,14 @@ import type { ViewTools } from './viewer/tools';
 /** 色ごとのコマンド（色を変えたら登録し直す） */
 let paletteCommandIds: string[] = [];
 
-function activePdfView(plugin: PdfToolsPlugin): FileView | null {
+function activePdfView(plugin: PdfSimplePlugin): FileView | null {
 	const view = plugin.app.workspace.getActiveViewOfType(FileView);
 	return view && isPdfView(view) ? view : null;
 }
 
 /** 選択範囲をハイライトするコマンドの中身（color が null なら今の色。書き方はペンの設定） */
 function highlightCommand(
-	plugin: PdfToolsPlugin,
+	plugin: PdfSimplePlugin,
 	color: string | null,
 ): Command['checkCallback'] {
 	return (checking) => {
@@ -42,13 +42,13 @@ function highlightCommand(
 }
 
 /** 今の PDF ビューの道具（無ければ null） */
-function activeTools(plugin: PdfToolsPlugin): ViewTools | null {
+function activeTools(plugin: PdfSimplePlugin): ViewTools | null {
 	const view = activePdfView(plugin);
 	return view ? plugin.viewer.toolsFor(view) : null;
 }
 
 // コマンド名にプラグイン名は付けない（Obsidian が自動で前に付ける）。id はリリース後に変えない。
-export function registerCommands(plugin: PdfToolsPlugin): void {
+export function registerCommands(plugin: PdfSimplePlugin): void {
 	plugin.addCommand({
 		id: 'flip',
 		name: t('command.flip'),
@@ -252,7 +252,7 @@ export function registerCommands(plugin: PdfToolsPlugin): void {
 }
 
 /** 色ごとの「選択範囲をハイライト（色）」。色を変えたら呼び直す */
-export function registerPaletteCommands(plugin: PdfToolsPlugin): void {
+export function registerPaletteCommands(plugin: PdfSimplePlugin): void {
 	for (const id of paletteCommandIds) plugin.removeCommand(id);
 	paletteCommandIds = [];
 	for (const entry of plugin.settings.palette) {

@@ -15,7 +15,7 @@ export const SETTINGS_VERSION = 4;
 /** ペンで書く見出しの大きさの上限（メニューに出すのは 1〜3） */
 export const MAX_PEN_HEADING = 3;
 
-export interface PdfToolsSettings {
+export interface PdfSimpleSettings {
 	settingsVersion: number;
 	/** ハイライトの色（並び順がそのまま吹き出しとメニューの並び） */
 	palette: PaletteEntry[];
@@ -56,7 +56,7 @@ export const DEFAULT_PALETTE: readonly PaletteEntry[] = [
 	{ name: 'orange', color: '#f19837', label: '' },
 ];
 
-export const DEFAULT_SETTINGS: Readonly<PdfToolsSettings> = {
+export const DEFAULT_SETTINGS: Readonly<PdfSimpleSettings> = {
 	settingsVersion: SETTINGS_VERSION,
 	palette: DEFAULT_PALETTE.map((entry) => ({ ...entry })),
 	defaultColor: 'yellow',
@@ -135,7 +135,7 @@ function normalizePalette(raw: unknown): PaletteEntry[] {
  * （第 1 弾は設定画面を開くと既定値ごと保存していたので、保存された true はユーザーが選んだ値とは限らない）。
  * 版 3 までの「見出しの下」は、その見出しを「ハイライトを入れる見出し」にして PDF の順に並べる。
  */
-export function normalizeSettings(raw: unknown): PdfToolsSettings {
+export function normalizeSettings(raw: unknown): PdfSimpleSettings {
 	const data =
 		typeof raw === 'object' && raw !== null
 			? (raw as Record<string, unknown>)
@@ -236,7 +236,7 @@ export function normalizeSettings(raw: unknown): PdfToolsSettings {
 
 /** 色の name → hex（無い name なら既定の色、それも無ければ最初の色） */
 export function paletteHex(
-	settings: PdfToolsSettings,
+	settings: PdfSimpleSettings,
 	name: string | null,
 ): string {
 	const entry =

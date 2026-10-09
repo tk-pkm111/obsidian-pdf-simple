@@ -30,7 +30,7 @@ description: Obsidian プラグインのコードを書く・直す・レビュ�
 ## 3. 開発ループ
 
 ```
-npm run dev            # 監視ビルド → dev-vault/.obsidian/plugins/pdf-tools/ にコピー → hot-reload が再読み込み
+npm run dev            # 監視ビルド → dev-vault/.obsidian/plugins/pdf-simple/ にコピー → hot-reload が再読み込み
 npm run check          # typecheck + lint + format:check + test（終了前に必ず）
 ```
 
@@ -40,7 +40,7 @@ UI を変えたら、ユーザーに頼む前に自分で確かめる。`npm run
 
 ```bash
 npm run e2e -- launch
-npm run e2e -- eval "await app.workspace.getLeaf().openFile(app.vault.getFileByPath('PDF/sample-3-pages.pdf')); await sleep(800); app.commands.executeCommandById('pdf-tools:create-note-for-pdf'); await sleep(1500); return { notices: noticeText(), active: app.workspace.getActiveFile()?.path, errs: window.__errs }"
+npm run e2e -- eval "await app.workspace.getLeaf().openFile(app.vault.getFileByPath('PDF/sample-3-pages.pdf')); await sleep(800); app.commands.executeCommandById('pdf-simple:create-note-for-pdf'); await sleep(1500); return { notices: noticeText(), active: app.workspace.getActiveFile()?.path, errs: window.__errs }"
 npm run e2e -- shot /tmp/x.png        # Read で画像を見る
 npm run e2e -- quit
 ```
@@ -64,7 +64,7 @@ npm run e2e -- quit
 - モバイル表示の再現: 開発者ツールの Console で `this.app.emulateMobile(true)`（戻すときは `false`）
 - 再読み込みされないとき: 設定 → コミュニティプラグイン → 該当プラグインをオフ→オン
 - 起動時間の計測: 設定 → 一般 → 詳細 のストップウォッチ
-- 別の Vault で試す: `OBSIDIAN_PLUGIN_DIR="<vault>/.obsidian/plugins/pdf-tools" npm run dev`（本番 Vault は不可）
+- 別の Vault で試す: `OBSIDIAN_PLUGIN_DIR="<vault>/.obsidian/plugins/pdf-simple" npm run dev`（本番 Vault は不可）
 
 ## 4. 仕上げのチェックリスト（公式ガイドライン + 自己レビュー項目の要約）
 
@@ -73,7 +73,7 @@ npm run e2e -- quit
 - [ ] `MyPlugin` / `SampleSettingTab` などテンプレート由来の名前が残っていない
 - [ ] コマンド名・id にプラグイン名や "command" を含めない。既定のホットキーを付けない
 - [ ] `innerHTML` / `outerHTML` / `insertAdjacentHTML` を使っていない（`createEl` / `createDiv` / `createSpan`）
-- [ ] スタイルは `styles.css` のクラス（接頭辞 `pdf-tools-`）で当てる。JS から `el.style.*` を触らない。Obsidian の CSS 変数を使う
+- [ ] スタイルは `styles.css` のクラス（接頭辞 `pdf-simple-`）で当てる。JS から `el.style.*` を触らない。Obsidian の CSS 変数を使う
 - [ ] 設定タブ: 見出しは複数セクションがあるときだけ。見出しに "設定" を入れない。`setHeading()` を使い `<h2>` を使わない
 - [ ] `this.app` を使い、グローバル `app` / `window.app` を使わない
 - [ ] `workspace.activeLeaf` を直接触らない（`getActiveViewOfType` / `activeEditor` / `getActiveFile`）。カスタムビューへの参照をプラグインに保持しない（`getLeavesOfType`）

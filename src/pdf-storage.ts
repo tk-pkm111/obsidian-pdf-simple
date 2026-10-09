@@ -6,7 +6,7 @@ import {
 	normalizeFolder,
 	uniqueFilePath,
 } from './lib/file-paths';
-import type PdfToolsPlugin from './main';
+import type PdfSimplePlugin from './main';
 
 /**
  * PDF の保存先（設定のフォルダ）への移動。
@@ -14,7 +14,7 @@ import type PdfToolsPlugin from './main';
  * PDF へのリンクはユーザーの設定に従って Obsidian が直す。
  */
 export class PdfStorage {
-	constructor(private readonly plugin: PdfToolsPlugin) {}
+	constructor(private readonly plugin: PdfSimplePlugin) {}
 
 	/** 保存先のフォルダ（未設定なら null） */
 	folder(): string | null {

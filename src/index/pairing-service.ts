@@ -1,10 +1,10 @@
 import { TFile, normalizePath } from 'obsidian';
 import { pairedNotePaths, pairedPdfPath, uniqueNotePath } from '../lib/pairing';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 
 /** ノートと PDF の対応（プロパティ pdf: "[[doc.pdf]]"、無ければ本文で最初の PDF） */
 export class PairingService {
-	constructor(private readonly plugin: PdfToolsPlugin) {}
+	constructor(private readonly plugin: PdfSimplePlugin) {}
 
 	private resolvePdf(linkpath: string, sourcePath: string): string | null {
 		const file = this.plugin.app.metadataCache.getFirstLinkpathDest(

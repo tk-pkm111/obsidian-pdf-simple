@@ -1,7 +1,7 @@
 import { Component, Menu, setIcon, setTooltip, type FileView } from 'obsidian';
 import { t } from '../i18n';
 import { MAX_PEN_HEADING, type SelectAction } from '../lib/settings';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 import { colorLabel, headingKindLabel } from '../ui/labels';
 import { toolbarSlot } from './dom';
 import type { ViewTools } from './tools';
@@ -21,7 +21,7 @@ export class PdfToolbar extends Component {
 	private region: HTMLElement | null = null;
 
 	constructor(
-		private readonly plugin: PdfToolsPlugin,
+		private readonly plugin: PdfSimplePlugin,
 		private readonly host: ToolbarHost,
 	) {
 		super();
@@ -43,13 +43,13 @@ export class PdfToolbar extends Component {
 		const slot = toolbarSlot(this.host.view.contentEl);
 		if (!slot) return;
 		this.container?.remove();
-		const container = slot.createDiv({ cls: 'pdf-tools-toolbar' });
-		this.pen = this.button(container, 'pdf-tools-tool-pen', (evt) =>
+		const container = slot.createDiv({ cls: 'pdf-simple-toolbar' });
+		this.pen = this.button(container, 'pdf-simple-tool-pen', (evt) =>
 			this.openPenMenu(evt),
 		);
-		this.pen.createSpan({ cls: 'pdf-tools-pen-swatch' });
-		this.pen.createSpan({ cls: 'pdf-tools-pen-kind' });
-		this.region = this.button(container, 'pdf-tools-tool-region', () =>
+		this.pen.createSpan({ cls: 'pdf-simple-pen-swatch' });
+		this.pen.createSpan({ cls: 'pdf-simple-pen-kind' });
+		this.region = this.button(container, 'pdf-simple-tool-region', () =>
 			this.host.tools.toggleRegion(),
 		);
 		this.container = container;
@@ -68,8 +68,8 @@ export class PdfToolbar extends Component {
 		const level = settings.defaultHeading;
 		this.setIcon(pen, off ? 'mouse-pointer-2' : 'highlighter');
 		pen.toggleClass('is-off', off);
-		pen.setCssProps({ '--pdf-tools-hl': color?.color ?? 'transparent' });
-		const kind = pen.querySelector('.pdf-tools-pen-kind');
+		pen.setCssProps({ '--pdf-simple-hl': color?.color ?? 'transparent' });
+		const kind = pen.querySelector('.pdf-simple-pen-kind');
 		kind?.setText(level > 0 && !off ? `H${level}` : '');
 		const label = color ? colorLabel(color) : '';
 		const penLabel = `${label}・${headingKindLabel(level)}`;
@@ -97,9 +97,9 @@ export class PdfToolbar extends Component {
 		onClick: (evt: MouseEvent) => void,
 	): HTMLElement {
 		const el = parent.createDiv({
-			cls: ['clickable-icon', 'pdf-tools-tool', cls],
+			cls: ['clickable-icon', 'pdf-simple-tool', cls],
 		});
-		el.createSpan({ cls: 'pdf-tools-tool-icon' });
+		el.createSpan({ cls: 'pdf-simple-tool-icon' });
 		el.addEventListener('click', (evt) => {
 			evt.preventDefault();
 			onClick(evt);
@@ -109,7 +109,7 @@ export class PdfToolbar extends Component {
 
 	private setIcon(button: HTMLElement, icon: string): void {
 		const holder = button.querySelector<HTMLElement>(
-			'.pdf-tools-tool-icon',
+			'.pdf-simple-tool-icon',
 		);
 		if (!holder || holder.dataset.icon === icon) return;
 		holder.empty();
@@ -133,8 +133,10 @@ export class PdfToolbar extends Component {
 					.setTitle(
 						createFragment((fragment) => {
 							fragment
-								.createSpan({ cls: 'pdf-tools-color-swatch' })
-								.setCssProps({ '--pdf-tools-hl': entry.color });
+								.createSpan({ cls: 'pdf-simple-color-swatch' })
+								.setCssProps({
+									'--pdf-simple-hl': entry.color,
+								});
 							fragment.appendText(` ${colorLabel(entry)}`);
 						}),
 					)

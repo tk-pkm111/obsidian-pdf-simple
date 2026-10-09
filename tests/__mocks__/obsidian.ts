@@ -129,8 +129,8 @@ export class Component {
 export class Plugin extends Component {
 	app: unknown = {};
 	manifest = {
-		id: 'pdf-tools',
-		name: 'PDF Tools',
+		id: 'pdf-simple',
+		name: 'PDF Simple',
 		version: '0.0.0-test',
 	};
 	commands: unknown[] = [];

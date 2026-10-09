@@ -9,7 +9,7 @@ import {
 	type WorkspaceLeaf,
 } from 'obsidian';
 import { t } from '../i18n';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 import { isPdfView } from './dom';
 import type { ViewTools } from './tools';
 import { ViewOverlay } from './view-overlay';
@@ -33,7 +33,7 @@ export class ViewerManager extends Component {
 	private warned = false;
 	private started = false;
 
-	constructor(private readonly plugin: PdfToolsPlugin) {
+	constructor(private readonly plugin: PdfSimplePlugin) {
 		super();
 	}
 

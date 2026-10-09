@@ -54,8 +54,8 @@
 │ pdf-highlights:                  │    │  .page[data-page-number=3]          │
 │  - "[[doc.pdf#page=3&…&id=hl-k9f2|p.3 …]]" ─┼──▶ │   .textLayer                        │
 │                                  │    │    span.textLayerNode[data-idx]     │
-│ ==引用テキスト== ^hl-k9f2 ●       │◀───┼─── │   div.pdf-tools-highlight-layer     │
-│ ==次の…== ^hl-m3x8 ●             │    │    div.pdf-tools-highlight          │
+│ ==引用テキスト== ^hl-k9f2 ●       │◀───┼─── │   div.pdf-simple-highlight-layer     │
+│ ==次の…== ^hl-m3x8 ●             │    │    div.pdf-simple-highlight          │
 └─────────────────────────────────┘    └──────────────────────────────────┘
    ● / Cmd+クリック → PDF の該当箇所（本体の一時ハイライトで表示）
    PDF のハイライトをクリック → ノートの該当行
@@ -147,7 +147,7 @@
 
 - ヘッダーのアクション「PDF を開く（裏面）」: ペアがあるノートだけに付ける（`ItemView.addAction`。付けた要素は WeakMap で管理し、unload で外す）。
 - 本文の装飾:
-  - ライブプレビュー: CM6 の `ViewPlugin`（`registerEditorExtension`）が、行末が ` ^hl-xxxx` の行の `==…==` 範囲に `pdf-tools-mark` と色（`--pdf-tools-hl`）を付け、カーソルがその行に無いときは ` ^hl-xxxx` を点 ● のウィジェットに置き換える。● クリック / テキストの Cmd+クリック → PDF の該当箇所。
+  - ライブプレビュー: CM6 の `ViewPlugin`（`registerEditorExtension`）が、行末が ` ^hl-xxxx` の行の `==…==` 範囲に `pdf-simple-mark` と色（`--pdf-simple-hl`）を付け、カーソルがその行に無いときは ` ^hl-xxxx` を点 ● のウィジェットに置き換える。● クリック / テキストの Cmd+クリック → PDF の該当箇所。
   - 閲覧モード: `registerMarkdownPostProcessor` が `getSectionInfo` の行範囲から該当行を見つけ、`<mark>` に同じクラスと ● を付ける。クリック → PDF の該当箇所。
 - 右クリック（`editor-menu`、カーソル行がハイライトのとき）: 「PDF で開く」「色を変更 ▸」「ハイライトを削除」。
 - 追記: 作成時に本文へ 1 行追加（末尾 or 見出しの下）。ノートがエディタで開いていれば `Editor`（Undo 可）、そうでなければ `Vault.process`。エントリは `processFrontMatter`。
@@ -155,10 +155,10 @@
 ### 6.2 裏（本体 PDF ビュー）
 
 - ヘッダーのアクション「ノートに戻る（表面）」。
-- 重ね描き層: `.page` の直下、`.textLayer` の直前に `div.pdf-tools-highlight-layer`（`inset: 0`、`z-index: 0`、`pointer-events: none`、`mix-blend-mode: multiply`）。Obsidian は `.textLayer` を `opacity: 0.2` にしているので、その中に置くと色が 2 割の濃さになる（S10）。各ハイライトは `span.textLayerNode[data-idx=B]`〜`[data-idx=E]` の文字位置で DOM Range を作り `getClientRects()` → 回転前のテキスト層に対する割合（0〜1）にしてキャッシュし、描くときに回転を戻してページに対する % で `div.pdf-tools-highlight`（色は `--pdf-tools-hl`）。割合で持つのでズーム・回転で測り直さない。「テーマに合わせる」で暗い紙面のときは乗算をやめる。
+- 重ね描き層: `.page` の直下、`.textLayer` の直前に `div.pdf-simple-highlight-layer`（`inset: 0`、`z-index: 0`、`pointer-events: none`、`mix-blend-mode: multiply`）。Obsidian は `.textLayer` を `opacity: 0.2` にしているので、その中に置くと色が 2 割の濃さになる（S10）。各ハイライトは `span.textLayerNode[data-idx=B]`〜`[data-idx=E]` の文字位置で DOM Range を作り `getClientRects()` → 回転前のテキスト層に対する割合（0〜1）にしてキャッシュし、描くときに回転を戻してページに対する % で `div.pdf-simple-highlight`（色は `--pdf-simple-hl`）。割合で持つのでズーム・回転で測り直さない。「テーマに合わせる」で暗い紙面のときは乗算をやめる。
 - 再描画: `view.contentEl` の MutationObserver（`childList` + `subtree`）。`.textLayer` / `.textLayerNode` / `.canvasWrapper` の追加、または自層の消失（pdf.js はズーム時に `.page` 直下の知らない子要素を外す。S6）でそのページを dirty にし、60 ms デバウンスで描き直す。描く内容（キー・色・矩形の署名）が前と同じなら DOM を作り直さない（点滅を保つ）。`.textLayerNode` の内側の変化（本体の一時ハイライトは span の中身を組み替える）は無視。
 - クリック: `.page` の pointerdown/pointerup（移動 5 px 以内・テキスト選択なし）で当たり判定 → ノートの該当行へ。右クリック / 長押し: `contextmenu` を capture で先取りし、ハイライトに当たったときだけ本体のメニューを抑止して自前の `Menu`（「ノートの該当行へ」「色を変更 ▸」「ハイライトを削除」「テキストをコピー」）。外れたときは本体のメニューをそのまま出す。
-- 作成: `document` の `selectionchange`（ポップアウト対応で `view.containerEl.doc` ごとに 1 回登録）。選択が 1 ページ内の `.textLayer` に収まるとき、選択の上に色の点が並ぶ吹き出し（`div.pdf-tools-selection-popup`）を出す。スマホは `view.contentEl` 下部に固定バー（本体の右クリックメニューはデスクトップ限定なので必須）。点を押す → ハイライト作成 → 即時描画（pending）。同じ位置が既にあれば通知して作らない。ページをまたぐ選択は対象外（本体も同じ）。
+- 作成: `document` の `selectionchange`（ポップアウト対応で `view.containerEl.doc` ごとに 1 回登録）。選択が 1 ページ内の `.textLayer` に収まるとき、選択の上に色の点が並ぶ吹き出し（`div.pdf-simple-selection-popup`）を出す。スマホは `view.contentEl` 下部に固定バー（本体の右クリックメニューはデスクトップ限定なので必須）。点を押す → ハイライト作成 → 即時描画（pending）。同じ位置が既にあれば通知して作らない。ページをまたぐ選択は対象外（本体も同じ）。
 - 削除（PDF 側から）: 本文の行がハイライトだけなら行ごと削除、ほかの文があるなら ` ^hl-xxxx` と `==` だけ外して本文を残す。エントリも削除。
 - 色変更: エントリの `color=` だけ書き換える。
 
@@ -255,7 +255,7 @@
 | `src/ui/labels.ts` | 色の表示名 |
 | `src/lib/text.ts` | 選択文字列の正規化（日本語の改行は詰める）と `==…==` 用のエスケープ |
 | `src/lib/extract.ts` | キャッシュ（frontmatterLinks / blocks）からエントリと本文の ID を読む |
-| `styles.css` | `.pdf-tools-highlight-layer` `.pdf-tools-highlight` `.pdf-tools-selection-popup` `.pdf-tools-selection-bar` `.pdf-tools-color-dot` `.pdf-tools-mark` `.pdf-tools-dot`（色は `--pdf-tools-hl`、`color-mix(in srgb, var(--pdf-tools-hl) 35%, transparent)`） |
+| `styles.css` | `.pdf-simple-highlight-layer` `.pdf-simple-highlight` `.pdf-simple-selection-popup` `.pdf-simple-selection-bar` `.pdf-simple-color-dot` `.pdf-simple-mark` `.pdf-simple-dot`（色は `--pdf-simple-hl`、`color-mix(in srgb, var(--pdf-simple-hl) 35%, transparent)`） |
 
 削除済み: `src/pdf/read.ts`、`show-pdf-info` コマンド、`src/lib/format.ts` とそのテスト（この機能は pdf.js を直接使わない）。
 
@@ -360,7 +360,7 @@ dev-vault をスクラッチパッドにコピーして `E2E_VAULT` で起動す
 
 ## 13. 未決事項
 
-- プラグイン名 / id（`pdf-tools` は仮）、ライセンス、英語 UI。
+- ライセンス、英語 UI（名前は §21 で PDF Simple に決めた）。
 - 1 ノートに複数の PDF を添付する（v1 では 1 つ）。
 - 矩形ハイライト・PDF 本体への注釈書き出し（将来の候補）。
 - スマホ実機（iPhone / iPad）での選択と色のバーの使い勝手。模擬（`app.emulateMobile(true)`）では、画面下のナビゲーションバーの上にバーを出して作成できることまで確かめた。
@@ -545,3 +545,12 @@ dev-vault をスクラッチパッドにコピーして `E2E_VAULT` で起動す
 - ファイル一覧で別の PDF を右クリックすると「PDF の保存先へ移す」が出て、押すと移る
 - 設定画面に「PDF の置き場所」のグループ（保存先のフォルダ・自動で移すか）が出る
 - `window.__errs` は空
+
+## 21. 名前（2026-10-09）
+
+- コミュニティプラグインに公開するため、仮の名前 `pdf-tools` / PDF Tools を **`pdf-simple` / PDF Simple** に改めた（ユーザーが決めた）。公開済みのプラグイン 8,603 件・テーマ 847 件（`obsidianmd/obsidian-releases` の一覧）に同じ名前・id は無く、名前に PDF と Simple の両方を含むものも無い。
+- 決まり（`Reference/Manifest.md`・`Submit your plugin.md`）: id は英小文字とハイフンだけで、`plugin` で終わらず `obsidian` を含まない。名前は英語で短く、Obsidian・Plugin の語と、コアの機能名だけの名前は使えない。id は公開後に変えられない。
+- 変えたもの: `manifest.json` の id と名前、CSS のクラスの接頭辞（`pdf-simple-`）、クラス名（`PdfSimplePlugin` など）、ページプレビューの登録名、E2E のプロファイル名（`pdf-simple-e2e-profile`）、ドキュメント。コマンドの id の前に付くプラグイン id も `pdf-simple:` になる。
+- 変えないもの: ノートに書くプロパティ名（`pdf`・`pdf-highlights`・`pdf-highlights-heading`）とブロック ID の形（`^hl-…`）。データの形式なので、名前を変えてもノートやハイライトの移し替えは要らない。
+- GitHub のリポジトリも `tk-pkm111/obsidian-pdf-tools` から `tk-pkm111/obsidian-pdf-simple` に改名した（旧 URL は GitHub が転送する）。
+- BRAT で入れている環境では、新しい id のプラグインとして入り直す（設定の入れ直しが 1 回。古い PDF Tools は外し、BRAT の一覧からも外す）。

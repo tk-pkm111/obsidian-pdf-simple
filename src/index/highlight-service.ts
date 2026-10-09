@@ -17,7 +17,7 @@ import {
 } from '../lib/highlight-entry';
 import { parseWikilink, splitLinktext } from '../lib/linktext';
 import type { NoteHighlights } from '../lib/types';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 
 /** 作った直後のハイライトをキャッシュの反映待ちとして描き続ける最長時間 */
 const PENDING_MAX_AGE = 15_000;
@@ -48,7 +48,7 @@ export class HighlightService extends Component {
 	private started = false;
 	private readonly rebuildSoon = debounce(() => this.rebuild(), 300, true);
 
-	constructor(private readonly plugin: PdfToolsPlugin) {
+	constructor(private readonly plugin: PdfSimplePlugin) {
 		super();
 	}
 

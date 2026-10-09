@@ -1,7 +1,7 @@
 import { Platform, setIcon, setTooltip, type FileView } from 'obsidian';
 import { t } from '../i18n';
 import { MAX_PEN_HEADING } from '../lib/settings';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 import { colorLabel } from '../ui/labels';
 import type { SelectionResult } from './text-range';
 
@@ -30,7 +30,7 @@ export class SelectionPopup {
 	private el: HTMLElement | null = null;
 	private target: PopupTarget | null = null;
 
-	constructor(private readonly plugin: PdfToolsPlugin) {}
+	constructor(private readonly plugin: PdfSimplePlugin) {}
 
 	get shown(): PopupTarget | null {
 		return this.target;
@@ -46,7 +46,7 @@ export class SelectionPopup {
 		const doc = target.view.contentEl.doc;
 		const popup = doc.body.createDiv({
 			cls: [
-				'pdf-tools-selection-popup',
+				'pdf-simple-selection-popup',
 				Platform.isMobile ? 'mod-bar' : 'mod-float',
 			],
 		});
@@ -55,10 +55,10 @@ export class SelectionPopup {
 				color: colorLabel(entry),
 			});
 			const button = popup.createEl('button', {
-				cls: 'pdf-tools-color-dot',
+				cls: 'pdf-simple-color-dot',
 				attr: { 'aria-label': label, type: 'button' },
 			});
-			button.setCssProps({ '--pdf-tools-hl': entry.color });
+			button.setCssProps({ '--pdf-simple-hl': entry.color });
 			setTooltip(button, label);
 			keepSelection(button);
 			button.addEventListener('click', () => {
@@ -76,9 +76,9 @@ export class SelectionPopup {
 		popup: HTMLElement,
 		onChoose: (choice: PopupChoice) => void,
 	): void {
-		const choice = popup.createDiv({ cls: 'pdf-tools-heading-choice' });
+		const choice = popup.createDiv({ cls: 'pdf-simple-heading-choice' });
 		const toggle = choice.createEl('button', {
-			cls: 'pdf-tools-heading-button',
+			cls: 'pdf-simple-heading-button',
 			attr: { 'aria-label': t('popup.heading'), type: 'button' },
 		});
 		setIcon(toggle, 'heading');
@@ -89,15 +89,15 @@ export class SelectionPopup {
 			choice.toggleClass('is-open', !choice.hasClass('is-open')),
 		);
 		const menu = choice
-			.createDiv({ cls: 'pdf-tools-heading-menu' })
-			.createDiv({ cls: 'pdf-tools-heading-menu-inner' });
+			.createDiv({ cls: 'pdf-simple-heading-menu' })
+			.createDiv({ cls: 'pdf-simple-heading-menu-inner' });
 		const levels: number[] = [];
 		for (let level = 1; level <= MAX_PEN_HEADING; level++)
 			levels.push(level);
 		if (this.plugin.settings.defaultHeading > 0) levels.push(0);
 		for (const level of levels) {
 			const button = menu.createEl('button', {
-				cls: 'pdf-tools-heading-level',
+				cls: 'pdf-simple-heading-level',
 				text: level === 0 ? t('menu.kindText') : `H${level}`,
 				attr: { type: 'button' },
 			});
@@ -180,8 +180,8 @@ export class SelectionPopup {
 			Math.min(top, win.innerHeight - height - MARGIN),
 		);
 		popup.setCssProps({
-			'--pdf-tools-popup-left': `${Math.round(left)}px`,
-			'--pdf-tools-popup-top': `${Math.round(top)}px`,
+			'--pdf-simple-popup-left': `${Math.round(left)}px`,
+			'--pdf-simple-popup-top': `${Math.round(top)}px`,
 		});
 	}
 }

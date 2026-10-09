@@ -107,26 +107,26 @@ function createGroup(
 	flashing: boolean,
 ): Drawn {
 	const group = layer.createDiv({
-		cls: 'pdf-tools-highlight-group',
+		cls: 'pdf-simple-highlight-group',
 		attr: { 'data-key': item.highlight.key, 'data-sig': item.signature },
 	});
-	group.setCssProps({ '--pdf-tools-hl': item.color });
+	group.setCssProps({ '--pdf-simple-hl': item.color });
 	if (item.stale) group.addClass('is-stale');
 	if (flashing) group.addClass('is-flashing');
 	if (item.highlight.anchor.type === 'region') group.addClass('is-region');
 	for (const box of item.boxes)
-		group.createDiv('pdf-tools-highlight').setCssProps({
-			'--pdf-tools-x': percent(box.x),
-			'--pdf-tools-y': percent(box.y),
-			'--pdf-tools-w': percent(box.w),
-			'--pdf-tools-h': percent(box.h),
+		group.createDiv('pdf-simple-highlight').setCssProps({
+			'--pdf-simple-x': percent(box.x),
+			'--pdf-simple-y': percent(box.y),
+			'--pdf-simple-w': percent(box.w),
+			'--pdf-simple-h': percent(box.h),
 		});
 	const first = item.boxes[0];
 	if (item.badge && first) {
-		const badge = group.createDiv('pdf-tools-badge');
+		const badge = group.createDiv('pdf-simple-badge');
 		badge.setCssProps({
-			'--pdf-tools-x': percent(first.x),
-			'--pdf-tools-y': percent(first.y),
+			'--pdf-simple-x': percent(first.x),
+			'--pdf-simple-y': percent(first.y),
 		});
 		if (item.badge.kind === 'heading')
 			badge.setText(`H${item.badge.level}`);

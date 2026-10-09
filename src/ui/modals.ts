@@ -100,9 +100,9 @@ export class ColorSuggestModal extends FuzzySuggestModal<PaletteEntry> {
 	}
 
 	renderSuggestion(match: FuzzyMatch<PaletteEntry>, el: HTMLElement): void {
-		el.addClass('pdf-tools-color-suggestion');
-		el.createSpan({ cls: 'pdf-tools-color-swatch' }).setCssProps({
-			'--pdf-tools-hl': match.item.color,
+		el.addClass('pdf-simple-color-suggestion');
+		el.createSpan({ cls: 'pdf-simple-color-swatch' }).setCssProps({
+			'--pdf-simple-hl': match.item.color,
 		});
 		super.renderSuggestion(match, el.createSpan());
 	}

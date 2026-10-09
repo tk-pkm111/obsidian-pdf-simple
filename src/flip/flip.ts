@@ -8,7 +8,7 @@ import {
 	type WorkspaceLeaf,
 } from 'obsidian';
 import { t } from '../i18n';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 import { leafShowing, targetLeaf } from '../note/navigate';
 import { chooseNote, PdfSuggestModal } from '../ui/modals';
 import { isPdfView } from '../viewer/dom';
@@ -28,7 +28,7 @@ interface LeafMemory {
 export class FlipController {
 	private readonly memory = new WeakMap<WorkspaceLeaf, LeafMemory>();
 
-	constructor(private readonly plugin: PdfToolsPlugin) {}
+	constructor(private readonly plugin: PdfSimplePlugin) {}
 
 	private patch(leaf: WorkspaceLeaf, patch: LeafMemory): void {
 		this.memory.set(leaf, { ...this.memory.get(leaf), ...patch });

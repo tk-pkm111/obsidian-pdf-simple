@@ -10,10 +10,10 @@ import {
 	isReservedProperty,
 	isValidPropertyName,
 	normalizeHex,
-	type PdfToolsSettings,
+	type PdfSimpleSettings,
 } from './lib/settings';
 import type { PaletteEntry } from './lib/types';
-import type PdfToolsPlugin from './main';
+import type PdfSimplePlugin from './main';
 import { colorLabel, headingKindLabel } from './ui/labels';
 import { AddColorModal } from './ui/modals';
 
@@ -34,10 +34,10 @@ function insertHeadingDesc(): DocumentFragment {
 }
 
 /** 設定タブ（宣言的。Obsidian が描画・保存・検索を受け持つ） */
-export class PdfToolsSettingTab extends PluginSettingTab {
-	plugin: PdfToolsPlugin;
+export class PdfSimpleSettingTab extends PluginSettingTab {
+	plugin: PdfSimplePlugin;
 
-	constructor(app: App, plugin: PdfToolsPlugin) {
+	constructor(app: App, plugin: PdfSimplePlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -264,7 +264,7 @@ export class PdfToolsSettingTab extends PluginSettingTab {
 			);
 			return;
 		}
-		const next: PdfToolsSettings = { ...settings };
+		const next: PdfSimpleSettings = { ...settings };
 		switch (key) {
 			case 'defaultColor':
 				if (

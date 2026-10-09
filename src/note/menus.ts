@@ -1,13 +1,13 @@
 import { MarkdownView, Notice, TFile, type Editor, type Menu } from 'obsidian';
 import { t } from '../i18n';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 import { PdfSuggestModal } from '../ui/modals';
 import { isPdfView } from '../viewer/dom';
 import { takeContextLine } from './decorations';
 
 /** 見出しの行: 「PDF のハイライトをこの見出しの下に入れる」（入れることになっていれば、指定を外す） */
 function addInsertHeadingItem(
-	plugin: PdfToolsPlugin,
+	plugin: PdfSimplePlugin,
 	menu: Menu,
 	editor: Editor,
 	file: TFile,
@@ -34,7 +34,7 @@ function addInsertHeadingItem(
 }
 
 /** ノートの右クリックメニュー（ハイライトの行・見出しの行）と、ファイルのメニュー（添付・表裏） */
-export function registerMenus(plugin: PdfToolsPlugin): void {
+export function registerMenus(plugin: PdfSimplePlugin): void {
 	const { workspace } = plugin.app;
 
 	plugin.registerEvent(

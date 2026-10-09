@@ -1,5 +1,5 @@
 import { Component, Platform, debounce, type FileView } from 'obsidian';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 import { SelectionPopup } from './selection-popup';
 import {
 	expandResultToWords,
@@ -56,7 +56,7 @@ export class SelectionController extends Component {
 	private pointerDown = false;
 	private readonly evaluateSoon = debounce(() => this.evaluate(), 180, true);
 
-	constructor(private readonly plugin: PdfToolsPlugin) {
+	constructor(private readonly plugin: PdfSimplePlugin) {
 		super();
 		this.popup = new SelectionPopup(plugin);
 	}

@@ -6,15 +6,15 @@ import { PairingService } from '../../src/index/pairing-service';
 import {
 	SETTINGS_VERSION,
 	normalizeSettings,
-	type PdfToolsSettings,
+	type PdfSimpleSettings,
 } from '../../src/lib/settings';
-import type PdfToolsPlugin from '../../src/main';
+import type PdfSimplePlugin from '../../src/main';
 import { NoteWriter } from '../../src/note/note-writer';
 import { PdfStorage } from '../../src/pdf-storage';
 import { createFakeApp, type FakeApp } from './fake-app';
 
 export interface TestPlugin extends FakeApp {
-	plugin: PdfToolsPlugin;
+	plugin: PdfSimplePlugin;
 	highlights: HighlightService;
 	writer: NoteWriter;
 	pairing: PairingService;
@@ -49,7 +49,7 @@ export function entryText(
 }
 
 export async function createTestPlugin(
-	settings: Partial<PdfToolsSettings> = {},
+	settings: Partial<PdfSimpleSettings> = {},
 ): Promise<TestPlugin> {
 	const fake = createFakeApp();
 	const plugin = {
@@ -58,7 +58,7 @@ export async function createTestPlugin(
 			settingsVersion: SETTINGS_VERSION,
 			...settings,
 		}),
-	} as unknown as PdfToolsPlugin;
+	} as unknown as PdfSimplePlugin;
 	const highlights = new HighlightService(plugin);
 	const writer = new NoteWriter(plugin);
 	const pairing = new PairingService(plugin);

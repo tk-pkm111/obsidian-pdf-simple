@@ -10,14 +10,17 @@ import {
 import { t } from '../i18n';
 import { findBlockId } from '../lib/highlight-entry';
 import { paletteHex } from '../lib/settings';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 
 /**
  * 閲覧モードの装飾。`テキスト ^hl-…` の段落・見出し・箇条書きの末尾に小さな点（PDF と同じ色）を付ける。
  * 文には何もしない（色も付けず、押しても移動しない）。PDF の該当箇所へ移るのは点を押したときだけ。
  */
 
-function leafOf(plugin: PdfToolsPlugin, el: HTMLElement): WorkspaceLeaf | null {
+function leafOf(
+	plugin: PdfSimplePlugin,
+	el: HTMLElement,
+): WorkspaceLeaf | null {
 	let found: WorkspaceLeaf | null = null;
 	plugin.app.workspace.iterateAllLeaves((leaf) => {
 		if (
@@ -30,12 +33,16 @@ function leafOf(plugin: PdfToolsPlugin, el: HTMLElement): WorkspaceLeaf | null {
 	return found;
 }
 
-function decorate(plugin: PdfToolsPlugin, host: HTMLElement, id: string): void {
+function decorate(
+	plugin: PdfSimplePlugin,
+	host: HTMLElement,
+	id: string,
+): void {
 	const entry = plugin.highlights.index.entry(id);
-	if (!entry || host.hasClass('pdf-tools-hl-block')) return;
+	if (!entry || host.hasClass('pdf-simple-hl-block')) return;
 	const color = paletteHex(plugin.settings, entry.color);
-	host.addClass('pdf-tools-hl-block');
-	host.setCssProps({ '--pdf-tools-hl': color });
+	host.addClass('pdf-simple-hl-block');
+	host.setCssProps({ '--pdf-simple-hl': color });
 	const open = (evt: MouseEvent): void => {
 		evt.preventDefault();
 		void plugin.actions.openInPdf(id, {
@@ -44,10 +51,10 @@ function decorate(plugin: PdfToolsPlugin, host: HTMLElement, id: string): void {
 		});
 	};
 	const dot = createSpan({
-		cls: 'pdf-tools-dot',
-		attr: { 'data-pdf-tools-id': id },
+		cls: 'pdf-simple-dot',
+		attr: { 'data-pdf-simple-id': id },
 	});
-	dot.setCssProps({ '--pdf-tools-hl': color });
+	dot.setCssProps({ '--pdf-simple-hl': color });
 	setTooltip(dot, t('tooltip.openInPdf', { page: entry.page }));
 	dot.addEventListener('click', open);
 	// 第 1 弾の行（==…==）は、ハイライトの部分の直後に点を置く
@@ -79,7 +86,7 @@ function hostFor(
 }
 
 export function createReadingViewProcessor(
-	plugin: PdfToolsPlugin,
+	plugin: PdfSimplePlugin,
 ): MarkdownPostProcessor {
 	let cachedText: string | null = null;
 	let cachedLines: string[] = [];
@@ -121,7 +128,7 @@ export class ReadingViewRefresher extends Component {
 		true,
 	);
 
-	constructor(private readonly plugin: PdfToolsPlugin) {
+	constructor(private readonly plugin: PdfSimplePlugin) {
 		super();
 	}
 

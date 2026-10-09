@@ -15,9 +15,9 @@ import { rotationFromMatrix, type Rotation } from '../lib/geometry';
  */
 
 export const PDF_VIEW_TYPE = 'pdf';
-export const LAYER_CLASS = 'pdf-tools-highlight-layer';
+export const LAYER_CLASS = 'pdf-simple-highlight-layer';
 /** 範囲を取り込むときにページの上に描く四角 */
-export const CAPTURE_BOX_CLASS = 'pdf-tools-capture-box';
+export const CAPTURE_BOX_CLASS = 'pdf-simple-capture-box';
 
 const PAGE = '.page[data-page-number]';
 

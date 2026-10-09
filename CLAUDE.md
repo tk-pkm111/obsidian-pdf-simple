@@ -1,4 +1,4 @@
-# PDF Tools — Obsidian プラグイン開発
+# PDF Simple — Obsidian プラグイン開発
 
 @AGENTS.md
 
@@ -6,7 +6,7 @@
 
 ## このプロジェクト
 
-- 目的: Obsidian 上で PDF を処理しやすくするプラグイン（id: `pdf-tools`、名前は仮）。
+- 目的: Obsidian 上で PDF を処理しやすくするプラグイン。名前は **PDF Simple**（id: `pdf-simple`。2026-10-09 に `pdf-tools` / PDF Tools から改名。id は公開後に変えられない）。
 - 状態: 2026-10-07 に「Fitness Log」（`~/Desktop/Obsidian Fitness`）の開発環境（ハーネス）を複製して始め、2026-10-08 に設計を固めた（`docs/implementation-plan.md`）。**作るもの: PDF のハイライトをノートの「表/裏」で扱うプラグイン。** 本体の PDF ビューに重ね描きし、ノートには `テキスト ^hl-xxxx`（1 件 1 段落。見出し・画像も）だけを残し、位置と色はプロパティ `pdf-highlights` に持つ（プロパティ欄では隠す）。2026-10-08 に Phase 1〜6 を実装し、同日ユーザーの試用を受けて第 2 弾（ノートの文字の色なし・箇条書きなし・選んだらすぐ塗る・見出しモード・範囲を画像に・プロパティ欄で記録を隠す）を実装し、さらに第 3 弾（PDF へは点だけで移り文字は普通に編集できる・見出しをペンの書き方と吹き出しに統合・PDF の順にノートへ並べる）を実装（スマホ実機の確認は未実施。2026-10-08 に GitHub へ公開し BRAT で入れられるようにした）。第 4 弾で範囲の画像の文字抜け（cMap）を直し、選んだ文字を段落の形でノートに入れるようにした。第 5 弾（2026-10-09）でハイライトを入れる場所を決められるようにした（既定は Excalidraw のデータや末尾の `%%` の手前。設定の見出し・ノートごとの見出し）。第 6 弾で設定の見出しを複数書けるようにし（1 つのノートに 2 つ以上あればモーダルで選ばせてノートに記録）、見出しの照合を完全一致（`## Summary`）にした。第 7 弾で PDF の保存先を決められるようにした（ハイライト・添付のときに設定のフォルダへ自動で移す。右クリックとコマンドでも移せる）。設計から変えた点は設計書の §14〜§20。
 - 設計は `docs/implementation-plan.md`（決定事項・データ設計・画面設計・使う API・モジュール構成・フェーズ・スパイク結果）。コードを書く前に該当するフェーズの節を読む。ハーネスの構成と使い方は `docs/harness.md`。
 
@@ -34,7 +34,7 @@ docs/              設計メモ
 
 | コマンド | 役割 |
 |---|---|
-| `npm run dev` | 監視ビルド。`dev-vault/.obsidian/plugins/pdf-tools/` に自動コピー → hot-reload が再読み込み |
+| `npm run dev` | 監視ビルド。`dev-vault/.obsidian/plugins/pdf-simple/` に自動コピー → hot-reload が再読み込み |
 | `npm run build` | 本番ビルド（型チェック込み、minify）。dev-vault にもコピーされる |
 | `npm run check` | typecheck + lint + format:check + test。**コードを変えたら最後に必ず通す** |
 | `npm run format` / `npm run lint:fix` | 自動整形・自動修正 |
@@ -49,7 +49,7 @@ docs/              設計メモ
 2. ロジックは `src/lib/` に置いてテストを書く。Obsidian API に触る層（コマンド・ビュー・設定・`src/pdf/`）は薄く保つ。
 3. 終わる前に `npm run check` を通す。ESLint の警告（`obsidianmd/*`）も直す。
 4. UI の変更は `npm run build` の後に `npm run e2e` で隔離した Obsidian を操作して確かめる（スクリーンショットを見る・`window.__errs` が空か確認する）。そのうえで、`npm run dev` を動かした状態で dev-vault を開いて目視してもらうよう、確認手順を具体的に書いて依頼する。
-5. commit / push は頼まれたときだけ。GitHub のリポジトリは公開（`tk-pkm111/obsidian-pdf-tools`）。個人的なデータを入れない。リリースは `manifest.json` の版と同じタグを push すると GitHub Actions が作る（BRAT はそこから入れる）。
+5. commit / push は頼まれたときだけ。GitHub のリポジトリは公開（`tk-pkm111/obsidian-pdf-simple`。2026-10-09 に `obsidian-pdf-tools` から改名。旧 URL は GitHub が転送する）。個人的なデータを入れない。リリースは `manifest.json` の版と同じタグを push すると GitHub Actions が作る（BRAT はそこから入れる）。
 
 ## 守ること
 
@@ -63,11 +63,11 @@ docs/              設計メモ
 - 設定が必要になったら、宣言的な設定タブ（`PluginSettingTab.getSettingDefinitions()`、1.13.0+）で作る。`display()` は使わない。
 - dev-vault をユーザーが Obsidian で開いて `npm run dev` を動かしているときは、ソースを保存するたびにその dev-vault に反映される。E2E は dev-vault のコピー（`E2E_VAULT`）で行う。
 - ユーザーの本番 Vault（`~/Documents/Obsidian Vaults/` 配下など）と本番の Obsidian（起動中のアプリ・Obsidian CLI）には絶対に触らない。動作確認は `dev-vault/` と `npm run e2e` の隔離インスタンスのみ。
-- Fitness Log のハーネスと同時に動かせるよう、E2E のプロファイルは `pdf-tools-e2e-profile`、ポートは 9334（Fitness Log は 9333）。開発用 Vault のフォルダ名はどちらも `dev-vault` なので、Obsidian の Vault 一覧では同じ名前で並ぶ。
+- Fitness Log のハーネスと同時に動かせるよう、E2E のプロファイルは `pdf-simple-e2e-profile`、ポートは 9334（Fitness Log は 9333）。開発用 Vault のフォルダ名はどちらも `dev-vault` なので、Obsidian の Vault 一覧では同じ名前で並ぶ。
 - UI 文言は日本語で `src/i18n/ja.ts` に集約する。英単語を混ぜるときは sentence case（例: "vault" は小文字）。
-- CSS のクラスは `pdf-tools-` を接頭辞にする。SVG 要素の `cls` は空白区切りにしない（配列で渡す）。
+- CSS のクラスは `pdf-simple-` を接頭辞にする。SVG 要素の `cls` は空白区切りにしない（配列で渡す）。
 - `minAppVersion` は `1.13.0`（開発機の Obsidian は 1.14.4）。1.14 以降専用の API を使う場合は manifest と versions.json を更新する。
 
 ## 未決事項
 
-プラグイン名/id（`pdf-tools` は仮。コミュニティには `pdf-plus` など PDF 系のプラグインが 70 以上ある）、ライセンス、英語 UI（i18n の仕組みはある）。設計上の未決事項は `docs/implementation-plan.md` の最後の節。
+ライセンス、英語 UI（i18n の仕組みはある）。設計上の未決事項は `docs/implementation-plan.md` の最後の節。

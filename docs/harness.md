@@ -2,7 +2,7 @@
 
 作成日: 2026-10-07（「Fitness Log」のハーネスを複製）
 
-Obsidian プラグイン「PDF Tools」を作るための開発環境。2026-10-01 に Fitness Log（`~/Desktop/Obsidian Fitness`）のために作ったハーネスを、Fitness 固有のもの（ソース・テスト・ドメイン知識・ダミーデータ）を外して複製した。決めごとの経緯と理由は Fitness Log の `docs/harness.md` にある。ここには「何が入っていて、どう使うか」をまとめる。
+Obsidian プラグイン「PDF Simple」を作るための開発環境。2026-10-01 に Fitness Log（`~/Desktop/Obsidian Fitness`）のために作ったハーネスを、Fitness 固有のもの（ソース・テスト・ドメイン知識・ダミーデータ）を外して複製した。決めごとの経緯と理由は Fitness Log の `docs/harness.md` にある。ここには「何が入っていて、どう使うか」をまとめる。
 
 ## 方針
 
@@ -45,9 +45,9 @@ ESLint の警告も「直す」運用にする（CLAUDE.md に明記）。
 ### 4. 開発用 Vault（`dev-vault/`）
 
 - プロジェクト直下の専用 Vault。**プロジェクトのルート自体を Vault として開かない**（`node_modules` などを Obsidian が索引してしまう）。
-- `esbuild.config.mjs` の `copy-to-vault` プラグインがビルドのたびに `main.js` / `manifest.json` / `styles.css` を `dev-vault/.obsidian/plugins/pdf-tools/` にコピーし、`.hotreload` マーカーを置く。hot-reload がそれを検知して再読み込みする。
+- `esbuild.config.mjs` の `copy-to-vault` プラグインがビルドのたびに `main.js` / `manifest.json` / `styles.css` を `dev-vault/.obsidian/plugins/pdf-simple/` にコピーし、`.hotreload` マーカーを置く。hot-reload がそれを検知して再読み込みする。
 - 別の Vault で試すときは `OBSIDIAN_PLUGIN_DIR` 環境変数で向き先を変える。本番 Vault（`~/Documents/Obsidian Vaults/` 配下など）は対象外。
-- `community-plugins.json` に `hot-reload` と `pdf-tools` を登録済み。初回に Obsidian が「信頼して有効化」を聞いてくる。
+- `community-plugins.json` に `hot-reload` と `pdf-simple` を登録済み。初回に Obsidian が「信頼して有効化」を聞いてくる。
 - `PDF/` にテスト用の PDF（`sample-3-pages.pdf`・`sample-1-page.pdf`。Ghostscript で生成、個人情報なし）。**個人の PDF は置かない**（リポジトリに入る）。
 - Fitness Log の開発用 Vault もフォルダ名は `dev-vault` なので、Obsidian の Vault 一覧では同じ名前で 2 つ並ぶ。開くときはパスで見分ける。
 
@@ -83,7 +83,7 @@ ESLint の警告も「直す」運用にする（CLAUDE.md に明記）。
 
 `scripts/e2e-obsidian.mjs`（`npm run e2e -- <command>`）。
 
-- Obsidian を **専用のユーザーデータ**（OS の一時フォルダの `pdf-tools-e2e-profile`）と `--remote-debugging-port`（既定 9334。Fitness Log は 9333 なので同時に動かせる）で起動し、Chrome DevTools Protocol で JS の実行とスクリーンショットを行う。依存パッケージは不要（Node 22 の `fetch` / `WebSocket`）。
+- Obsidian を **専用のユーザーデータ**（OS の一時フォルダの `pdf-simple-e2e-profile`）と `--remote-debugging-port`（既定 9334。Fitness Log は 9333 なので同時に動かせる）で起動し、Chrome DevTools Protocol で JS の実行とスクリーンショットを行う。依存パッケージは不要（Node 22 の `fetch` / `WebSocket`）。
 - 本番のユーザーデータ（`~/Library/Application Support/obsidian`）には書き込まない。自動更新で入った本体の asar を読み取ってコピーするだけなので、実際に使っている版（開発機では 1.14.4）で動く。開く Vault は dev-vault だけ。終了はこのプロファイルのプロセスだけを対象にする。起動中の本番の Obsidian とは別プロセスで、互いに干渉しない。
 - ウィンドウが裏に隠れても止まらないよう、タイマーの間引きを無効にするフラグを付けている。
 - 使い方:
@@ -92,7 +92,7 @@ ESLint の警告も「直す」運用にする（CLAUDE.md に明記）。
   npm run build                                   # dev-vault にコピー（hot-reload が読み直す）
   npm run e2e -- launch
   npm run e2e -- eval "await click('作成者を信頼しプラグインを有効化'); return Object.keys(app.plugins.plugins)"   # 初回だけ
-  npm run e2e -- eval "await app.workspace.getLeaf().openFile(app.vault.getFileByPath('PDF/sample-3-pages.pdf')); await sleep(800); app.commands.executeCommandById('pdf-tools:create-note-for-pdf'); await sleep(1500); return { notices: noticeText(), active: app.workspace.getActiveFile()?.path, errs: window.__errs }"
+  npm run e2e -- eval "await app.workspace.getLeaf().openFile(app.vault.getFileByPath('PDF/sample-3-pages.pdf')); await sleep(800); app.commands.executeCommandById('pdf-simple:create-note-for-pdf'); await sleep(1500); return { notices: noticeText(), active: app.workspace.getActiveFile()?.path, errs: window.__errs }"
   npm run e2e -- shot /tmp/pdf.png                # 画像を Read で見る
   npm run e2e -- quit
   ```
@@ -100,7 +100,7 @@ ESLint の警告も「直す」運用にする（CLAUDE.md に明記）。
   `eval` では `sleep` / `btn` / `click` / `modalText` / `viewText`（アクティブなタブの本文）/ `noticeText`（出ている通知）が使え（`eval` の間はフォーカスを模擬するので、裏のウィンドウでも入力欄の focus / blur が起きる）、`window.__errs` に Console のエラーが溜まる。スマホ幅の確認は `window.require('@electron/remote').getCurrentWindow().setSize(400, 860)` の後に `app.emulateMobile(true)`（再読み込みが走る）。1.14 では設定画面が別ウィンドウなので `E2E_TARGET=設定` で対象を切り替える。
 - `el.click()` では開かないもの（Obsidian のメニュー）は `npm run e2e -- click '<CSS セレクタ>' [right]` で本物のマウス操作をする（出たメニューの項目を表示する）。ドラッグは `npm run e2e -- drag '<つかむ所のセレクタ>' <dy>`。
 - 座標での本物のマウス操作: `npm run e2e -- clickxy <x> <y> [回数] [alt|meta|shift]`（回数 2 でダブルクリック）、`npm run e2e -- dragxy <x1> <y1> <x2> <y2> [alt]`（PDF の文字のドラッグ選択・範囲の取り込み）。座標は先に `eval` で要素の `getBoundingClientRect()` から求める。zsh では `$VAR` が空白で分かれないので、座標は 1 つずつ引数に渡す。macOS の Obsidian は既定で OS のネイティブメニューを使い、DOM にも画面写真にも出ないので、確かめるときは先に `app.vault.setConfig('nativeMenus', false)` を実行する。
-- ユーザーが dev-vault を Obsidian で開いているときは、dev-vault をコピーして `E2E_VAULT=<コピーのパス>` で起動する（同じ Vault を 2 つのアプリで開くと data.json や workspace.json を取り合う）。プラグインのコピー先は `OBSIDIAN_PLUGIN_DIR=<コピー>/.obsidian/plugins/pdf-tools npm run build` で切り替える。
+- ユーザーが dev-vault を Obsidian で開いているときは、dev-vault をコピーして `E2E_VAULT=<コピーのパス>` で起動する（同じ Vault を 2 つのアプリで開くと data.json や workspace.json を取り合う）。プラグインのコピー先は `OBSIDIAN_PLUGIN_DIR=<コピー>/.obsidian/plugins/pdf-simple npm run build` で切り替える。
 - 注意: 裏に隠れたウィンドウでは Obsidian の「レイアウトの準備完了」（`app.workspace.layoutReady`）が遅れることがある。起動直後に確かめるときは `for (let i=0;i<30 && !app.workspace.layoutReady;i++) await sleep(500)` で待つ。
 - 注意: Obsidian 1.14 のドロップダウンは幅計測用の `select` を内部に持つので、`querySelectorAll('select')` の添字は 2 つずつずれる。
 - `eval` の中で `btn` という名前の変数は作れない（補助関数と重なる）。
@@ -122,7 +122,7 @@ ESLint の警告も「直す」運用にする（CLAUDE.md に明記）。
 | 項目 | 決定 | 理由 |
 |---|---|---|
 | リポジトリの単位 | プロジェクトのルート = プラグインのリポジトリ | コミュニティ公開時に `manifest.json` がルートに要る。`docs/` `dev-vault/` は同居しても問題ない |
-| プラグイン id / 名前 | `pdf-tools` / `PDF Tools`（仮） | id は公開後に変えられないので、公開前に再検討する。コミュニティには PDF 系のプラグインが 70 以上あるので、名前は重ならないものにする |
+| プラグイン id / 名前 | `pdf-simple` / `PDF Simple` | 2026-10-09 に決定（`pdf-tools` / PDF Tools から改名）。id は公開後に変えられない。公開済みのプラグイン・テーマと重ならないことを確かめた |
 | `isDesktopOnly` | `false`（モバイル対応） | PDF は iPad / iPhone でも読む。最初から制約を効かせる方が安い |
 | pdf.js | Obsidian 同梱のものを `loadPdfJs()` で使う | 自前で同梱するとビルドが太り、本体のビューアと版がずれる。`@since` が無いので 1.13.0 で使える |
 | `minAppVersion` | `1.13.0`（Fitness Log から引き継ぎ） | 宣言的設定（`getSettingDefinitions`）が使える版。開発機は 1.14.4 |
@@ -135,7 +135,7 @@ ESLint の警告も「直す」運用にする（CLAUDE.md に明記）。
 ## 確認してほしいこと
 
 1. **何を作るか。** 下の「次のステップ」。
-2. **プラグイン名 / id。** `pdf-tools` は仮。
+2. **プラグイン名 / id。** 2026-10-09 に `pdf-simple` / PDF Simple に決めた。
 3. **ライセンス。** 公開するなら `LICENSE` が必要（Obsidian プラグインは MIT が多い）。
 
 ## 既知の注意点

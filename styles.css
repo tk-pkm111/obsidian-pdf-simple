@@ -1,8 +1,8 @@
 /*
-PDF Tools のスタイル。
-- クラス名は .pdf-tools- を接頭辞にして、Obsidian 本体や他プラグインのスタイルを上書きしない。
+PDF Simple のスタイル。
+- クラス名は .pdf-simple- を接頭辞にして、Obsidian 本体や他プラグインのスタイルを上書きしない。
 - 色やサイズは Obsidian の CSS 変数（references/obsidian-developer-docs/en/Reference/CSS variables）を使う。
-- JS から el.style.* を触らず、ここにクラスを書く。ハイライトの色と位置だけは CSS 変数（--pdf-tools-*）で渡す。
+- JS から el.style.* を触らず、ここにクラスを書く。ハイライトの色と位置だけは CSS 変数（--pdf-simple-*）で渡す。
 */
 
 /* ---------------------------------------------------------------------------
@@ -10,7 +10,7 @@ PDF Tools のスタイル。
    乗算で重ねるので、白い紙は色が付き、黒い文字は黒いまま（蛍光ペンと同じ見え方）
 */
 
-.pdf-tools-highlight-layer {
+.pdf-simple-highlight-layer {
 	position: absolute;
 	inset: 0;
 	z-index: 0;
@@ -20,39 +20,39 @@ PDF Tools のスタイル。
 }
 
 /* 「テーマに合わせる」で暗い紙面にしているときは乗算すると見えないので、普通に重ねる */
-.pdf-container.mod-themed .pdf-tools-highlight-layer {
+.pdf-container.mod-themed .pdf-simple-highlight-layer {
 	mix-blend-mode: normal;
 }
 
-.pdf-tools-highlight {
+.pdf-simple-highlight {
 	position: absolute;
-	left: var(--pdf-tools-x);
-	top: var(--pdf-tools-y);
-	width: var(--pdf-tools-w);
-	height: var(--pdf-tools-h);
+	left: var(--pdf-simple-x);
+	top: var(--pdf-simple-y);
+	width: var(--pdf-simple-w);
+	height: var(--pdf-simple-h);
 	border-radius: 2px;
-	background-color: color-mix(in srgb, var(--pdf-tools-hl) 60%, transparent);
+	background-color: color-mix(in srgb, var(--pdf-simple-hl) 60%, transparent);
 }
 
-.pdf-container.mod-themed .pdf-tools-highlight {
-	background-color: color-mix(in srgb, var(--pdf-tools-hl) 35%, transparent);
+.pdf-container.mod-themed .pdf-simple-highlight {
+	background-color: color-mix(in srgb, var(--pdf-simple-hl) 35%, transparent);
 }
 
 /* PDF を差し替えて位置がずれたかもしれないもの */
-.pdf-tools-highlight-group.is-stale .pdf-tools-highlight {
-	background-color: color-mix(in srgb, var(--pdf-tools-hl) 15%, transparent);
-	outline: 1px dashed var(--pdf-tools-hl);
+.pdf-simple-highlight-group.is-stale .pdf-simple-highlight {
+	background-color: color-mix(in srgb, var(--pdf-simple-hl) 15%, transparent);
+	outline: 1px dashed var(--pdf-simple-hl);
 }
 
-.pdf-tools-highlight-group.is-flashing .pdf-tools-highlight {
-	animation: pdf-tools-flash 1.6s ease-out;
+.pdf-simple-highlight-group.is-flashing .pdf-simple-highlight {
+	animation: pdf-simple-flash 1.6s ease-out;
 }
 
-@keyframes pdf-tools-flash {
+@keyframes pdf-simple-flash {
 	0%,
 	45% {
-		background-color: color-mix(in srgb, var(--pdf-tools-hl) 75%, transparent);
-		box-shadow: 0 0 0 3px color-mix(in srgb, var(--pdf-tools-hl) 55%, transparent);
+		background-color: color-mix(in srgb, var(--pdf-simple-hl) 75%, transparent);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--pdf-simple-hl) 55%, transparent);
 	}
 	100% {
 		box-shadow: 0 0 0 0 transparent;
@@ -60,28 +60,28 @@ PDF Tools のスタイル。
 }
 
 /* ハイライトの上では指のカーソル（押すとノートへ） */
-.pdf-tools-hovering .textLayer,
-.pdf-tools-hovering .textLayer span {
+.pdf-simple-hovering .textLayer,
+.pdf-simple-hovering .textLayer span {
 	cursor: pointer;
 }
 
 /* 画像として取り込んだ範囲: 枠線と薄い塗り（中の文字はそのまま読めて選べる） */
-.pdf-tools-highlight-group.is-region .pdf-tools-highlight {
+.pdf-simple-highlight-group.is-region .pdf-simple-highlight {
 	border-radius: 3px;
-	background-color: color-mix(in srgb, var(--pdf-tools-hl) 12%, transparent);
-	outline: 2px solid var(--pdf-tools-hl);
+	background-color: color-mix(in srgb, var(--pdf-simple-hl) 12%, transparent);
+	outline: 2px solid var(--pdf-simple-hl);
 	outline-offset: -1px;
 }
 
-.pdf-container.mod-themed .pdf-tools-highlight-group.is-region .pdf-tools-highlight {
-	background-color: color-mix(in srgb, var(--pdf-tools-hl) 10%, transparent);
+.pdf-container.mod-themed .pdf-simple-highlight-group.is-region .pdf-simple-highlight {
+	background-color: color-mix(in srgb, var(--pdf-simple-hl) 10%, transparent);
 }
 
 /* 左上の小さな印（見出しの H2・画像の印）。押すとノートへ */
-.pdf-tools-badge {
+.pdf-simple-badge {
 	position: absolute;
-	left: var(--pdf-tools-x);
-	top: var(--pdf-tools-y);
+	left: var(--pdf-simple-x);
+	top: var(--pdf-simple-y);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -90,7 +90,7 @@ PDF Tools のスタイル。
 	padding: 0 0.3em;
 	transform: translate(-60%, -60%);
 	border-radius: var(--radius-s);
-	background-color: var(--pdf-tools-hl);
+	background-color: var(--pdf-simple-hl);
 	color: #1e1e1e;
 	font-family: var(--font-interface);
 	font-size: 10px;
@@ -101,30 +101,30 @@ PDF Tools のスタイル。
 	isolation: isolate;
 }
 
-.pdf-tools-badge svg {
+.pdf-simple-badge svg {
 	width: 1.1em;
 	height: 1.1em;
 }
 
 /* 範囲の取り込み中: 文字の選択・リンクを止め、ページの上で十字のカーソル */
-.pdf-tools-capturing .textLayer,
-.pdf-tools-capturing .annotationLayer {
+.pdf-simple-capturing .textLayer,
+.pdf-simple-capturing .annotationLayer {
 	pointer-events: none;
 	user-select: none;
 }
 
-.pdf-tools-capturing .page {
+.pdf-simple-capturing .page {
 	cursor: crosshair;
 	touch-action: none;
 }
 
 /* ドラッグ中の四角 */
-.pdf-tools-capture-box {
+.pdf-simple-capture-box {
 	position: absolute;
-	left: var(--pdf-tools-x);
-	top: var(--pdf-tools-y);
-	width: var(--pdf-tools-w);
-	height: var(--pdf-tools-h);
+	left: var(--pdf-simple-x);
+	top: var(--pdf-simple-y);
+	width: var(--pdf-simple-w);
+	height: var(--pdf-simple-h);
 	z-index: 3;
 	border: 2px dashed var(--interactive-accent);
 	background-color: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
@@ -135,42 +135,42 @@ PDF Tools のスタイル。
    PDF の上部ツールバーの右側のボタン（ペン・見出し・範囲を画像に）
 */
 
-.pdf-tools-toolbar {
+.pdf-simple-toolbar {
 	display: flex;
 	align-items: center;
 	gap: var(--size-2-2);
 }
 
-.pdf-tools-tool {
+.pdf-simple-tool {
 	position: relative;
 }
 
-.pdf-tools-tool-icon {
+.pdf-simple-tool-icon {
 	display: flex;
 }
 
-.pdf-tools-tool.is-active {
+.pdf-simple-tool.is-active {
 	background-color: var(--background-modifier-active-hover);
 	color: var(--interactive-accent);
 }
 
 /* ペンのボタンの下の、今の色の帯 */
-.pdf-tools-pen-swatch {
+.pdf-simple-pen-swatch {
 	position: absolute;
 	left: 25%;
 	right: 25%;
 	bottom: 2px;
 	height: 3px;
 	border-radius: 2px;
-	background-color: var(--pdf-tools-hl);
+	background-color: var(--pdf-simple-hl);
 }
 
-.pdf-tools-tool-pen.is-off .pdf-tools-pen-swatch {
+.pdf-simple-tool-pen.is-off .pdf-simple-pen-swatch {
 	display: none;
 }
 
 /* ペンが見出しのとき、右上に H2 などを出す */
-.pdf-tools-pen-kind {
+.pdf-simple-pen-kind {
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -184,10 +184,10 @@ PDF Tools のスタイル。
    文字を選んだときの色のボタン
 */
 
-.pdf-tools-selection-popup {
+.pdf-simple-selection-popup {
 	position: fixed;
-	left: var(--pdf-tools-popup-left, 0);
-	top: var(--pdf-tools-popup-top, 0);
+	left: var(--pdf-simple-popup-left, 0);
+	top: var(--pdf-simple-popup-top, 0);
 	z-index: var(--layer-popover);
 	display: flex;
 	gap: var(--size-4-2);
@@ -198,33 +198,33 @@ PDF Tools のスタイル。
 	box-shadow: var(--shadow-s);
 }
 
-.pdf-tools-selection-popup.is-hidden {
+.pdf-simple-selection-popup.is-hidden {
 	display: none;
 }
 
-.pdf-tools-selection-popup .pdf-tools-color-dot {
+.pdf-simple-selection-popup .pdf-simple-color-dot {
 	width: 22px;
 	height: 22px;
 	min-width: 0;
 	padding: 0;
 	border: 2px solid var(--background-primary);
 	border-radius: 50%;
-	background-color: var(--pdf-tools-hl);
+	background-color: var(--pdf-simple-hl);
 	box-shadow: 0 0 0 1px var(--background-modifier-border);
 	cursor: pointer;
 }
 
-.pdf-tools-selection-popup .pdf-tools-color-dot:hover {
+.pdf-simple-selection-popup .pdf-simple-color-dot:hover {
 	box-shadow: 0 0 0 2px var(--interactive-accent);
 }
 
-.pdf-tools-selection-popup.mod-bar .pdf-tools-color-dot {
+.pdf-simple-selection-popup.mod-bar .pdf-simple-color-dot {
 	width: 34px;
 	height: 34px;
 }
 
 /* 色の後ろの「見出し」。マウスを乗せる（スマホは押す）と、上に見出し 1〜3 が出る */
-.pdf-tools-heading-choice {
+.pdf-simple-heading-choice {
 	position: relative;
 	display: flex;
 	align-items: center;
@@ -232,7 +232,7 @@ PDF Tools のスタイル。
 	border-inline-start: var(--border-width) solid var(--background-modifier-border);
 }
 
-.pdf-tools-heading-button {
+.pdf-simple-heading-button {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -247,19 +247,19 @@ PDF Tools のスタイル。
 	cursor: pointer;
 }
 
-.pdf-tools-heading-button svg {
+.pdf-simple-heading-button svg {
 	width: 16px;
 	height: 16px;
 }
 
-.pdf-tools-heading-choice:hover .pdf-tools-heading-button,
-.pdf-tools-heading-choice.is-open .pdf-tools-heading-button {
+.pdf-simple-heading-choice:hover .pdf-simple-heading-button,
+.pdf-simple-heading-choice.is-open .pdf-simple-heading-button {
 	background-color: var(--background-modifier-hover);
 	color: var(--text-normal);
 }
 
 /* 上に出す見出しの一覧。ボタンとの間を透明な余白でつないで、マウスを動かしても消えないようにする */
-.pdf-tools-heading-menu {
+.pdf-simple-heading-menu {
 	position: absolute;
 	right: calc(-1 * var(--size-4-3));
 	bottom: 100%;
@@ -267,12 +267,12 @@ PDF Tools のスタイル。
 	padding-bottom: var(--size-4-3);
 }
 
-.pdf-tools-heading-choice:hover .pdf-tools-heading-menu,
-.pdf-tools-heading-choice.is-open .pdf-tools-heading-menu {
+.pdf-simple-heading-choice:hover .pdf-simple-heading-menu,
+.pdf-simple-heading-choice.is-open .pdf-simple-heading-menu {
 	display: block;
 }
 
-.pdf-tools-heading-menu-inner {
+.pdf-simple-heading-menu-inner {
 	display: flex;
 	gap: var(--size-4-1);
 	padding: var(--size-4-1);
@@ -282,7 +282,7 @@ PDF Tools のスタイル。
 	box-shadow: var(--shadow-s);
 }
 
-.pdf-tools-heading-level {
+.pdf-simple-heading-level {
 	min-width: 2.4em;
 	height: 26px;
 	padding: 0 var(--size-4-2);
@@ -295,13 +295,13 @@ PDF Tools のスタイル。
 	cursor: pointer;
 }
 
-.pdf-tools-heading-level:hover {
+.pdf-simple-heading-level:hover {
 	background-color: var(--interactive-accent);
 	color: var(--text-on-accent);
 }
 
-.pdf-tools-selection-popup.mod-bar .pdf-tools-heading-button,
-.pdf-tools-selection-popup.mod-bar .pdf-tools-heading-level {
+.pdf-simple-selection-popup.mod-bar .pdf-simple-heading-button,
+.pdf-simple-selection-popup.mod-bar .pdf-simple-heading-level {
 	width: auto;
 	min-width: 34px;
 	height: 34px;
@@ -313,50 +313,50 @@ PDF Tools のスタイル。
 
 /* ノートの文には色を付けない。第 1 弾の ==…== の行も、このプラグインの行なら色を消す
    （1.14 は --highlight-background、1.13 は --text-highlight-bg を使う） */
-.pdf-tools-hl-line,
-.pdf-tools-hl-block {
+.pdf-simple-hl-line,
+.pdf-simple-hl-block {
 	--highlight-background: transparent;
 	--text-highlight-bg: transparent;
 }
 
 /* プロパティ欄で、位置と色の記録（pdf-highlights）の行を隠す（設定で戻せる）。
    ノートのタブとページプレビューだけ。「ファイルのプロパティ」パネルとソースモードでは見える */
-body.pdf-tools-hide-entries
+body.pdf-simple-hide-entries
 	.workspace-leaf-content[data-type="markdown"]
 	.metadata-property[data-property-key="pdf-highlights"],
-body.pdf-tools-hide-entries
+body.pdf-simple-hide-entries
 	.hover-popover
 	.metadata-property[data-property-key="pdf-highlights"] {
 	display: none;
 }
 
 /* 行末の小さな点（押すと PDF の該当箇所へ） */
-.pdf-tools-dot {
+.pdf-simple-dot {
 	display: inline-block;
 	width: 0.45em;
 	height: 0.45em;
 	margin-inline-start: 0.25em;
 	border-radius: 50%;
-	background-color: var(--pdf-tools-hl);
+	background-color: var(--pdf-simple-hl);
 	vertical-align: super;
 	cursor: pointer;
 }
 
-.pdf-tools-dot:hover {
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--pdf-tools-hl) 45%, transparent);
+.pdf-simple-dot:hover {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--pdf-simple-hl) 45%, transparent);
 }
 
 /* 色を選ぶ候補の見本 */
-.pdf-tools-color-suggestion {
+.pdf-simple-color-suggestion {
 	display: flex;
 	align-items: center;
 	gap: var(--size-4-2);
 }
 
-.pdf-tools-color-swatch {
+.pdf-simple-color-swatch {
 	flex: none;
 	width: 0.9em;
 	height: 0.9em;
 	border-radius: 50%;
-	background-color: var(--pdf-tools-hl);
+	background-color: var(--pdf-simple-hl);
 }

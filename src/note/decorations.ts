@@ -24,7 +24,7 @@ import {
 import { t } from '../i18n';
 import { findBlockId } from '../lib/highlight-entry';
 import { paletteHex } from '../lib/settings';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 
 /**
  * ライブプレビューの装飾。
@@ -66,10 +66,10 @@ class DotWidget extends WidgetType {
 
 	toDOM(): HTMLElement {
 		const dot = createSpan({
-			cls: 'pdf-tools-dot',
-			attr: { 'data-pdf-tools-id': this.id },
+			cls: 'pdf-simple-dot',
+			attr: { 'data-pdf-simple-id': this.id },
 		});
-		dot.setCssProps({ '--pdf-tools-hl': this.color });
+		dot.setCssProps({ '--pdf-simple-hl': this.color });
 		setTooltip(dot, t('tooltip.openInPdf', { page: this.page }));
 		return dot;
 	}
@@ -89,7 +89,7 @@ function elementAt(event: MouseEvent): Element | null {
 	return node.instanceOf(Element) ? node : node.parentElement;
 }
 
-export function createHighlightDecorations(plugin: PdfToolsPlugin): Extension {
+export function createHighlightDecorations(plugin: PdfSimplePlugin): Extension {
 	const isHighlight = (id: string): boolean =>
 		plugin.highlights.index.entry(id) !== null;
 
@@ -156,10 +156,10 @@ export function createHighlightDecorations(plugin: PdfToolsPlugin): Extension {
 						line.from,
 						line.from,
 						Decoration.line({
-							class: 'pdf-tools-hl-line',
+							class: 'pdf-simple-hl-line',
 							attributes: {
-								style: `--pdf-tools-hl: ${color}`,
-								'data-pdf-tools-id': match.id,
+								style: `--pdf-simple-hl: ${color}`,
+								'data-pdf-simple-id': match.id,
 							},
 						}),
 					);
@@ -183,8 +183,8 @@ export function createHighlightDecorations(plugin: PdfToolsPlugin): Extension {
 		eventHandlers: {
 			mousedown(event: MouseEvent, view: EditorView): boolean {
 				if (event.button !== 0) return false;
-				const dot = elementAt(event)?.closest('.pdf-tools-dot');
-				const id = dot?.getAttribute('data-pdf-tools-id');
+				const dot = elementAt(event)?.closest('.pdf-simple-dot');
+				const id = dot?.getAttribute('data-pdf-simple-id');
 				if (!id) return false;
 				event.preventDefault();
 				const info = view.state.field(editorInfoField, false);

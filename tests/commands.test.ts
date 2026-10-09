@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { registerCommands, registerPaletteCommands } from '../src/commands';
 import { normalizeSettings } from '../src/lib/settings';
-import type PdfToolsPlugin from '../src/main';
+import type PdfSimplePlugin from '../src/main';
 import { Plugin } from './__mocks__/obsidian';
 
 interface RegisteredCommand {
@@ -11,13 +11,13 @@ interface RegisteredCommand {
 }
 
 function setup(palette?: unknown): {
-	plugin: PdfToolsPlugin;
+	plugin: PdfSimplePlugin;
 	commands: () => RegisteredCommand[];
 } {
 	const mock = new Plugin({ workspace: { getActiveViewOfType: () => null } });
 	const plugin = Object.assign(mock, {
 		settings: normalizeSettings(palette === undefined ? {} : { palette }),
-	}) as unknown as PdfToolsPlugin;
+	}) as unknown as PdfSimplePlugin;
 	registerCommands(plugin);
 	return { plugin, commands: () => mock.commands as RegisteredCommand[] };
 }
@@ -51,7 +51,7 @@ describe('registerCommands', () => {
 			'highlight-selection-orange',
 		]);
 		for (const command of commands())
-			expect(command.name).not.toMatch(/pdf tools/i);
+			expect(command.name).not.toMatch(/pdf simple/i);
 		expect(
 			commands().find((c) => c.id === 'highlight-selection-red')?.name,
 		).toBe('選択範囲をハイライト（赤）');

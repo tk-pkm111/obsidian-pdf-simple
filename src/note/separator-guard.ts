@@ -8,7 +8,7 @@ import {
 import { findBlockId } from '../lib/highlight-entry';
 import { planMoveIdToLineEnd, planSeparateHighlights } from '../lib/note-guard';
 import { LIST_ITEM, headingLevel, type TextEdit } from '../lib/note-lines';
-import type PdfToolsPlugin from '../main';
+import type PdfSimplePlugin from '../main';
 
 /**
  * ハイライトの行の ID（^hl-…）が効かなくならないように守る（エディタの拡張）。
@@ -20,9 +20,9 @@ import type PdfToolsPlugin from '../main';
  */
 
 const SEPARATE_DELAY = 800;
-const SEPARATE_EVENT = 'pdf-tools.separate';
+const SEPARATE_EVENT = 'pdf-simple.separate';
 
-export function createSeparatorGuard(plugin: PdfToolsPlugin): Extension {
+export function createSeparatorGuard(plugin: PdfSimplePlugin): Extension {
 	const isHighlight = (id: string): boolean =>
 		plugin.highlights.index.entry(id) !== null;
 
