@@ -19,6 +19,8 @@ export const ja = {
 	'command.captureRegion': '範囲を画像として取り込む',
 	'command.undoLastHighlight': '直前のハイライトを取り消す',
 	'command.showWelcome': '使い方を見る',
+	'command.importPdf': 'PDF を取り込む',
+	'command.openPractice': '練習用の PDF を開く',
 
 	// PDF の右上のボタン
 	'toolbar.penLabel': '{color}・{kind}',
@@ -63,6 +65,15 @@ export const ja = {
 	// 通知
 	'notice.noteCreated':
 		'ノート「{name}」を作りました。ハイライトはここに溜まります。',
+	'notice.firstHighlight':
+		'最初のハイライトがノート「{name}」に入りました（右）。これからは PDF をなぞるだけで、ここにたまっていきます。',
+	'notice.firstHighlightPhone':
+		'最初のハイライトがノート「{name}」に入りました。右上の「PDF」で PDF に戻れます。',
+	'notice.practiceFailed': '練習用の PDF を作れませんでした: {message}',
+	'notice.imported': '「{name}」を取り込みました。',
+	'notice.importedMany': 'PDF を {count} 個取り込みました。',
+	'notice.importFailed': '「{name}」を取り込めませんでした: {message}',
+	'notice.notPdf': 'PDF ではないので取り込みませんでした: {name}',
 	'notice.attached': '「{pdf}」を添付しました。',
 	'notice.duplicateHighlight': 'この範囲はもうハイライトしています。',
 	'notice.emptySelection': '選択範囲に文字がありません。',
@@ -133,7 +144,7 @@ export const ja = {
 	// 使い方の画面
 	'welcome.title': 'PDF Simple へようこそ',
 	'welcome.lead':
-		'PDF の文字をなぞるだけで、ハイライトした文がノートにたまっていきます。まずは 2 分の動画で、使い方をひととおり見てみましょう。',
+		'PDF の文字をなぞるだけで、ハイライトした文がノートにたまっていきます。まずは練習用の PDF で、1 回なぞってみましょう。',
 	'welcome.videoTitle': '2 分でわかる使い方',
 	'welcome.play': '使い方の動画を再生する',
 	'welcome.videoNote': '再生すると、GitHub から動画を読み込みます',
@@ -148,18 +159,31 @@ export const ja = {
 		'PDF の右上のペンで、色や見出しの大きさを切り替えます。',
 	'welcome.step3Title': '表と裏を行き来',
 	'welcome.step3Body':
-		'ノートの点を押すと PDF へ、PDF のハイライトを押すとノートへ移ります。',
+		'ノートの右上の「PDF」で PDF へ、PDF の右上の紙のボタンでノートへ。ノートの点や PDF のハイライトを押しても移れます。',
 	'welcome.step4Title': '入れる場所と保存先',
 	'welcome.step4Body':
 		'「設定 → PDF Simple」で、ハイライトを入れる見出しや PDF の保存先を決められます。',
 	'welcome.hint': 'この画面は、コマンド「使い方を見る」でいつでも開けます。',
 	'welcome.more': 'GitHub で詳しく見る',
-	'welcome.start': 'はじめる',
+	'welcome.practice': '練習用の PDF で試す',
+	'welcome.import': '自分の PDF を取り込む',
+
+	// PDF の上の案内（はじめての人向け）
+	'hint.title': '文字をなぞってみましょう。',
+	'hint.body':
+		'色を選ぶと、なぞった文がハイライトになり、この PDF のノート（表）に入ります。',
+	'hint.close': '閉じる（ほかの PDF にも出さない）',
 
 	// 設定
 	'settings.groupHelp': '使い方',
 	'settings.showWelcome': '使い方を見る',
 	'settings.showWelcomeDesc': '動画と、できることの一覧を開きます。',
+	'settings.openPractice': '練習用の PDF を開く',
+	'settings.openPracticeDesc':
+		'手順が書いてある PDF を開きます（無ければ作ります）。上から順に試せます。',
+	'settings.showOnboarding': 'はじめの案内',
+	'settings.showOnboardingDesc':
+		'ノートの無い PDF を開いたときの案内と、最初のハイライトのあとにノートを右に開く動き。',
 	'settings.colors': '色',
 	'settings.addColor': '色を追加',
 	'settings.colorsEmpty': '色がありません。',

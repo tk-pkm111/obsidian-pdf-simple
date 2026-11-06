@@ -53,7 +53,18 @@ export class PdfSimpleSettingTab extends PluginSettingTab {
 					{
 						name: t('settings.showWelcome'),
 						desc: t('settings.showWelcomeDesc'),
-						action: () => new WelcomeModal(this.app).open(),
+						action: () => new WelcomeModal(this.plugin).open(),
+					},
+					{
+						name: t('settings.openPractice'),
+						desc: t('settings.openPracticeDesc'),
+						action: () =>
+							void this.plugin.onboarding.openPractice(),
+					},
+					{
+						name: t('settings.showOnboarding'),
+						desc: t('settings.showOnboardingDesc'),
+						control: { type: 'toggle', key: 'showOnboarding' },
 					},
 				],
 			},

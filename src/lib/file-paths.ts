@@ -38,3 +38,17 @@ export function uniqueFilePath(
 	}
 	throw new Error(`No free file name for ${basename}.${extension}`);
 }
+
+/**
+ * 取り込む PDF のファイル名（拡張子なし）。リンクやパスを壊す文字（# ^ [ ] | と \ / : * ? " < >）を - にし、
+ * 続く空白を 1 つにする。何も残らなければ PDF。
+ */
+export function importBasename(fileName: string): string {
+	const base = fileName
+		.replace(/\.pdf$/i, '')
+		.replace(/[#^[\]|\\/:*?"<>]/g, '-')
+		.replace(/\s+/g, ' ')
+		.trim()
+		.replace(/^\.+/, '');
+	return base === '' ? 'PDF' : base;
+}

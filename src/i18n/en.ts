@@ -22,6 +22,8 @@ export const en: Record<keyof typeof ja, string> = {
 	'command.captureRegion': 'Capture region as image',
 	'command.undoLastHighlight': 'Undo last highlight',
 	'command.showWelcome': 'Show getting started',
+	'command.importPdf': 'Import PDF',
+	'command.openPractice': 'Open the practice PDF',
 
 	// Buttons at the top right of the PDF
 	'toolbar.penLabel': '{color} · {kind}',
@@ -67,6 +69,15 @@ export const en: Record<keyof typeof ja, string> = {
 	// Notices
 	'notice.noteCreated':
 		'Created the note "{name}". Your highlights will collect here.',
+	'notice.firstHighlight':
+		'Your first highlight is in the note "{name}" (on the right). From now on, just select text in the PDF to add more.',
+	'notice.firstHighlightPhone':
+		'Your first highlight is in the note "{name}". Tap "PDF" at the top right to go back to the PDF.',
+	'notice.practiceFailed': 'Could not create the practice PDF: {message}',
+	'notice.imported': 'Imported "{name}".',
+	'notice.importedMany': 'Imported {count} PDFs.',
+	'notice.importFailed': 'Could not import "{name}": {message}',
+	'notice.notPdf': 'Skipped a file that is not a PDF: {name}',
 	'notice.attached': 'Attached "{pdf}".',
 	'notice.duplicateHighlight': 'This passage is already highlighted.',
 	'notice.emptySelection': 'The selection has no text.',
@@ -138,7 +149,7 @@ export const en: Record<keyof typeof ja, string> = {
 	// Getting started screen
 	'welcome.title': 'Welcome to PDF Simple',
 	'welcome.lead':
-		'Just trace text in a PDF, and the passages you highlight collect in your note. Start with the 2-minute video to see how it works.',
+		'Just trace text in a PDF, and the passages you highlight collect in your note. Start by highlighting once in the practice PDF.',
 	'welcome.videoTitle': 'Getting started in 2 minutes',
 	'welcome.play': 'Play the getting started video',
 	'welcome.videoNote': 'Plays from GitHub (the video is in Japanese)',
@@ -153,20 +164,33 @@ export const en: Record<keyof typeof ja, string> = {
 		'Use the pen at the top right of the PDF to switch colors and heading levels.',
 	'welcome.step3Title': 'Jump between note and PDF',
 	'welcome.step3Body':
-		'Click the dot in your note to open the PDF there, and click a highlight in the PDF to jump back.',
+		'Use "PDF" at the top right of the note to open the PDF, and the page button on the PDF to go back. The dots in the note and the highlights in the PDF also jump.',
 	'welcome.step4Title': 'Where highlights go',
 	'welcome.step4Body':
 		'In Settings → PDF Simple, choose the heading for highlights and the folder for your PDFs.',
 	'welcome.hint':
 		'Open this screen any time with the command "Show getting started".',
 	'welcome.more': 'Learn more on GitHub',
-	'welcome.start': 'Get started',
+	'welcome.practice': 'Try the practice PDF',
+	'welcome.import': 'Import your PDF',
+
+	// Hint above a PDF (for new users)
+	'hint.title': 'Try selecting some text.',
+	'hint.body':
+		'Pick a color, and the text is highlighted and goes into the note for this PDF.',
+	'hint.close': 'Close (and stop showing on other PDFs)',
 
 	// Settings
 	'settings.groupHelp': 'Getting started',
 	'settings.showWelcome': 'Show getting started',
 	'settings.showWelcomeDesc':
 		'Open the video and the overview of what you can do.',
+	'settings.openPractice': 'Open the practice PDF',
+	'settings.openPracticeDesc':
+		'Opens a PDF with step-by-step instructions (creates it if needed).',
+	'settings.showOnboarding': 'Getting started hints',
+	'settings.showOnboardingDesc':
+		'A hint above PDFs without a note, and opening the note on the right after your first highlight.',
 	'settings.colors': 'Colors',
 	'settings.addColor': 'Add color',
 	'settings.colorsEmpty': 'There are no colors.',

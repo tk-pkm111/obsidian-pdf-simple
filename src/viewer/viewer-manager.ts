@@ -154,12 +154,14 @@ export class ViewerManager extends Component {
 			return;
 		const el =
 			kind === 'to-pdf' && view instanceof MarkdownView
-				? view.addAction('book-open', t('action.openPdf'), (evt) => {
-						void this.plugin.flip.toPdf(
-							view,
-							Keymap.isModEvent(evt),
-						);
-					})
+				? pdfChip(
+						view.addAction('file', t('action.openPdf'), (evt) => {
+							void this.plugin.flip.toPdf(
+								view,
+								Keymap.isModEvent(evt),
+							);
+						}),
+					)
 				: isPdfView(view)
 					? view.addAction(
 							'file-text',
@@ -174,4 +176,15 @@ export class ViewerManager extends Component {
 					: null;
 		if (el) this.actions.set(view, { kind, el });
 	}
+}
+
+/**
+ * ノートのヘッダーの「PDF を開く（裏面）」を、記号ではなく枠つきの文字「PDF」にする。
+ * 本体の閲覧／編集の切り替え（本の記号）と見分けがつき、言語によらず同じ見た目で、テーマが記号を縮めても崩れない。
+ */
+function pdfChip(el: HTMLElement): HTMLElement {
+	el.empty();
+	el.addClass('pdf-simple-pdf-chip');
+	el.createSpan({ cls: 'pdf-simple-pdf-chip-label', text: 'PDF' });
+	return el;
 }

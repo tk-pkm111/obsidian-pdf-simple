@@ -85,7 +85,7 @@ export class FlipController {
 		const page = memory?.pdfPath === pdf.path ? memory.page : undefined;
 		const existing = this.existingSplit(leaf, pdf.path, newLeaf, isPdfView);
 		if (existing) {
-			await this.plugin.app.workspace.revealLeaf(existing);
+			await this.reveal(existing);
 			return;
 		}
 		const target = targetLeaf(this.plugin, { sourceLeaf: leaf, newLeaf });
@@ -121,7 +121,7 @@ export class FlipController {
 			(other) => other instanceof MarkdownView,
 		);
 		if (existing) {
-			await this.plugin.app.workspace.revealLeaf(existing);
+			await this.reveal(existing);
 			return;
 		}
 		const target = targetLeaf(this.plugin, { sourceLeaf: leaf, newLeaf });
@@ -132,15 +132,24 @@ export class FlipController {
 		});
 	}
 
-	/** 「分割して並べる」設定のとき、相手のファイルを既に開いているタブ（あれば分割を増やさずに使う） */
+	/**
+	 * 相手のファイルを既に開いているタブ（あれば裏返さず・分割を増やさずに、そこへ移る）。
+	 * 「同じタブで入れ替える」設定では、左右に並べて画面に見えているタブだけ（同じ PDF が 2 つ並ばないように）。
+	 */
 	private existingSplit(
 		leaf: WorkspaceLeaf,
 		path: string,
 		newLeaf: PaneType | boolean,
 		accept: (view: View) => boolean,
 	): WorkspaceLeaf | null {
-		if (newLeaf || this.plugin.settings.flipMode !== 'split') return null;
+		if (newLeaf) return null;
 		return leafShowing(this.plugin, path, accept, leaf);
+	}
+
+	private async reveal(leaf: WorkspaceLeaf): Promise<void> {
+		const { workspace } = this.plugin.app;
+		await workspace.revealLeaf(leaf);
+		workspace.setActiveLeaf(leaf, { focus: true });
 	}
 
 	/** PDF ファイル（タブで開いていない）から、そのノートを新しいタブで開く */
@@ -155,11 +164,13 @@ export class FlipController {
 	/**
 	 * ハイライトを書き込むノート。
 	 * このタブで覚えているノート → PDF を添付しているノート（複数なら選ぶ） → 無ければ作る（create のとき）。
+	 * 作ったときは通知する（notify が false なら、呼んだ側が知らせる）。
 	 */
 	async noteFor(
 		leaf: WorkspaceLeaf | null,
 		pdf: TFile,
 		create: boolean,
+		notify = true,
 	): Promise<TFile | null> {
 		const { pairing } = this.plugin;
 		const remembered = leaf ? this.memory.get(leaf)?.notePath : undefined;
@@ -172,7 +183,8 @@ export class FlipController {
 		if (notes.length > 1) note = await chooseNote(this.plugin.app, notes);
 		if (!note && notes.length === 0 && create) {
 			note = await pairing.createNoteFor(pdf);
-			new Notice(t('notice.noteCreated', { name: note.basename }));
+			if (notify)
+				new Notice(t('notice.noteCreated', { name: note.basename }));
 		}
 		if (note && leaf)
 			this.patch(leaf, { notePath: note.path, pdfPath: pdf.path });

@@ -2,7 +2,9 @@ import {
 	FileView,
 	MarkdownView,
 	Notice,
+	type App,
 	type PaneType,
+	type TFile,
 	type View,
 	type WorkspaceLeaf,
 } from 'obsidian';
@@ -137,6 +139,79 @@ export async function revealBlock(
 		plugin.flip.rememberPdf(leaf, source);
 	await leaf.openFile(note, { active: true, eState: { subpath } });
 	ensureLineVisible(leaf, block.id);
+}
+
+/**
+ * PDF の右にノートを開いて、その行を見せる（もう画面に出ていればそこで）。PDF のタブに焦点を残す。
+ * はじめてのハイライトのあとに「ノートに入った」ことを見せるため。
+ */
+export async function revealBlockBeside(
+	plugin: PdfSimplePlugin,
+	block: BlockRef,
+	pdfLeaf: WorkspaceLeaf,
+): Promise<void> {
+	const { vault, workspace } = plugin.app;
+	const note = vault.getFileByPath(block.notePath);
+	if (!note) return;
+	// 書いた直後はキャッシュにブロックがまだ無く、#^id で行に移れないので、載るまで少し待つ
+	await waitForBlock(plugin.app, note, block.id);
+	const subpath = `#^${block.id}`;
+	const shown = shownNoteLeaf(plugin, note.path, pdfLeaf);
+	if (shown) {
+		shown.view.setEphemeralState({ subpath });
+		ensureLineVisible(shown, block.id);
+		return;
+	}
+	const leaf = workspace.createLeafBySplit(pdfLeaf, 'vertical');
+	await leaf.openFile(note, { active: false, eState: { subpath } });
+	ensureLineVisible(leaf, block.id);
+	// 続けて PDF をなぞれるよう、焦点は PDF に戻す（ノートは行の位置へ移ると焦点を取る）
+	window.setTimeout(
+		() => workspace.setActiveLeaf(pdfLeaf, { focus: true }),
+		300,
+	);
+}
+
+/** そのノートを画面に見えている状態で開いているタブ（exclude は除く） */
+function shownNoteLeaf(
+	plugin: PdfSimplePlugin,
+	path: string,
+	exclude: WorkspaceLeaf,
+): WorkspaceLeaf | null {
+	let found: WorkspaceLeaf | null = null;
+	plugin.app.workspace.iterateAllLeaves((leaf) => {
+		const view = leaf.view;
+		if (found || leaf === exclude) return;
+		if (
+			view instanceof MarkdownView &&
+			view.file?.path === path &&
+			view.containerEl.isShown()
+		)
+			found = leaf;
+	});
+	return found;
+}
+
+/** ノートのキャッシュにそのブロック ID が載るまで待つ（timeout ミリ秒まで） */
+function waitForBlock(
+	app: App,
+	note: TFile,
+	id: string,
+	timeout = 2500,
+): Promise<void> {
+	const has = () => app.metadataCache.getFileCache(note)?.blocks?.[id];
+	if (has()) return Promise.resolve();
+	return new Promise((resolve) => {
+		const ref = app.metadataCache.on('changed', (file) => {
+			if (file.path === note.path && has()) finish();
+		});
+		const timer = window.setTimeout(() => finish(), timeout);
+		function finish(): void {
+			window.clearTimeout(timer);
+			app.metadataCache.offref(ref);
+			resolve();
+		}
+	});
 }
 
 /** ソースモードで該当行にカーソルが来ていなければ、Editor で移す（エフェメラル状態が効かなかったとき用） */

@@ -122,63 +122,87 @@ export class HighlightActions {
 				new Notice(t('notice.unsafePdfName'), 8000);
 				return;
 			}
-			const { highlights, writer, app } = this.plugin;
+			const { highlights } = this.plugin;
 			const key = anchorKey(item.page, item.anchor);
 			if (highlights.index.forPdf(pdf.path).some((h) => h.key === key)) {
 				new Notice(t('notice.duplicateHighlight'));
 				return;
 			}
-			const note = await this.plugin.flip.noteFor(
-				item.view.leaf,
-				pdf,
-				item.allowCreateNote,
-			);
-			if (!note) return;
-			const target = await this.insertTargetFor(note);
-			if (!target) return;
-			// 保存先へ移す設定なら、書く前に移す（記録には新しい場所へのリンクを書く）
-			const pathBefore = pdf.path;
-			await this.plugin.storage.moveIfAuto(pdf);
-			const id = generateId((candidate) =>
-				highlights.index.hasId(candidate),
-			);
+			// はじめての 1 件なら、書いたあとにノートを見せる（ノートを作った通知は、その案内に含める）
+			const { onboarding } = this.plugin;
+			const guide = onboarding.claim(pdf);
+			let guided = false;
 			try {
-				const line = await item.line(id, note.path);
-				if (line === null) return;
-				const entry = buildEntryString({
-					linktext: app.metadataCache.fileToLinktext(pdf, note.path),
+				const note = await this.plugin.flip.noteFor(
+					item.view.leaf,
+					pdf,
+					item.allowCreateNote,
+					!guide,
+				);
+				if (!note) return;
+				const target = await this.insertTargetFor(note);
+				if (!target) return;
+				const id = await this.write(item, pdf, note, target);
+				if (id !== null && guide) {
+					guided = true;
+					void onboarding.guide(item.view, note, id);
+				}
+			} finally {
+				if (guide && !guided) onboarding.release();
+			}
+		});
+	}
+
+	/** 本文の 1 行とプロパティの 1 要素を書く。書けたら ID */
+	private async write(
+		item: NewHighlight,
+		pdf: TFile,
+		note: TFile,
+		target: { heading: string | null; remember: boolean },
+	): Promise<string | null> {
+		const { highlights, writer, app } = this.plugin;
+		// 保存先へ移す設定なら、書く前に移す（記録には新しい場所へのリンクを書く）
+		const pathBefore = pdf.path;
+		await this.plugin.storage.moveIfAuto(pdf);
+		const id = generateId((candidate) => highlights.index.hasId(candidate));
+		try {
+			const line = await item.line(id, note.path);
+			if (line === null) return null;
+			const entry = buildEntryString({
+				linktext: app.metadataCache.fileToLinktext(pdf, note.path),
+				page: item.page,
+				anchor: item.anchor,
+				color: item.color,
+				id,
+				label: item.label,
+			});
+			highlights.addPending({
+				entry: {
+					id,
+					notePath: note.path,
+					pdfPath: pdf.path,
 					page: item.page,
 					anchor: item.anchor,
 					color: item.color,
-					id,
 					label: item.label,
-				});
-				highlights.addPending({
-					entry: {
-						id,
-						notePath: note.path,
-						pdfPath: pdf.path,
-						page: item.page,
-						anchor: item.anchor,
-						color: item.color,
-						label: item.label,
-					},
-					block: { id, notePath: note.path, line: 0 },
-					createdAt: Date.now(),
-				});
-				await writer.insertHighlight(note, line, entry, {
-					...target,
-					order: this.orderOf(item, [pathBefore, pdf.path]),
-				});
-				this.lastCreated = id;
-			} catch (error) {
-				console.error(error);
-				new Notice(
-					t('notice.highlightFailed', { message: String(error) }),
-					8000,
-				);
-			}
-		});
+				},
+				block: { id, notePath: note.path, line: 0 },
+				createdAt: Date.now(),
+			});
+			await writer.insertHighlight(note, line, entry, {
+				...target,
+				order: this.orderOf(item, [pathBefore, pdf.path]),
+			});
+			this.lastCreated = id;
+			return id;
+		} catch (error) {
+			console.error(error);
+			new Notice(
+				t('notice.highlightFailed', { message: String(error) }),
+				8000,
+			);
+			return null;
+		}
 	}
 
 	/**

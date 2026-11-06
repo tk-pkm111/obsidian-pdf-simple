@@ -35,6 +35,11 @@ export function t(
 	});
 }
 
+/** 表示言語が日本語か（練習用の PDF など、文言の辞書の外にある中身を選ぶため） */
+export function isJapaneseUi(): boolean {
+	return dictionary() === ja;
+}
+
 /** 文字列が辞書のキーか（色の名前など、実行時に組み立てるキー用） */
 export function hasMessage(key: string): key is MessageKey {
 	return Object.prototype.hasOwnProperty.call(ja, key);

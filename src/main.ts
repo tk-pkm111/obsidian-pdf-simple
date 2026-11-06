@@ -1,6 +1,7 @@
 import { Plugin } from 'obsidian';
 import { HighlightActions } from './actions';
 import { registerCommands, registerPaletteCommands } from './commands';
+import { t } from './i18n';
 import { FlipController } from './flip/flip';
 import { HighlightService } from './index/highlight-service';
 import { PairingService } from './index/pairing-service';
@@ -13,6 +14,8 @@ import {
 import { createHighlightDecorations } from './note/decorations';
 import { registerMenus } from './note/menus';
 import { NoteWriter } from './note/note-writer';
+import { Onboarding } from './onboarding/onboarding';
+import { PdfImporter } from './onboarding/pdf-import';
 import {
 	ReadingViewRefresher,
 	createReadingViewProcessor,
@@ -42,6 +45,8 @@ export default class PdfSimplePlugin extends Plugin {
 	flip!: FlipController;
 	viewer!: ViewerManager;
 	selection!: SelectionController;
+	onboarding!: Onboarding;
+	importer!: PdfImporter;
 	private hideEntries: BodyClass | null = null;
 
 	async onload(): Promise<void> {
@@ -60,9 +65,14 @@ export default class PdfSimplePlugin extends Plugin {
 		this.viewer = this.addChild(new ViewerManager(this));
 		this.selection = this.addChild(new SelectionController(this));
 		this.addChild(new ReadingViewRefresher(this));
+		this.onboarding = this.addChild(new Onboarding(this));
+		this.importer = new PdfImporter(this);
 
 		registerCommands(this);
 		registerMenus(this);
+		this.addRibbonIcon('file-input', t('command.importPdf'), () =>
+			this.importer.pick(),
+		);
 		this.addSettingTab(new PdfSimpleSettingTab(this.app, this));
 		this.registerEditorExtension([
 			createHighlightDecorations(this),
@@ -84,11 +94,12 @@ export default class PdfSimplePlugin extends Plugin {
 				),
 			);
 			this.highlights.start();
+			this.onboarding.start();
 			this.viewer.start();
 			this.selection.start();
 			// はじめて読み込んだときだけ、使い方の画面を開く
 			if (!this.settings.welcomeShown) {
-				new WelcomeModal(this.app).open();
+				new WelcomeModal(this).open();
 				void this.applySettings({
 					...this.settings,
 					welcomeShown: true,

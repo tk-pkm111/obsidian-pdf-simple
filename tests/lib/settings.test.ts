@@ -33,6 +33,21 @@ describe('normalizeSettings', () => {
 		expect(settings.hideEntriesProperty).toBe(true);
 	});
 
+	it('はじめの案内: 既定は出す・まだ済んでいない。真偽値でなければ既定値', () => {
+		expect(DEFAULT_SETTINGS.showOnboarding).toBe(true);
+		expect(DEFAULT_SETTINGS.onboardingDone).toBe(false);
+		expect(DEFAULT_SETTINGS.hintDismissed).toBe(false);
+		const settings = normalizeSettings({
+			settingsVersion: SETTINGS_VERSION,
+			showOnboarding: false,
+			onboardingDone: true,
+			hintDismissed: 'yes',
+		});
+		expect(settings.showOnboarding).toBe(false);
+		expect(settings.onboardingDone).toBe(true);
+		expect(settings.hintDismissed).toBe(false);
+	});
+
 	it('版の無い設定（第 1 弾）を移す', () => {
 		const settings = normalizeSettings({
 			bulletList: true,

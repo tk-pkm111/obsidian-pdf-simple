@@ -27,6 +27,7 @@ import {
 } from './paint';
 import { RegionCapture } from './region-capture';
 import { textInLayer } from './text-range';
+import { HintBanner } from './hint-banner';
 import { PdfToolbar } from './toolbar';
 import { ViewTools } from './tools';
 
@@ -43,6 +44,7 @@ const MAX_RETRIES = 8;
 export class ViewOverlay extends Component implements OverlayHost {
 	readonly tools = new ViewTools();
 	private toolbar: PdfToolbar | null = null;
+	private hint: HintBanner | null = null;
 	private observer: MutationObserver | null = null;
 	private active = false;
 	private filePath: string | null = null;
@@ -74,6 +76,7 @@ export class ViewOverlay extends Component implements OverlayHost {
 		this.addChild(new OverlayInput(this.plugin, this));
 		this.addChild(new RegionCapture(this.plugin, this));
 		this.toolbar = this.addChild(new PdfToolbar(this.plugin, this));
+		this.hint = this.addChild(new HintBanner(this.plugin, this.view));
 		this.register(
 			this.plugin.highlights.onChange((paths) => {
 				if (
@@ -120,15 +123,17 @@ export class ViewOverlay extends Component implements OverlayHost {
 		return this.filePath;
 	}
 
-	/** 表示しているファイルが変わっていれば描き直す。ツールバーのボタンが消えていれば足し直す */
+	/** 表示しているファイルが変わっていれば描き直す。ツールバーのボタン・案内を足し直す（ノートができたら案内は消える） */
 	refresh(): void {
 		if ((this.view.file?.path ?? null) !== this.filePath) this.markAll();
 		this.toolbar?.ensure();
+		this.hint?.update();
 	}
 
-	/** 設定（色・塗り方）が変わったとき */
+	/** 設定（色・塗り方・案内）が変わったとき */
 	refreshToolbar(): void {
 		this.toolbar?.refresh();
+		this.hint?.update();
 	}
 
 	/** ハイライトまでスクロールして短く点滅させる（まだ描かれていなければ、描かれたときに） */

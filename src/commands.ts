@@ -246,7 +246,21 @@ export function registerCommands(plugin: PdfSimplePlugin): void {
 		id: 'show-welcome',
 		name: t('command.showWelcome'),
 		icon: 'circle-help',
-		callback: () => new WelcomeModal(plugin.app).open(),
+		callback: () => new WelcomeModal(plugin).open(),
+	});
+
+	plugin.addCommand({
+		id: 'import-pdf',
+		name: t('command.importPdf'),
+		icon: 'file-input',
+		callback: () => plugin.importer.pick(),
+	});
+
+	plugin.addCommand({
+		id: 'open-practice-pdf',
+		name: t('command.openPractice'),
+		icon: 'graduation-cap',
+		callback: () => void plugin.onboarding.openPractice(),
 	});
 
 	plugin.addCommand({

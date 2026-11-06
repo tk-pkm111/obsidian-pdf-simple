@@ -563,3 +563,69 @@ body.pdf-simple-hide-entries
 	gap: var(--size-4-4);
 	margin-left: auto;
 }
+
+/* ---------------------------------------------------------------------------
+   ノートのヘッダーの「PDF を開く（裏面）」: 記号ではなく枠つきの文字（本体の閲覧／編集の本の記号と見分けるため）
+*/
+
+.view-action.pdf-simple-pdf-chip {
+	width: auto;
+	padding: 0 var(--size-4-2);
+	border: var(--border-width) solid var(--background-modifier-border-hover);
+	border-radius: var(--radius-s);
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-bold);
+	letter-spacing: 0.04em;
+	line-height: 1;
+}
+
+.view-action.pdf-simple-pdf-chip:hover {
+	border-color: var(--interactive-accent);
+	color: var(--text-normal);
+}
+
+/* ---------------------------------------------------------------------------
+   はじめての人向けの案内（ノートの無い PDF の上の 1 行）と、PDF を取り込むときの見えない入力欄
+*/
+
+.pdf-simple-hint {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--size-4-2);
+	padding: var(--size-4-2) var(--size-4-3);
+	border-bottom: var(--border-width) solid var(--background-modifier-border);
+	background-color: var(--background-secondary);
+	color: var(--text-normal);
+	font-size: var(--font-ui-small);
+	line-height: var(--line-height-tight);
+}
+
+.pdf-simple-hint-icon {
+	display: flex;
+	flex: none;
+	color: var(--text-accent);
+}
+
+.pdf-simple-hint-icon svg {
+	width: var(--icon-s);
+	height: var(--icon-s);
+}
+
+.pdf-simple-hint-text {
+	flex: 1;
+	min-width: 0;
+}
+
+.pdf-simple-hint-text strong {
+	font-weight: var(--font-semibold);
+}
+
+.pdf-simple-hint-close {
+	flex: none;
+}
+
+.pdf-simple-file-input {
+	display: none;
+}

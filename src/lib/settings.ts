@@ -46,6 +46,12 @@ export interface PdfSimpleSettings {
 	autoMovePdf: boolean;
 	/** 使い方の画面を一度開いた（はじめて読み込んだときだけ開くため） */
 	welcomeShown: boolean;
+	/** はじめの案内（ノートの無い PDF の上の 1 行と、最初のハイライトのあとにノートを横に開く動き） */
+	showOnboarding: boolean;
+	/** 最初のハイライトを案内し終えた（または、入れたときにもうハイライトがあった） */
+	onboardingDone: boolean;
+	/** PDF の上の案内を閉じた（練習用の PDF には閉じても出す） */
+	hintDismissed: boolean;
 }
 
 /** 既定の色（白い紙面の上で読みやすい蛍光ペンの色） */
@@ -73,6 +79,9 @@ export const DEFAULT_SETTINGS: Readonly<PdfSimpleSettings> = {
 	pdfFolder: '',
 	autoMovePdf: true,
 	welcomeShown: false,
+	showOnboarding: true,
+	onboardingDone: false,
+	hintDismissed: false,
 };
 
 /** `#rgb` / `#rrggbb` を小文字の `#rrggbb` に。違えば null */
@@ -235,6 +244,15 @@ export function normalizeSettings(raw: unknown): PdfSimpleSettings {
 		pdfFolder: text(data.pdfFolder, DEFAULT_SETTINGS.pdfFolder),
 		autoMovePdf: bool(data.autoMovePdf, DEFAULT_SETTINGS.autoMovePdf),
 		welcomeShown: bool(data.welcomeShown, DEFAULT_SETTINGS.welcomeShown),
+		showOnboarding: bool(
+			data.showOnboarding,
+			DEFAULT_SETTINGS.showOnboarding,
+		),
+		onboardingDone: bool(
+			data.onboardingDone,
+			DEFAULT_SETTINGS.onboardingDone,
+		),
+		hintDismissed: bool(data.hintDismissed, DEFAULT_SETTINGS.hintDismissed),
 	};
 }
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	folderChain,
+	importBasename,
 	isInFolder,
 	normalizeFolder,
 	uniqueFilePath,
@@ -36,5 +37,19 @@ describe('uniqueFilePath', () => {
 			'PDF/doc 2.pdf',
 		);
 		expect(uniqueFilePath('', 'doc', 'pdf', () => false)).toBe('doc.pdf');
+	});
+});
+
+describe('importBasename', () => {
+	it('拡張子を外し、リンクやパスを壊す文字を - にする', () => {
+		expect(importBasename('Report.PDF')).toBe('Report');
+		expect(importBasename('a#b^c[d]|e.pdf')).toBe('a-b-c-d--e');
+		expect(importBasename('x/y\\z:*?"<>.pdf')).toBe('x-y-z------');
+	});
+
+	it('続く空白は 1 つに。先頭の . は除き、何も残らなければ PDF', () => {
+		expect(importBasename('  my   paper .pdf')).toBe('my paper');
+		expect(importBasename('.hidden.pdf')).toBe('hidden');
+		expect(importBasename('.pdf')).toBe('PDF');
 	});
 });

@@ -24,9 +24,11 @@ The PDF file itself is never modified. The note keeps only the text (`quoted tex
 ## Getting started
 
 1. Install and enable the plugin (see [Installation](#installation)).
-2. On first load, a "Welcome to PDF Simple" screen opens with a 2-minute video. Open it again any time with the command "Show getting started" or from the top of **Settings → PDF Simple**.
-3. Open a PDF and select text with the mouse. A note with the PDF's name is created, and the text is added.
+2. On first load, a "Welcome to PDF Simple" screen opens. Press **Try the practice PDF**: a one-page PDF with step-by-step instructions opens. Select the sentence in the box and pick a color. A note is created and opens on the right with the text in it (on a phone, it opens in the same tab). Open the screen again any time with the command "Show getting started" or from the top of **Settings → PDF Simple**.
+3. To use your own PDF, press **Import your PDF** on that screen, the **Import PDF** button in the left ribbon, or the command of the same name, and choose PDFs from your computer or phone. They're copied into the vault (the PDF storage folder if you set one, otherwise your attachments folder) and the first one opens. You can also drag PDFs into the file explorer.
 4. Optionally, choose the heading for highlights and the PDF storage folder in **Settings → PDF Simple**.
+
+Until your first highlight, a one-line hint is shown above PDFs that don't have a note yet. Turn the hints off with **Getting started hints** in settings. If your vault already has highlights when you install this version, the hints are skipped.
 
 ## Installation
 
@@ -64,7 +66,7 @@ The plugin writes to your notes (it never modifies PDF files), so back up import
 
 - **Click a highlight in the PDF** to open its line in the note (flipping in the same tab). Right-click it for **Open in note**, **Change color…**, **Copy text**, and **Remove highlight**. Hold Cmd/Ctrl while hovering to preview the note line.
 - **Click the dot after a highlight in the note** to open the PDF at that spot. It scrolls to the center and flashes. The text itself is plain text that you can click and edit. Right-click it for **Open in PDF**, **Change color…**, **Unlink from PDF (keep text)**, and **Remove highlight (with text)**.
-- **Flip** with **Open PDF (back)** in the note and **Back to note (front)** in the PDF, at the top right. The page and scroll position are remembered. Hold Cmd/Ctrl to open in a new tab.
+- **Flip** with the **PDF** button at the top right of the note and **Back to note (front)** (the page button) at the top right of the PDF. The page and scroll position are remembered. If the other side is already open side by side, it moves there instead of flipping. Hold Cmd/Ctrl to open in a new tab.
 
 ### Editing highlights in the note
 
@@ -101,10 +103,12 @@ The plugin writes to your notes (it never modifies PDF files), so back up import
 | Move PDF to storage folder | Move the open PDF, or the note's attached PDF, to the storage folder |
 | Clean up highlight records without text | Remove records whose text is gone from every note |
 | Show getting started | Open the video and the overview |
+| Import PDF | Choose PDFs from your computer or phone, copy them into the vault, and open the first one (also in the left ribbon) |
+| Open the practice PDF | Open a one-page PDF with step-by-step instructions (created if missing) |
 
 ### Settings
 
-Getting started (at the top), colors (add, remove, reorder), default color, insert as (body text or heading 1 to 3), when you select text (highlight right away, pick a color first, or do nothing), heading for highlights (one per line; empty means the end of the note), order of highlights (PDF order or order added), bullet list (off by default), hide records in properties (on by default), PDF storage folder and whether to move PDFs when highlighting, how to flip (same tab or side by side), and the property for the attached PDF.
+Getting started (at the top: show the getting started screen, open the practice PDF, and getting started hints), colors (add, remove, reorder), default color, insert as (body text or heading 1 to 3), when you select text (highlight right away, pick a color first, or do nothing), heading for highlights (one per line; empty means the end of the note), order of highlights (PDF order or order added), bullet list (off by default), hide records in properties (on by default), PDF storage folder and whether to move PDFs when highlighting, how to flip (same tab or side by side), and the property for the attached PDF.
 
 ### Limitations
 
@@ -119,7 +123,7 @@ Getting started (at the top), colors (add, remove, reorder), default color, inse
 ## Privacy and permissions
 
 - **Network**: the getting started video is loaded from GitHub (github.com) only when you press play. The plugin makes no other network requests and never sends your PDFs or notes anywhere.
-- **Vault access**: the plugin reads note metadata (properties and block IDs) through Obsidian's metadata cache to find highlights and their PDFs, lists the PDFs in your vault when you attach one, and reads all notes only when you run **Clean up highlight records without text** (after you confirm). It writes only to the notes it adds highlights to and to the PNG files it captures, and moves PDFs only as described in [PDF storage](#pdf-storage).
+- **Vault access**: the plugin reads note metadata (properties and block IDs) through Obsidian's metadata cache to find highlights and their PDFs, lists the PDFs in your vault when you attach one, and reads all notes only when you run **Clean up highlight records without text** (after you confirm). It writes only to the notes it adds highlights to, to the PNG files it captures, and to new PDFs you ask for (the practice PDF, and PDFs you choose with **Import PDF**), and moves PDFs only as described in [PDF storage](#pdf-storage).
 - **Clipboard**: **Copy text** in a highlight's right-click menu writes the highlight's text to the clipboard. The plugin never reads the clipboard.
 
 ## License

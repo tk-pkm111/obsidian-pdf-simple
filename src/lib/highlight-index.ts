@@ -138,6 +138,11 @@ export class HighlightIndex {
 		return highlights;
 	}
 
+	/** ノートに書かれたエントリが 1 つでもあるか（書いている途中のものは数えない） */
+	hasEntries(): boolean {
+		return this.entriesById.size > 0;
+	}
+
 	/** 索引にあるすべての PDF のパス */
 	pdfPaths(): Set<string> {
 		const paths = new Set<string>();

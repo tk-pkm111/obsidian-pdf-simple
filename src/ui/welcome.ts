@@ -1,5 +1,6 @@
-import { Modal, setIcon, type App } from 'obsidian';
+import { Modal, setIcon } from 'obsidian';
 import { t } from '../i18n';
+import type PdfSimplePlugin from '../main';
 
 /** 使い方の動画（GitHub に置いたもの。再生ボタンを押したときだけ読み込む） */
 export const GUIDE_VIDEO_URL =
@@ -33,13 +34,14 @@ const STEPS = [
 
 /**
  * 使い方の画面（はじめて読み込んだときに 1 回だけ開く。コマンド「使い方を見る」でいつでも開ける）。
+ * いちばん大きいボタンは「練習用の PDF で試す」（その場で練習用の PDF を開く）。「自分の PDF を取り込む」も並べる。
  * 動画は再生ボタンを押したときだけ GitHub から読み込む（押すまで通信しない）。
  */
 export class WelcomeModal extends Modal {
 	private video: HTMLVideoElement | null = null;
 
-	constructor(app: App) {
-		super(app);
+	constructor(private readonly plugin: PdfSimplePlugin) {
+		super(plugin.app);
 	}
 
 	onOpen(): void {
@@ -85,12 +87,23 @@ export class WelcomeModal extends Modal {
 			text: t('welcome.more'),
 			href: GUIDE_PAGE_URL,
 		});
+		const importButton = buttons.createEl('button', {
+			text: t('welcome.import'),
+		});
+		importButton.addEventListener('click', () => {
+			// ファイルを選ぶ画面は、押した直後に開く必要がある（待たずに呼ぶ）
+			this.plugin.importer.pick();
+			this.close();
+		});
 		const start = buttons.createEl('button', {
 			cls: 'mod-cta',
-			text: t('welcome.start'),
+			text: t('welcome.practice'),
 		});
-		start.addEventListener('click', () => this.close());
-		// Obsidian は最初のボタン（動画の表紙）に焦点を置くので、「はじめる」に移す
+		start.addEventListener('click', () => {
+			this.close();
+			void this.plugin.onboarding.openPractice();
+		});
+		// Obsidian は最初のボタン（動画の表紙）に焦点を置くので、「練習用の PDF で試す」に移す
 		// （開いた直後に Enter を押しても動画は始まらない。題名が隠れないよう、スクロールもしない）
 		window.setTimeout(() => {
 			start.focus({ preventScroll: true });
