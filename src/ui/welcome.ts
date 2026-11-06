@@ -1,8 +1,15 @@
 import { Modal, setIcon } from 'obsidian';
-import { t } from '../i18n';
+import { isJapaneseUi, t } from '../i18n';
 import type PdfSimplePlugin from '../main';
 
-/** 使い方の動画（GitHub に置いたもの。再生ボタンを押したときだけ読み込む） */
+/** はじめての 1 回の動画（30 秒。リポジトリの docs/media。再生ボタンを押したときだけ読み込む。置き場所は変えない） */
+const MEDIA_URL =
+	'https://raw.githubusercontent.com/tk-pkm111/obsidian-pdf-simple/main/docs/media';
+export const FIRST_RUN_VIDEO_URL = {
+	ja: `${MEDIA_URL}/first-run-ja.mp4`,
+	en: `${MEDIA_URL}/first-run-en.mp4`,
+} as const;
+/** すべての機能の動画（2 分・日本語。GitHub の添付） */
 export const GUIDE_VIDEO_URL =
 	'https://github.com/user-attachments/assets/5667a2b6-7cd8-47cd-9c57-350b813780ce';
 /** 詳しい使い方（README） */
@@ -54,7 +61,13 @@ export class WelcomeModal extends Modal {
 		});
 		// 広い画面では左に動画、右にできることの一覧（狭い画面では縦に並ぶ）
 		const main = contentEl.createDiv({ cls: 'pdf-simple-welcome-main' });
-		this.renderPoster(main.createDiv({ cls: 'pdf-simple-welcome-video' }));
+		const media = main.createDiv({ cls: 'pdf-simple-welcome-media' });
+		this.renderPoster(media.createDiv({ cls: 'pdf-simple-welcome-video' }));
+		media.createEl('a', {
+			cls: 'pdf-simple-welcome-full',
+			text: t('welcome.fullVideo'),
+			href: GUIDE_VIDEO_URL,
+		});
 		const steps = main.createDiv({ cls: 'pdf-simple-welcome-steps' });
 		for (const step of STEPS) {
 			const card = steps.createDiv({ cls: 'pdf-simple-welcome-step' });
@@ -138,7 +151,12 @@ export class WelcomeModal extends Modal {
 			attr: { controls: '', playsinline: '', preload: 'auto' },
 		});
 		const source = video.createEl('source', {
-			attr: { src: GUIDE_VIDEO_URL, type: 'video/mp4' },
+			attr: {
+				src: isJapaneseUi()
+					? FIRST_RUN_VIDEO_URL.ja
+					: FIRST_RUN_VIDEO_URL.en,
+				type: 'video/mp4',
+			},
 		});
 		const fail = () => this.showError(box);
 		// 読み込めなかったとき（オフラインなど）は <source> に error が来る
@@ -159,7 +177,7 @@ export class WelcomeModal extends Modal {
 		message.createDiv({ text: t('welcome.videoError') });
 		message.createEl('a', {
 			text: t('welcome.openInBrowser'),
-			href: GUIDE_VIDEO_URL,
+			href: GUIDE_PAGE_URL,
 		});
 	}
 

@@ -145,8 +145,9 @@ export const ja = {
 	'welcome.title': 'PDF Simple へようこそ',
 	'welcome.lead':
 		'PDF の文字をなぞるだけで、ハイライトした文がノートにたまっていきます。まずは練習用の PDF で、1 回なぞってみましょう。',
-	'welcome.videoTitle': '2 分でわかる使い方',
-	'welcome.play': '使い方の動画を再生する',
+	'welcome.videoTitle': '30 秒でわかる、はじめての 1 回',
+	'welcome.play': '使い方の動画（30 秒）を再生する',
+	'welcome.fullVideo': 'すべての機能を 2 分の動画で見る',
 	'welcome.videoNote': '再生すると、GitHub から動画を読み込みます',
 	'welcome.videoError':
 		'動画を読み込めませんでした。インターネットに接続しているか確かめてください。',

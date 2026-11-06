@@ -128,7 +128,7 @@ Getting started (at the top: show the getting started screen, open the practice 
 
 ## Privacy and permissions
 
-- **Network**: the getting started video is loaded from GitHub (github.com) only when you press play. The plugin makes no other network requests and never sends your PDFs or notes anywhere.
+- **Network**: the getting started videos are loaded from GitHub (raw.githubusercontent.com for the 30-second video, github.com for the 2-minute one) only when you press play or open the link. The plugin makes no other network requests and never sends your PDFs or notes anywhere.
 - **Vault access**: the plugin reads note metadata (properties and block IDs) through Obsidian's metadata cache to find highlights and their PDFs, lists the PDFs in your vault when you attach one, and reads all notes only when you run **Clean up highlight records without text** (after you confirm). It writes only to the notes it adds highlights to, to the PNG files it captures, and to new PDFs you ask for (the practice PDF, and PDFs you choose with **Import PDF**), and moves PDFs only as described in [PDF storage](#pdf-storage).
 - **Clipboard**: **Copy text** in a highlight's right-click menu writes the highlight's text to the clipboard. The plugin never reads the clipboard.
 

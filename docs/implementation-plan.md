@@ -625,3 +625,10 @@ dev-vault をスクラッチパッドにコピーして `E2E_VAULT` で起動す
 - スマホ表示（`emulateMobile`、幅 400）: 下のバーで色を押すと、同じ画面でノートへ裏返り「右上の「PDF」で PDF に戻れます」。ヘッダーに「PDF」が出る。
 - もうハイライトがある vault（dev-vault のコピー）: 起動すると `onboardingDone` になり、ノートの無い PDF にも案内は出ない。練習用の PDF を開くと案内が出て、最初の 1 件で右にノートが開く。
 - 英語の画面: 使い方の画面のボタン・案内・`PDF Simple practice.pdf` が英語で出る。`window.__errs` はすべて空。
+
+### 25.4 30 秒の動画（Q5、0.1.1）
+
+- 手で描くアニメーション（`promo/index.html`）ではなく、隔離した Obsidian の本物の画面を録った（`promo/record-first-run.mjs`）。CDP の `Page.startScreencast` で撮り、マウスは `Input.dispatchMouseEvent` で本物の操作をする。矢印・押した印・字幕は、録るあいだだけ DOM に重ねる。届いたコマの時刻の差どおりに ffmpeg でつなぎ、30 fps の MP4（1920×1080、約 0.8MB）と README 用の GIF（960 px・12 fps、約 1.4MB）にした。
+- 流れ（約 30 秒）: 使い方の画面 →「練習用の PDF で試す」→ 枠の文をなぞって色 → ノートが右に開く → ノートの点で PDF へ → PDF のハイライトでノートへ → 左のリボンの「PDF を取り込む」→ 締めの字幕。日本語版と英語版（Obsidian を英語にして録る）。
+- 置き場所: リポジトリの `docs/media/first-run-{ja,en}.{mp4,gif}`（個人の情報なし。まっさらな vault で録った）。README は GIF をその場で見せる（2 分の動画はその下に残す）。使い方の画面は、表示言語の 30 秒の MP4 を `raw.githubusercontent.com` から流す（`application/octet-stream` + `nosniff` でも Obsidian の `<video>` で再生できることを確かめた）。2 分の動画は、動画の下のリンクから開く。**`docs/media` の場所と名前は変えない**（入っている版のプラグインが読みに行くため）。
+- 録り方: まっさらな vault で `E2E_VAULT=<vault> npm run e2e -- launch` → 信頼のダイアログを閉じる → `node promo/record-first-run.mjs`（英語は、`localStorage.language = 'en'` で再読み込みしてから `--lang en`）。

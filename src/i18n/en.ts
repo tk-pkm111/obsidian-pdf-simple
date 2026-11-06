@@ -150,9 +150,10 @@ export const en: Record<keyof typeof ja, string> = {
 	'welcome.title': 'Welcome to PDF Simple',
 	'welcome.lead':
 		'Just trace text in a PDF, and the passages you highlight collect in your note. Start by highlighting once in the practice PDF.',
-	'welcome.videoTitle': 'Getting started in 2 minutes',
-	'welcome.play': 'Play the getting started video',
-	'welcome.videoNote': 'Plays from GitHub (the video is in Japanese)',
+	'welcome.videoTitle': 'Your first highlight in 30 seconds',
+	'welcome.play': 'Play the 30-second video',
+	'welcome.fullVideo': 'Every feature in 2 minutes (in Japanese)',
+	'welcome.videoNote': 'Plays from GitHub',
 	'welcome.videoError':
 		'Could not load the video. Check your internet connection.',
 	'welcome.openInBrowser': 'Open in browser',

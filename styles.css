@@ -392,6 +392,19 @@ body.pdf-simple-hide-entries
 	line-height: 1.6;
 }
 
+.pdf-simple-welcome-media {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-4-1);
+	min-width: 0;
+}
+
+.pdf-simple-welcome-full {
+	align-self: flex-end;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+}
+
 .pdf-simple-welcome-video {
 	position: relative;
 	aspect-ratio: 16 / 9;
