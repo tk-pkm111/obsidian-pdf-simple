@@ -5,6 +5,7 @@ import { cleanOrphans } from './orphans';
 import { colorLabel } from './ui/labels';
 import { PdfSuggestModal } from './ui/modals';
 import { WelcomeModal } from './ui/welcome';
+import { RELEASE_NOTES, WhatsNewModal } from './ui/whats-new';
 import { MAX_PEN_HEADING } from './lib/settings';
 import { isPdfView } from './viewer/dom';
 import type { ViewTools } from './viewer/tools';
@@ -247,6 +248,17 @@ export function registerCommands(plugin: PdfSimplePlugin): void {
 		name: t('command.showWelcome'),
 		icon: 'circle-help',
 		callback: () => new WelcomeModal(plugin).open(),
+	});
+
+	plugin.addCommand({
+		id: 'show-whats-new',
+		name: t('command.showWhatsNew'),
+		icon: 'sparkles',
+		callback: () =>
+			new WhatsNewModal(
+				plugin,
+				Object.keys(RELEASE_NOTES).sort().reverse().slice(0, 1),
+			).open(),
 	});
 
 	plugin.addCommand({

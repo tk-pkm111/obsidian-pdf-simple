@@ -539,6 +539,19 @@ body.pdf-simple-hide-entries
 	background-color: var(--interactive-accent);
 }
 
+/* 記号の代わりに文字（ボタンの見た目そのもの: 「PDF」「H」） */
+.pdf-simple-welcome-step-icon.mod-label {
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-bold);
+	letter-spacing: 0.02em;
+}
+
+.modal.pdf-simple-whats-new {
+	--dialog-width: min(620px, 94vw);
+	width: min(620px, 94vw);
+	max-width: 94vw;
+}
+
 .pdf-simple-welcome-step-icon svg {
 	width: 18px;
 	height: 18px;

@@ -188,6 +188,26 @@ svg.i { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-widt
 .tslot { overflow: hidden; }
 .toast { position: absolute; right: 230px; top: 92px; background: #2c2c33; border: 1px solid #45454f; color: #f1f1f6; font-size: 17px; padding: 14px 20px; border-radius: 10px; box-shadow: 0 18px 40px rgba(0,0,0,.55); opacity: 0; z-index: 8; }
 
+/* ノートのヘッダーの「PDF」ボタン（本体の閲覧の本の記号と見分けるため、記号ではなく文字） */
+.ibtn.chip { width: auto; height: 30px; padding: 0 11px; border: 1px solid #4a4a55; border-radius: 7px; font: 700 14px/1 var(--ui); letter-spacing: .05em; color: #b9b9c4; }
+.ibtn.chip.hover { border-color: var(--accent); }
+/* STEP 9: 左のリボン・ファイルを選ぶ画面・使い方の画面 */
+.ribbon { position: absolute; left: 0; top: 0; bottom: 0; width: 56px; border-right: 1px solid #2a2a30; display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 14px; opacity: 0; }
+#picker { left: 640px; top: 190px; width: 640px; }
+.pk-title { font-size: 18px; color: #ececf3; font-weight: 700; padding: 22px 26px 6px; }
+.pk-path { font-size: 14px; color: #8a8a96; padding: 0 26px 14px; }
+.pk-list { margin: 0 20px; border: 1px solid #33333b; border-radius: 10px; overflow: hidden; }
+.pk-row { display: flex; align-items: center; gap: 12px; height: 50px; padding: 0 16px; font-size: 17px; color: #d8d8e0; border-bottom: 1px solid #2c2c33; }
+.pk-row:last-child { border-bottom: 0; }
+.pk-row .pdfic { width: 22px; height: 22px; color: #ff6b6b; flex: none; }
+.pk-row .sz { margin-left: auto; font-size: 13px; color: #7c7c88; }
+.pk-row.sel { background: rgba(127,109,242,.3); color: #fff; }
+.pk-btns { display: flex; gap: 10px; justify-content: flex-end; padding: 18px 22px 20px; }
+#wmini { left: 670px; top: 250px; width: 580px; padding: 26px 28px; }
+.wm-title { font-size: 20px; font-weight: 700; color: #f0f0f6; }
+.wm-lead { font-size: 16px; color: #a9a9b5; margin-top: 10px; line-height: 1.6; }
+.wm-btns { display: flex; gap: 12px; justify-content: flex-end; margin-top: 22px; }
+
 /* ---------- 飛ぶハイライト ---------- */
 #fly { position: absolute; inset: 0; pointer-events: none; }
 .fly { position: absolute; left: 0; top: 0; transform-origin: 0 0; border-radius: 8px; padding: 2px 6px; background: rgba(255,212,0,.92); color: #262000; box-shadow: 0 16px 40px rgba(255,200,0,.28), 0 8px 18px rgba(0,0,0,.35); opacity: 0; white-space: normal; }
@@ -264,6 +284,13 @@ svg.i { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-widt
 			<div class="titlebar"><i class="tl r"></i><i class="tl y"></i><i class="tl g"></i><div class="ttl">読書ノート — Obsidian</div></div>
 			<div class="panes">
 				<div class="sidebar" id="sidebar">
+					<div class="ribbon" id="ribbon">
+						<span class="ibtn"><svg class="i" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="11.5" cy="14.5" r="2.5"/><path d="M13.3 16.3 15 18"/></svg></span>
+						<span class="ibtn"><svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="6" r="3"/><circle cx="19" cy="6" r="3"/><circle cx="12" cy="18" r="3"/><path d="M7.5 7.5 10.5 16M16.5 7.5 13.5 16M8 6h8"/></svg></span>
+						<span class="ibtn"><svg class="i" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+						<span class="ibtn"><svg class="i" viewBox="0 0 24 24"><path d="m4 17 6-6-6-6M12 19h8"/></svg></span>
+						<span class="ibtn" id="rb-import"><svg class="i" viewBox="0 0 24 24"><path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M2 15h10M9 18l3-3-3-3"/></svg></span>
+					</div>
 					<div class="sb-head">
 						<span class="ibtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
 						<span class="ibtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 10v6M9 13h6"/><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span>
@@ -272,6 +299,7 @@ svg.i { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-widt
 					<div class="sb-vault">読書ノート</div>
 					<div class="trow"><svg class="i chev" viewBox="0 0 24 24" style="transform:rotate(90deg)"><path d="m9 18 6-6-6-6"/></svg><svg class="i ic" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></svg>Library</div>
 					<div class="trow ind1" id="s-pdfdir"><svg class="i chev" id="s-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg><svg class="i ic" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></svg>PDF</div>
+					<div class="tslot" id="s-slot3" style="height:0"><div class="trow ind2" id="s-imported"><svg class="i pdfic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>lecture-03.pdf<span class="ftag">PDF</span></div></div>
 					<div class="tslot" id="s-slot"><div class="trow ind2" id="s-moved"><svg class="i pdfic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>focus-reading.pdf<span class="ftag">PDF</span></div></div>
 					<div class="trow"><svg class="i chev" viewBox="0 0 24 24" style="transform:rotate(90deg)"><path d="m9 18 6-6-6-6"/></svg><svg class="i ic" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></svg>Notes</div>
 					<div class="trow ind1"><svg class="i ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>読みながら書く</div>
@@ -280,7 +308,7 @@ svg.i { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-widt
 				<div class="pane-note" id="pane-note">
 					<div class="flipper" id="flipper">
 						<div class="face front">
-							<div class="vh"><span class="crumb">Notes<b>/</b>読みながら書く</span><span class="ibtn" id="note-flip"><svg class="i" viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg></span></div>
+							<div class="vh"><span class="crumb">Notes<b>/</b>読みながら書く</span><span class="ibtn chip" id="note-flip">PDF</span></div>
 							<div class="note-scroll"><div class="note-body" id="note-body">
 								<div class="inline-title">読みながら書く</div>
 								<div class="props"><span class="pi"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><span class="k">pdf</span><span class="v">reading-study.pdf</span></div>
@@ -401,6 +429,7 @@ svg.i { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-widt
 	<div class="tooltip" id="tip-back">ノートに戻る（表面）</div>
 	<div class="tooltip" id="tip-pen">ペン: 黄（選んだらすぐ塗る）</div>
 	<div class="tooltip" id="tip-crop">範囲を画像として取り込む</div>
+	<div class="tooltip" id="tip-import">PDF を取り込む</div>
 
 	<div id="dim"></div>
 	<div class="panel" id="settings">
@@ -470,6 +499,22 @@ svg.i { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-widt
 	</div>
 	<div class="trow" id="t-flyer" style="position:absolute;opacity:0;background:#2b2b33;box-shadow:0 16px 36px rgba(0,0,0,.5)"><svg class="i pdfic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>focus-reading.pdf<span class="ftag">PDF</span></div>
 	<div class="toast" id="toast">PDF を「Library/PDF」に移しました。</div>
+	<div class="toast" id="toast2">「lecture-03.pdf」を取り込みました。</div>
+	<div class="panel" id="picker">
+		<div class="pk-title">取り込む PDF を選ぶ</div>
+		<div class="pk-path">ダウンロード</div>
+		<div class="pk-list">
+			<div class="pk-row"><svg class="i pdfic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>睡眠と記憶のまとめ.pdf<span class="sz">2.4 MB</span></div>
+			<div class="pk-row" id="pk-row2"><svg class="i pdfic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>lecture-03.pdf<span class="sz">860 KB</span></div>
+			<div class="pk-row"><svg class="i pdfic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>読書会の資料.pdf<span class="sz">1.1 MB</span></div>
+		</div>
+		<div class="pk-btns"><span class="btn jp">キャンセル</span><span class="btn jp cta" id="pk-open">開く</span></div>
+	</div>
+	<div class="panel" id="wmini">
+		<div class="wm-title">PDF Simple へようこそ</div>
+		<div class="wm-lead">PDF の文字をなぞるだけで、ハイライトした文がノートにたまっていきます。<br>まずは練習用の PDF で、1 回なぞってみましょう。</div>
+		<div class="wm-btns"><span class="btn jp">自分の PDF を取り込む</span><span class="btn jp cta" id="wm-cta">練習用の PDF で試す</span></div>
+	</div>
 
 	<div id="fly"></div>
 
@@ -503,7 +548,7 @@ svg.i { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-widt
 	<div id="fade"></div>
 </div>
 </div>
-<div id="controls"><button id="play">▶ 再生</button><input id="seek" type="range" min="0" max="124.2" step="0.01" value="0"><span id="time">0.0s</span></div>
+<div id="controls"><button id="play">▶ 再生</button><input id="seek" type="range" min="0" max="135.6" step="0.01" value="0"><span id="time">0.0s</span></div>
 
 <script>
 (() => {
@@ -511,8 +556,9 @@ svg.i { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-widt
 const RENDER = new URLSearchParams(location.search).has('render');
 if (RENDER) document.documentElement.classList.add('render');
 const W = 1920, H = 1080;
-// STEP 8 のはじまりと、締め（ロゴ）のはじまり。締めは 8.4 秒
-const S8 = 105.0, OUT = 115.8, DURATION = OUT + 8.4;
+// STEP 8・STEP 9 のはじまりと、締め（ロゴ）のはじまり。締めは 8.4 秒
+// STEP 9（自分の PDF を取り込む・練習用の PDF）は 0.2.0 で足した
+const S8 = 105.0, S9 = 115.8, OUT = 127.2, DURATION = OUT + 8.4;
 
 /* ================= 数学 ================= */
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -578,9 +624,10 @@ const CAPS = [
 	{ t: [66.0, 78.8], tag: 'STEP 5', head: '点で PDF へ、<em>ハイライトでノートへ</em>', subs: [[66.0, 'ノートの点を押すと PDF の該当箇所へ。逆もワンクリック。'], [72.3, 'ノートの文は自由に書き換えて OK。つながりは点が保ちます。']] },
 	{ t: [79.0, 89.8], tag: 'STEP 6', head: '図は、<em>囲んで画像に</em>', subs: [[79.0, '右上の四角のボタンを押して、ドラッグで囲むだけ。']] },
 	{ t: [90.0, 104.6], tag: 'STEP 7', head: '入れる場所も<em>決められる</em>', subs: [[90.0, '設定に見出しを書いておくと、その見出しの下に入ります。'], [96.0, '見出しが 2 つあるノートでは、最初に 1 回選ぶだけ。'], [100.7, 'ノートの末尾にあるデータ（Excalidraw など）の手前に入ります。']] },
-	{ t: [S8, OUT - 0.2], tag: 'STEP 8', head: 'PDF は保存先へ<em>自動で整理</em>', subs: [[S8, '設定で、PDF を集めるフォルダを決めておきます。'], [109.6, 'あとは、新しい PDF にハイライトするだけ。'], [111.9, 'その瞬間、PDF は保存先へ。リンクも自動で直ります。']] },
+	{ t: [S8, S9 - 0.2], tag: 'STEP 8', head: 'PDF は保存先へ<em>自動で整理</em>', subs: [[S8, '設定で、PDF を集めるフォルダを決めておきます。'], [109.6, 'あとは、新しい PDF にハイライトするだけ。'], [111.9, 'その瞬間、PDF は保存先へ。リンクも自動で直ります。']] },
+	{ t: [S9, OUT - 0.2], tag: 'STEP 9', head: '自分の PDF は、<em>取り込むだけ</em>', subs: [[S9, '左のリボンの「PDF を取り込む」から、PDF を選ぶだけ。'], [S9 + 5.1, '保存先のフォルダに入って、すぐ開きます。'], [S9 + 7.6, 'はじめての方は「練習用の PDF」で、1 回なぞって試せます。']] },
 ];
-const CLICKS = [10.4, 12.9, 35.0, 36.5, 48.3, 49.3, 67.6, 71.0, 73.3, 80.5, 97.5, 106.4, 108.6];
+const CLICKS = [10.4, 12.9, 35.0, 36.5, 48.3, 49.3, 67.6, 71.0, 73.3, 80.5, 97.5, 106.4, 108.6, S9 + 2.0, S9 + 3.8, S9 + 4.9];
 const SHAPES = [[20.25, 22.15, 'ibeam'], [26.25, 27.85, 'ibeam'], [38.15, 39.7, 'ibeam'], [41.35, 42.2, 'ibeam'], [43.75, 44.5, 'ibeam'], [49.9, 51.3, 'ibeam'], [57.95, 59.7, 'ibeam'], [73.15, 75.9, 'ibeam'], [80.5, 82.95, 'cross'], [106.2, 107.95, 'ibeam'], [110.25, 111.35, 'ibeam']];
 // 音の合図（BGM の区切りと、ハイライト・クリック・字幕以外の効果音）。描く処理の時刻と合わせる
 const MUSIC = { drumsIn: 19.0, lightFrom: 90.0, lightTo: 109.4, outro: OUT, end: DURATION - 0.3 };
@@ -605,6 +652,8 @@ const SFX = [
 	{ t: 109.3, type: 'panelOut' }, { t: 109.3, type: 'slide', dur: 0.8, pan0: -0.6, pan1: -0.2 }, { t: 109.35, type: 'pageSwap', dur: 0.7 },
 	{ t: 110.4, type: 'select', dur: 0.9 }, { t: 111.31, type: 'pop' },
 	{ t: 111.75, type: 'chip' }, { t: 111.9, type: 'move', dur: 0.9 }, { t: 112.8, type: 'land', note: 84 }, { t: 112.95, type: 'toast' },
+	{ t: S9 + 2.2, type: 'panel' }, { t: S9 + 5.0, type: 'panelOut' }, { t: S9 + 5.5, type: 'land', note: 88 }, { t: S9 + 5.6, type: 'toast' },
+	{ t: S9 + 7.6, type: 'panel' }, { t: S9 + 10.8, type: 'panelOut' },
 	{ t: OUT, type: 'lowWhoosh', dur: 0.9 },
 	{ t: OUT + 1.3, type: 'logo' }, { t: OUT + 2.3, type: 'marker', dur: 0.5 }, { t: OUT + 2.9, type: 'text' },
 	{ t: OUT + 3.6, type: 'marker', dur: 0.5 }, { t: OUT + 4.4, type: 'text' },
@@ -1062,6 +1111,7 @@ function renderCards(t) {
 	const dr = rectOf($('#tpl-data'));
 	css($('#label-data'), { opacity: String(ld), left: px(dr.x + 300), top: px(dr.y - 26), transform: `translateY(${(1 - ld) * 10}px)` });
 	renderStep8(t);
+	renderStep9(t);
 }
 
 /* ---------- STEP 8: PDF の置き場所 ---------- */
@@ -1099,8 +1149,34 @@ function renderStep8(t) {
 		css(fl, { opacity: String(Math.min(1, prog(t, 111.85, 112.0)) * (1 - prog(t, 112.7, 112.85))), left: px(bx), top: px(by), width: px(from.w - 52 * fp), transform: `scale(${1 + Math.sin(fp * Math.PI) * 0.05})` });
 	} else css(fl, { opacity: '0' });
 	// 通知（Obsidian と同じく右上）
-	const toast = env(t, 112.95, OUT - 0.3, 0.35, 0.4, E.back);
+	const toast = env(t, 112.95, S9 - 0.3, 0.35, 0.4, E.back);
 	css($('#toast'), { opacity: String(Math.min(1, toast)), left: px(1720 - 24 - $('#toast').offsetWidth), top: px(156 - (1 - Math.min(1, toast)) * 12), right: 'auto' });
+}
+
+/* ---------- STEP 9: 自分の PDF を取り込む・練習用の PDF ---------- */
+function renderStep9(t) {
+	// 左のリボン（ファイル一覧を右へずらして出す）
+	const rb = E.io(prog(t, S9 + 0.2, S9 + 0.9));
+	css($('#sidebar'), { paddingLeft: px(mix(12, 68, rb)) });
+	css($('#ribbon'), { opacity: String(rb) });
+	$('#rb-import').classList.toggle('hover', t > S9 + 1.7 && t < S9 + 2.3);
+	// ファイルを選ぶ画面
+	const pk = env(t, S9 + 2.2, S9 + 5.0, 0.35, 0.3);
+	css($('#picker'), { opacity: String(pk), transform: `translateY(${(1 - pk) * 22}px) scale(${mix(0.97, 1, pk)})`, visibility: pk > 0 ? 'visible' : 'hidden' });
+	$('#pk-row2').classList.toggle('sel', t > S9 + 3.8);
+	$('#pk-open').classList.toggle('hover', t > S9 + 4.6 && t < S9 + 5.0);
+	// 取り込んだ PDF が保存先（Library/PDF）に入る
+	css($('#s-slot3'), { height: px(46 * E.io(prog(t, S9 + 5.1, S9 + 5.6))) });
+	css($('#s-imported'), { opacity: String(E.out(prog(t, S9 + 5.5, S9 + 5.8))) });
+	const imported = t > S9 + 5.7;
+	$('#s-imported').classList.toggle('active', imported);
+	if (imported) $('#s-moved').classList.remove('active');
+	const toast = env(t, S9 + 5.6, S9 + 7.4, 0.35, 0.4, E.back);
+	css($('#toast2'), { opacity: String(Math.min(1, toast)), left: px(1720 - 24 - $('#toast2').offsetWidth), top: px(156 - (1 - Math.min(1, toast)) * 12), right: 'auto' });
+	// 使い方の画面（はじめての人は練習用の PDF から）
+	const wm = env(t, S9 + 7.6, S9 + 10.8, 0.4, 0.35);
+	css($('#wmini'), { opacity: String(wm), transform: `translateY(${(1 - wm) * 22}px) scale(${mix(0.97, 1, wm)})`, visibility: wm > 0 ? 'visible' : 'hidden' });
+	$('#wm-cta').classList.toggle('hover', t > S9 + 9.1 && t < S9 + 10.7);
 }
 
 /* ---------- 字幕 ---------- */
@@ -1160,6 +1236,7 @@ function renderTooltips(t) {
 	show('#tip-back', '#back-flip', 12.4, 12.95, -70);
 	show('#tip-pen', '#pen-btn', 34.65, 35.05, -30);
 	show('#tip-crop', '#crop-btn', 80.1, 80.5, -40);
+	show('#tip-import', '#rb-import', S9 + 1.8, S9 + 2.3, 70);
 }
 
 /* ---------- カーソル ---------- */
@@ -1219,6 +1296,12 @@ const CUR = [
 	{ t: [109.9, 110.35], to: hlStart('n1') },
 	{ t: [110.4, 111.3], drag: 'n1' },
 	{ t: [111.5, 112.2], to: off(hlEnd('n1'), 60, 70) },
+	// STEP 9: リボンの「PDF を取り込む」→ ファイルを選ぶ → 開く → 使い方の画面の「練習用の PDF で試す」
+	{ t: [S9 + 1.0, S9 + 1.8], to: at('#rb-import') },
+	{ t: [S9 + 2.9, S9 + 3.6], to: at('#pk-row2', 0.32, 0.5) },
+	{ t: [S9 + 4.1, S9 + 4.7], to: at('#pk-open') },
+	{ t: [S9 + 5.3, S9 + 6.2], to: P(1250, 640) },
+	{ t: [S9 + 8.4, S9 + 9.2], to: at('#wm-cta', 0.5, 0.55) },
 ];
 function dragEdge(id) {
 	const info = infoOf(id);

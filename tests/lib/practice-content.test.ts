@@ -2,10 +2,14 @@ import { describe, expect, it } from 'vitest';
 import {
 	MARGIN,
 	layoutPractice,
+	measure,
 	practiceContent,
-	textWidth,
 } from '../../src/lib/practice-content';
-import { PAGE_WIDTH, buildPdfSource } from '../../src/lib/practice-pdf';
+import {
+	PAGE_WIDTH,
+	buildPdfSource,
+	type RectOp,
+} from '../../src/lib/practice-pdf';
 
 /** 改行と表示できる ASCII だけか */
 function isPrintableAscii(text: string): boolean {
@@ -27,14 +31,18 @@ describe.each([
 		for (const op of ops) {
 			if (op.type !== 'text') continue;
 			expect(
-				op.x + textWidth(content.script, op.text, op.size),
+				op.x + measure(content.script, op.text, op.size, op.bold),
 				op.text,
 			).toBeLessThanOrEqual(PAGE_WIDTH - MARGIN);
 		}
 	});
 
-	it('なぞる文は枠の中に置く', () => {
-		const boxes = ops.filter((op) => op.type === 'rect');
+	it('手順ごとに番号の丸、なぞる文は枠の中', () => {
+		const circles = ops.filter((op) => op.type === 'circle');
+		expect(circles).toHaveLength(5);
+		const boxes = ops.filter(
+			(op): op is RectOp => op.type === 'rect' && op.stroke !== undefined,
+		);
 		expect(boxes).toHaveLength(2);
 		for (const box of boxes) {
 			const inside = ops.find(

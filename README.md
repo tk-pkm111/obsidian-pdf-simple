@@ -34,7 +34,7 @@ The PDF file itself is never modified. The note keeps only the text (`quoted tex
 3. To use your own PDF, press **Import your PDF** on that screen, the **Import PDF** button in the left ribbon, or the command of the same name, and choose PDFs from your computer or phone. They're copied into the vault (the PDF storage folder if you set one, otherwise your attachments folder) and the first one opens. You can also drag PDFs into the file explorer.
 4. Optionally, choose the heading for highlights and the PDF storage folder in **Settings → PDF Simple**.
 
-Until your first highlight, a one-line hint is shown above PDFs that don't have a note yet. Turn the hints off with **Getting started hints** in settings. If your vault already has highlights when you install this version, the hints are skipped.
+After an update, a "What's new in PDF Simple" screen opens once with the main changes. Until your first highlight, a one-line hint is shown above PDFs that don't have a note yet. Turn the hints off with **Getting started hints** in settings. If your vault already has highlights when you install this version, the hints are skipped.
 
 ## Installation
 
@@ -109,6 +109,7 @@ The plugin writes to your notes (it never modifies PDF files), so back up import
 | Move PDF to storage folder | Move the open PDF, or the note's attached PDF, to the storage folder |
 | Clean up highlight records without text | Remove records whose text is gone from every note |
 | Show getting started | Open the video and the overview |
+| Show what's new | Open the list of changes in the latest version (it opens once by itself after an update) |
 | Import PDF | Choose PDFs from your computer or phone, copy them into the vault, and open the first one (also in the left ribbon) |
 | Open the practice PDF | Open a one-page PDF with step-by-step instructions (created if missing) |
 

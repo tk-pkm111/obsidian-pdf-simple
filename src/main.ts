@@ -27,6 +27,8 @@ import { RegionActions } from './region-actions';
 import { PdfSimpleSettingTab } from './settings-tab';
 import { BodyClass } from './ui/body-class';
 import { WelcomeModal } from './ui/welcome';
+import { RELEASE_NOTES, WhatsNewModal } from './ui/whats-new';
+import { versionsToAnnounce } from './lib/versions';
 import { HOVER_SOURCE } from './viewer/overlay-input';
 import { SelectionController } from './viewer/selection-controller';
 import { ViewerManager } from './viewer/viewer-manager';
@@ -97,15 +99,32 @@ export default class PdfSimplePlugin extends Plugin {
 			this.onboarding.start();
 			this.viewer.start();
 			this.selection.start();
-			// はじめて読み込んだときだけ、使い方の画面を開く
-			if (!this.settings.welcomeShown) {
-				new WelcomeModal(this).open();
-				void this.applySettings({
-					...this.settings,
-					welcomeShown: true,
-				});
-			}
+			this.greet();
 		});
+	}
+
+	/**
+	 * はじめて読み込んだときは使い方の画面を、アップデートしたあとは「新しくなったこと」を 1 回だけ開く。
+	 * どちらのあとも、今の版を覚えておく。
+	 */
+	private greet(): void {
+		const current = this.manifest.version;
+		const { welcomeShown, lastVersion } = this.settings;
+		if (!welcomeShown) new WelcomeModal(this).open();
+		else {
+			const versions = versionsToAnnounce(
+				Object.keys(RELEASE_NOTES),
+				lastVersion,
+				current,
+			);
+			if (versions.length > 0) new WhatsNewModal(this, versions).open();
+		}
+		if (!welcomeShown || lastVersion !== current)
+			void this.applySettings({
+				...this.settings,
+				welcomeShown: true,
+				lastVersion: current,
+			});
 	}
 
 	/** 設定を保存し、変わったところに合わせて索引・コマンド・描画を更新する */

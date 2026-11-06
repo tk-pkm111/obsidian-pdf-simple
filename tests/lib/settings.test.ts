@@ -46,6 +46,13 @@ describe('normalizeSettings', () => {
 		expect(settings.showOnboarding).toBe(false);
 		expect(settings.onboardingDone).toBe(true);
 		expect(settings.hintDismissed).toBe(false);
+		expect(settings.lastVersion).toBe('');
+		expect(
+			normalizeSettings({
+				settingsVersion: SETTINGS_VERSION,
+				lastVersion: '0.2.0',
+			}).lastVersion,
+		).toBe('0.2.0');
 	});
 
 	it('版の無い設定（第 1 弾）を移す', () => {

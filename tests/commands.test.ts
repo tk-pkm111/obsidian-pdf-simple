@@ -43,6 +43,7 @@ describe('registerCommands', () => {
 			'pen-heading-3',
 			'capture-region',
 			'show-welcome',
+			'show-whats-new',
 			'import-pdf',
 			'open-practice-pdf',
 			'undo-last-highlight',

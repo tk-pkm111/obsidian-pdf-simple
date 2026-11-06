@@ -52,6 +52,8 @@ export interface PdfSimpleSettings {
 	onboardingDone: boolean;
 	/** PDF の上の案内を閉じた（練習用の PDF には閉じても出す） */
 	hintDismissed: boolean;
+	/** 前に読み込んだときの版（上げたあとに「新しくなったこと」を 1 回出すため。空は 0.1.x 以前） */
+	lastVersion: string;
 }
 
 /** 既定の色（白い紙面の上で読みやすい蛍光ペンの色） */
@@ -82,6 +84,7 @@ export const DEFAULT_SETTINGS: Readonly<PdfSimpleSettings> = {
 	showOnboarding: true,
 	onboardingDone: false,
 	hintDismissed: false,
+	lastVersion: '',
 };
 
 /** `#rgb` / `#rrggbb` を小文字の `#rrggbb` に。違えば null */
@@ -253,6 +256,7 @@ export function normalizeSettings(raw: unknown): PdfSimpleSettings {
 			DEFAULT_SETTINGS.onboardingDone,
 		),
 		hintDismissed: bool(data.hintDismissed, DEFAULT_SETTINGS.hintDismissed),
+		lastVersion: text(data.lastVersion, DEFAULT_SETTINGS.lastVersion),
 	};
 }
 

@@ -9,9 +9,8 @@ export const FIRST_RUN_VIDEO_URL = {
 	ja: `${MEDIA_URL}/first-run-ja.mp4`,
 	en: `${MEDIA_URL}/first-run-en.mp4`,
 } as const;
-/** すべての機能の動画（2 分・日本語。GitHub の添付） */
-export const GUIDE_VIDEO_URL =
-	'https://github.com/user-attachments/assets/5667a2b6-7cd8-47cd-9c57-350b813780ce';
+/** すべての機能の動画（約 2 分・日本語。同じ docs/media） */
+export const GUIDE_VIDEO_URL = `${MEDIA_URL}/guide-ja.mp4`;
 /** 詳しい使い方（README） */
 export const GUIDE_PAGE_URL =
 	'https://github.com/tk-pkm111/obsidian-pdf-simple#readme';
@@ -62,11 +61,17 @@ export class WelcomeModal extends Modal {
 		// 広い画面では左に動画、右にできることの一覧（狭い画面では縦に並ぶ）
 		const main = contentEl.createDiv({ cls: 'pdf-simple-welcome-main' });
 		const media = main.createDiv({ cls: 'pdf-simple-welcome-media' });
-		this.renderPoster(media.createDiv({ cls: 'pdf-simple-welcome-video' }));
-		media.createEl('a', {
+		const box = media.createDiv({ cls: 'pdf-simple-welcome-video' });
+		this.renderPoster(box);
+		// すべての機能の動画は、同じ枠で流す（ブラウザで開くと、動画ではなくファイルの保存になるため）
+		const full = media.createEl('a', {
 			cls: 'pdf-simple-welcome-full',
 			text: t('welcome.fullVideo'),
 			href: GUIDE_VIDEO_URL,
+		});
+		full.addEventListener('click', (evt) => {
+			evt.preventDefault();
+			this.play(box, GUIDE_VIDEO_URL);
 		});
 		const steps = main.createDiv({ cls: 'pdf-simple-welcome-steps' });
 		for (const step of STEPS) {
@@ -142,21 +147,24 @@ export class WelcomeModal extends Modal {
 			cls: 'pdf-simple-welcome-note',
 			text: t('welcome.videoNote'),
 		});
-		poster.addEventListener('click', () => this.play(box));
+		poster.addEventListener('click', () =>
+			this.play(
+				box,
+				isJapaneseUi()
+					? FIRST_RUN_VIDEO_URL.ja
+					: FIRST_RUN_VIDEO_URL.en,
+			),
+		);
 	}
 
-	private play(box: HTMLElement): void {
+	private play(box: HTMLElement, url: string): void {
+		this.video?.pause();
 		box.empty();
 		const video = box.createEl('video', {
 			attr: { controls: '', playsinline: '', preload: 'auto' },
 		});
 		const source = video.createEl('source', {
-			attr: {
-				src: isJapaneseUi()
-					? FIRST_RUN_VIDEO_URL.ja
-					: FIRST_RUN_VIDEO_URL.en,
-				type: 'video/mp4',
-			},
+			attr: { src: url, type: 'video/mp4' },
 		});
 		const fail = () => this.showError(box);
 		// 読み込めなかったとき（オフラインなど）は <source> に error が来る
