@@ -44,7 +44,7 @@ The plugin writes to your notes (it never modifies PDF files), so back up import
 - Select text in a PDF with the mouse. When you release the button, it is highlighted with the pen's color and style (body text or heading). If the selection ends in the middle of an English word, it extends to the word boundary.
 - Hold Alt (Option) while selecting to skip highlighting, for example to copy text.
 - The pen button at the top right of the PDF switches the color, the style (body text or heading 1 to 3), and what happens when you select text (highlight right away, pick a color first, or off). A heading style stays on until you switch back, which is handy for marking chapter headings first.
-- With "pick a color first", color buttons and a "Heading" button appear near the selection. Hover "Heading" to insert that highlight as heading 1 to 3.
+- With "pick a color first", color buttons and a heading button (**H**) appear near the selection. Hover **H** to insert that highlight as heading 1 to 3.
 - Keyboard and touch selections show the color buttons (a bar at the bottom of the screen on mobile). For a PDF without a paired note, the color buttons also appear the first time, and choosing one creates the note.
 - To undo a mistake, right-click the highlight in the PDF and choose **Remove highlight**, or run **Undo last highlight**.
 

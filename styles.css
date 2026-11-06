@@ -223,7 +223,7 @@ PDF Simple のスタイル。
 	height: 34px;
 }
 
-/* 色の後ろの「見出し」。マウスを乗せる（スマホは押す）と、上に見出し 1〜3 が出る */
+/* 色の後ろの「見出し」（文字の H）。マウスを乗せる（スマホは押す）と、上に見出し 1〜3 が出る */
 .pdf-simple-heading-choice {
 	position: relative;
 	display: flex;
@@ -244,12 +244,10 @@ PDF Simple のスタイル。
 	background-color: transparent;
 	box-shadow: none;
 	color: var(--text-muted);
+	font-size: var(--font-ui-medium);
+	font-weight: var(--font-bold);
+	line-height: 1;
 	cursor: pointer;
-}
-
-.pdf-simple-heading-button svg {
-	width: 16px;
-	height: 16px;
 }
 
 .pdf-simple-heading-choice:hover .pdf-simple-heading-button,

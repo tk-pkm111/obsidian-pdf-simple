@@ -1,4 +1,4 @@
-import { Platform, setIcon, setTooltip, type FileView } from 'obsidian';
+import { Platform, setTooltip, type FileView } from 'obsidian';
 import { t } from '../i18n';
 import { MAX_PEN_HEADING } from '../lib/settings';
 import type PdfSimplePlugin from '../main';
@@ -23,7 +23,7 @@ function keepSelection(button: HTMLElement): void {
 
 /**
  * 色のボタンの吹き出し（スマホでは画面の下のバー）。見た目だけを受け持ち、押されたものを onChoose に渡す。
- * 色の後ろに「見出し」のボタンがあり、マウスを乗せる（スマホは押す）と、上に見出し 1〜3 が出る。
+ * 色の後ろに「見出し」のボタン（文字の H）があり、マウスを乗せる（スマホは押す）と、上に見出し 1〜3 が出る。
  * 選択はボタンを押す前に覚えておく（押した瞬間に選択が外れても作れるように）。
  */
 export class SelectionPopup {
@@ -77,11 +77,12 @@ export class SelectionPopup {
 		onChoose: (choice: PopupChoice) => void,
 	): void {
 		const choice = popup.createDiv({ cls: 'pdf-simple-heading-choice' });
+		// 記号（SVG）ではなく文字の H にする。言語によらず同じ見た目で、テーマが記号を縮めても崩れない
 		const toggle = choice.createEl('button', {
 			cls: 'pdf-simple-heading-button',
+			text: 'H',
 			attr: { 'aria-label': t('popup.heading'), type: 'button' },
 		});
-		setIcon(toggle, 'heading');
 		setTooltip(toggle, t('popup.heading'));
 		keepSelection(toggle);
 		// スマホ（マウスを乗せられない）では押して開く
