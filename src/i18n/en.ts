@@ -176,28 +176,25 @@ export const en: Record<keyof typeof ja, string> = {
 	'welcome.practice': 'Try the practice PDF',
 	'welcome.import': 'Import your PDF',
 
-	// What's new (opens once after an update)
+	// What's new (opens once after an update, one slide at a time)
 	'whatsNew.title': "What's new in PDF Simple",
-	'whatsNew.lead':
-		'Version {version} makes it easier to get started. Here are the main changes.',
-	'whatsNew.importTitle': 'Import PDF',
+	'whatsNew.importLabel': 'Import PDF',
 	'whatsNew.importBody':
-		'Use "Import PDF" in the left ribbon to pick a PDF from your computer or phone. It goes into your vault and opens right away.',
-	'whatsNew.practiceTitle': 'Practice PDF',
+		'Pick a PDF from the left ribbon. It goes into your vault and opens right away.',
+	'whatsNew.practiceLabel': 'Practice PDF',
 	'whatsNew.practiceBody':
-		'Try a PDF with step-by-step instructions. Open it from the top of Settings → PDF Simple or with the command "Open the practice PDF".',
-	'whatsNew.chipTitle': '"PDF" button in the note',
+		'Try it on a PDF with steps. Select text, and the note opens on the right with it. Use the command "Open the practice PDF".',
+	'whatsNew.chipLabel': '"PDF" button',
 	'whatsNew.chipBody':
-		'The button that opens the PDF from a note now says "PDF" instead of showing a book, so it no longer looks like the reading view button.',
-	'whatsNew.headingTitle': 'Heading button "H"',
+		'Use "PDF" at the top right of a note to open the PDF, and the page button to go back. It no longer looks like the reading view button.',
+	'whatsNew.headingLabel': 'Heading button "H"',
 	'whatsNew.headingBody':
-		'When you pick a color first, the heading button in the color buttons now shows "H".',
-	'whatsNew.videoTitle': '30-second video',
-	'whatsNew.videoBody':
-		'The getting started screen has a 30-second video of your first highlight. The 2-minute video of every feature is updated too.',
-	'whatsNew.hint':
-		'Open this screen any time with the command "Show what\'s new".',
-	'whatsNew.close': 'Close',
+		'When you pick a color first, hover "H" to choose heading 1 to 3.',
+	'whatsNew.counter': '{n} / {total}',
+	'whatsNew.goTo': 'Show slide {n}',
+	'whatsNew.later': 'Later',
+	'whatsNew.next': 'Next',
+	'whatsNew.done': 'Get started',
 
 	// Hint above a PDF (for new users)
 	'hint.title': 'Try selecting some text.',

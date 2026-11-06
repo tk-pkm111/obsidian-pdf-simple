@@ -170,28 +170,25 @@ export const ja = {
 	'welcome.practice': '練習用の PDF で試す',
 	'welcome.import': '自分の PDF を取り込む',
 
-	// 新しくなったこと（アップデートしたあとに 1 回だけ開く）
+	// 新しくなったこと（アップデートしたあとに 1 回だけ開く。1 枚ずつめくる）
 	'whatsNew.title': 'PDF Simple が新しくなりました',
-	'whatsNew.lead':
-		'バージョン {version} では、はじめての人も迷わず使えるようにしました。主な変更です。',
-	'whatsNew.importTitle': '「PDF を取り込む」',
+	'whatsNew.importLabel': 'PDF を取り込む',
 	'whatsNew.importBody':
-		'左のリボンの「PDF を取り込む」で、パソコンやスマホの PDF を選ぶだけ。vault に入って、すぐ開きます。',
-	'whatsNew.practiceTitle': '練習用の PDF',
+		'左のリボンから PDF を選ぶだけで、vault に入って、すぐ開きます。',
+	'whatsNew.practiceLabel': '練習用の PDF',
 	'whatsNew.practiceBody':
-		'手順が書いてある PDF で、1 回なぞって試せます。「設定 → PDF Simple」のいちばん上か、コマンド「練習用の PDF を開く」から。',
-	'whatsNew.chipTitle': 'ノートの右上の「PDF」ボタン',
+		'手順つきの PDF で試せます。なぞると、ノートが右に開いて文が入ります。コマンド「練習用の PDF を開く」から。',
+	'whatsNew.chipLabel': '「PDF」ボタン',
 	'whatsNew.chipBody':
-		'PDF を開くボタンが、本の記号から文字の「PDF」になりました。閲覧モードの本の記号と見分けられます。',
-	'whatsNew.headingTitle': '見出しのボタンは「H」',
+		'ノートの右上の「PDF」で PDF へ、紙のボタンでノートへ。閲覧モードの本の記号と見分けやすくなりました。',
+	'whatsNew.headingLabel': '見出しは「H」',
 	'whatsNew.headingBody':
-		'色を選んでから塗るときの吹き出しで、見出しのボタンが「H」と出るようになりました。',
-	'whatsNew.videoTitle': '30 秒の使い方の動画',
-	'whatsNew.videoBody':
-		'使い方の画面で、はじめての 1 回を 30 秒で見られます。すべての機能の 2 分の動画も新しくしました。',
-	'whatsNew.hint':
-		'この画面は、コマンド「新しくなったことを見る」でいつでも開けます。',
-	'whatsNew.close': '閉じる',
+		'色を選んでから塗るとき、「H」に乗せると見出し 1〜3 を選べます。',
+	'whatsNew.counter': '{n} / {total}',
+	'whatsNew.goTo': '{n} 枚目を見る',
+	'whatsNew.later': 'あとで',
+	'whatsNew.next': '次へ',
+	'whatsNew.done': 'はじめる',
 
 	// PDF の上の案内（はじめての人向け）
 	'hint.title': '文字をなぞってみましょう。',

@@ -34,7 +34,7 @@ The PDF file itself is never modified. The note keeps only the text (`quoted tex
 3. To use your own PDF, press **Import your PDF** on that screen, the **Import PDF** button in the left ribbon, or the command of the same name, and choose PDFs from your computer or phone. They're copied into the vault (the PDF storage folder if you set one, otherwise your attachments folder) and the first one opens. You can also drag PDFs into the file explorer.
 4. Optionally, choose the heading for highlights and the PDF storage folder in **Settings → PDF Simple**.
 
-After an update, a "What's new in PDF Simple" screen opens once with the main changes. Until your first highlight, a one-line hint is shown above PDFs that don't have a note yet. Turn the hints off with **Getting started hints** in settings. If your vault already has highlights when you install this version, the hints are skipped.
+After an update, a "What's new in PDF Simple" screen opens once and shows each new feature in a short video, one at a time. Until your first highlight, a one-line hint is shown above PDFs that don't have a note yet. Turn the hints off with **Getting started hints** in settings. If your vault already has highlights when you install this version, the hints are skipped.
 
 ## Installation
 
@@ -129,7 +129,7 @@ Getting started (at the top: show the getting started screen, open the practice 
 
 ## Privacy and permissions
 
-- **Network**: the getting started videos are loaded from GitHub (raw.githubusercontent.com for the 30-second video, github.com for the 2-minute one) only when you press play or open the link. The plugin makes no other network requests and never sends your PDFs or notes anywhere.
+- **Network**: the getting started videos are loaded from GitHub (raw.githubusercontent.com) only when you press play. The "What's new" screen, which opens once after an update, loads a few short videos (under 100 KB each) from the same place while it is open. The plugin makes no other network requests and never sends your PDFs or notes anywhere.
 - **Vault access**: the plugin reads note metadata (properties and block IDs) through Obsidian's metadata cache to find highlights and their PDFs, lists the PDFs in your vault when you attach one, and reads all notes only when you run **Clean up highlight records without text** (after you confirm). It writes only to the notes it adds highlights to, to the PNG files it captures, and to new PDFs you ask for (the practice PDF, and PDFs you choose with **Import PDF**), and moves PDFs only as described in [PDF storage](#pdf-storage).
 - **Clipboard**: **Copy text** in a highlight's right-click menu writes the highlight's text to the clipboard. The plugin never reads the clipboard.
 

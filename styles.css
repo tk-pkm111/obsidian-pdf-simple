@@ -539,17 +539,117 @@ body.pdf-simple-hide-entries
 	background-color: var(--interactive-accent);
 }
 
-/* 記号の代わりに文字（ボタンの見た目そのもの: 「PDF」「H」） */
-.pdf-simple-welcome-step-icon.mod-label {
-	font-size: var(--font-ui-smaller);
-	font-weight: var(--font-bold);
-	letter-spacing: 0.02em;
+/* 新しくなったこと: 1 枚ずつめくる。動画の左上にラベル、右上に何枚目か */
+.modal.pdf-simple-whats-new {
+	--dialog-width: min(680px, 94vw);
+	width: min(680px, 94vw);
+	max-width: 94vw;
 }
 
-.modal.pdf-simple-whats-new {
-	--dialog-width: min(620px, 94vw);
-	width: min(620px, 94vw);
-	max-width: 94vw;
+.pdf-simple-whats-new-frame {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	border-radius: var(--radius-l);
+	overflow: hidden;
+	background-color: #0c0b16;
+}
+
+.pdf-simple-whats-new-frame video {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.pdf-simple-whats-new-label {
+	position: absolute;
+	top: var(--size-4-3);
+	left: var(--size-4-3);
+	padding: var(--size-2-2) var(--size-4-3);
+	border-radius: 999px;
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-bold);
+	box-shadow: var(--shadow-s);
+}
+
+.pdf-simple-whats-new-count {
+	position: absolute;
+	top: var(--size-4-3);
+	right: var(--size-4-3);
+	padding: var(--size-2-1) var(--size-4-2);
+	border-radius: 999px;
+	background-color: rgba(0, 0, 0, 0.55);
+	color: #fff;
+	font-size: var(--font-ui-smaller);
+}
+
+.pdf-simple-whats-new-frame.is-offline {
+	display: grid;
+	place-items: center;
+	background-color: var(--background-secondary);
+}
+
+.pdf-simple-whats-new-offline {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--size-4-2);
+	font-size: var(--font-ui-medium);
+	font-weight: var(--font-semibold);
+}
+
+.pdf-simple-whats-new-offline-icon {
+	display: grid;
+	place-items: center;
+	width: 56px;
+	height: 56px;
+	border-radius: var(--radius-l);
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.pdf-simple-whats-new-offline-icon svg {
+	width: 28px;
+	height: 28px;
+}
+
+.pdf-simple-whats-new-body {
+	min-height: 3.2em;
+	margin: var(--size-4-3) var(--size-2-1) 0;
+	font-size: var(--font-ui-medium);
+	line-height: 1.6;
+}
+
+.pdf-simple-whats-new-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--size-4-3);
+	margin-top: var(--size-4-3);
+}
+
+.pdf-simple-whats-new-dots {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+}
+
+.pdf-simple-whats-new-dots .pdf-simple-whats-new-dot {
+	width: 10px;
+	height: 10px;
+	min-width: 0;
+	padding: 0;
+	border-radius: 999px;
+	background-color: var(--background-modifier-border-hover);
+	box-shadow: none;
+	cursor: pointer;
+}
+
+.pdf-simple-whats-new-dots .pdf-simple-whats-new-dot.is-active {
+	width: 24px;
+	background-color: var(--interactive-accent);
 }
 
 .pdf-simple-welcome-step-icon svg {

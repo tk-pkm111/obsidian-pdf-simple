@@ -1,10 +1,9 @@
 import { Modal, setIcon } from 'obsidian';
 import { isJapaneseUi, t } from '../i18n';
 import type PdfSimplePlugin from '../main';
+import { MEDIA_URL } from './media';
 
-/** はじめての 1 回の動画（30 秒。リポジトリの docs/media。再生ボタンを押したときだけ読み込む。置き場所は変えない） */
-const MEDIA_URL =
-	'https://raw.githubusercontent.com/tk-pkm111/obsidian-pdf-simple/main/docs/media';
+/** はじめての 1 回の動画（30 秒。再生ボタンを押したときだけ読み込む） */
 export const FIRST_RUN_VIDEO_URL = {
 	ja: `${MEDIA_URL}/first-run-ja.mp4`,
 	en: `${MEDIA_URL}/first-run-en.mp4`,
