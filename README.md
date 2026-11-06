@@ -10,7 +10,7 @@
 
 Every feature in 2 minutes (the video is in Japanese):
 
-https://github.com/user-attachments/assets/5667a2b6-7cd8-47cd-9c57-350b813780ce
+https://github.com/user-attachments/assets/adcd0b42-f566-4e12-bfa7-53dbc004661d
 
 The plugin's interface follows Obsidian's language (English or Japanese).
 

@@ -10,7 +10,7 @@
 
 すべての機能を 2 分で:
 
-https://github.com/user-attachments/assets/5667a2b6-7cd8-47cd-9c57-350b813780ce
+https://github.com/user-attachments/assets/adcd0b42-f566-4e12-bfa7-53dbc004661d
 
 ## できること
 
