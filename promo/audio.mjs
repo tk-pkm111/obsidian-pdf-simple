@@ -210,7 +210,8 @@ export function synthesize(timeline, wavPath) {
 	const M = timeline.MUSIC;
 	const BEAT = 60 / 104;
 	const BAR = BEAT * 4;
-	const ORIGIN = M.drumsIn - 8 * BAR; // ドラムが入る瞬間（STEP 1）が小節の頭になるように
+	// ドラムが入る瞬間（STEP 1）が小節の頭になるように。ドラムが無いときは 0 秒から
+	const ORIGIN = Number.isFinite(M.drumsIn) ? M.drumsIn - 8 * BAR : 0;
 	const CHORDS = [
 		{ root: 41, notes: [53, 57, 60, 64] }, // Fmaj7
 		{ root: 43, notes: [55, 59, 62, 64] }, // G6
@@ -271,8 +272,9 @@ export function synthesize(timeline, wavPath) {
 			put(drums, start + k, v, v);
 		}
 	}
-	riser(M.drumsIn - 0.85, 0.85);
-	riser(M.lightTo - 0.85, 0.85);
+	// 使い方の動画（record-tour.mjs）はドラムなし（drumsIn: Infinity）・軽くする区間なし
+	if (Number.isFinite(M.drumsIn)) riser(M.drumsIn - 0.85, 0.85);
+	if (M.lightTo > M.lightFrom) riser(M.lightTo - 0.85, 0.85);
 	// 締め: Fmaj7 から Cmaj9 に解決して、ゆっくり消える
 	for (const [t0, dur, notes, root] of [[M.outro, 2.3, [53, 57, 60, 64], 41], [M.outro + 2.3, 5.2, [48, 55, 59, 62, 64], 36]]) {
 		for (const n of notes)
@@ -297,7 +299,7 @@ export function synthesize(timeline, wavPath) {
 	for (let i = 0; i < N; i++) {
 		const t = i / SR;
 		const fade = Math.min(1, t / 0.15, (timeline.DURATION - t) / 1.2);
-		const m = 0.62;
+		const m = M.gain ?? 0.62;
 		out.L[i] = fade * ((music.L[i] * duck[i] + drums.L[i]) * m + sfx.L[i] + verb.L[i]);
 		out.R[i] = fade * ((music.R[i] * duck[i] + drums.R[i]) * m + sfx.R[i] + verb.R[i]);
 	}
@@ -314,8 +316,9 @@ export function synthesize(timeline, wavPath) {
 			writeWav(wavPath.replace(/\.wav$/, `-${name}.wav`), L, R, gain);
 		};
 		const fade = (i) => Math.min(1, i / SR / 0.15, (timeline.DURATION - i / SR) / 1.2);
-		stem('music', (i) => [fade(i) * music.L[i] * duck[i] * 0.62, fade(i) * music.R[i] * duck[i] * 0.62]);
-		stem('drums', (i) => [fade(i) * drums.L[i] * 0.62, fade(i) * drums.R[i] * 0.62]);
+		const m = M.gain ?? 0.62;
+		stem('music', (i) => [fade(i) * music.L[i] * duck[i] * m, fade(i) * music.R[i] * duck[i] * m]);
+		stem('drums', (i) => [fade(i) * drums.L[i] * m, fade(i) * drums.R[i] * m]);
 		stem('sfx', (i) => [fade(i) * sfx.L[i], fade(i) * sfx.R[i]]);
 		stem('verb', (i) => [fade(i) * verb.L[i], fade(i) * verb.R[i]]);
 	}

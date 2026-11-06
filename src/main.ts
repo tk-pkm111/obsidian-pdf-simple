@@ -144,6 +144,7 @@ export default class PdfSimplePlugin extends Plugin {
 		if (this.settings.selectAction === 'none') this.selection.hide();
 		this.hideEntries?.update();
 		this.viewer.refreshToolbars();
+		this.onboarding?.refresh();
 	}
 
 	/** ペンの色を変える（塗らない設定だったら、すぐ塗るに戻す） */

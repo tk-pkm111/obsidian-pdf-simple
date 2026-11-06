@@ -46,6 +46,13 @@ export type DrawOp = TextOp | RectOp | CircleOp;
 export const PAGE_WIDTH = 595;
 export const PAGE_HEIGHT = 842;
 
+/** ページの大きさ（ポイント）。既定は A4 */
+export interface PageSize {
+	width: number;
+	height: number;
+}
+export const A4: PageSize = { width: PAGE_WIDTH, height: PAGE_HEIGHT };
+
 /** Helvetica の字幅（1000 分の 1 em。ASCII の 32〜126。標準の AFM の値） */
 const HELVETICA = [
 	278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278,
@@ -292,6 +299,7 @@ export function buildPdfSource(
 	pages: readonly (readonly DrawOp[])[],
 	script: PdfScript,
 	title: string,
+	size: PageSize = A4,
 ): string {
 	// 1: Catalog, 2: Pages, 3: Info, 4..: Page と Contents の組、その後ろにフォント
 	const pageCount = Math.max(1, pages.length);
@@ -308,7 +316,7 @@ export function buildPdfSource(
 		const pageRef = firstPage + i * 2;
 		kids.push(`${pageRef} 0 R`);
 		pageObjects.push(
-			`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Resources ${resources} /Contents ${pageRef + 1} 0 R >>`,
+			`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${size.width} ${size.height}] /Resources ${resources} /Contents ${pageRef + 1} 0 R >>`,
 			stream(contentStream(pages[i] ?? [], script)),
 		);
 	}
@@ -342,8 +350,9 @@ export function buildPdf(
 	pages: readonly (readonly DrawOp[])[],
 	script: PdfScript,
 	title: string,
+	size: PageSize = A4,
 ): ArrayBuffer {
-	const source = buildPdfSource(pages, script, title);
+	const source = buildPdfSource(pages, script, title, size);
 	const buffer = new ArrayBuffer(source.length);
 	const bytes = new Uint8Array(buffer);
 	for (let i = 0; i < source.length; i++) bytes[i] = source.charCodeAt(i);

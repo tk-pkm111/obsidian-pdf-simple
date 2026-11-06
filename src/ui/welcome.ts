@@ -1,49 +1,49 @@
-import { Modal, setIcon } from 'obsidian';
-import { isJapaneseUi, t } from '../i18n';
+import { Modal, Platform, setIcon } from 'obsidian';
+import { isJapaneseUi, t, type MessageKey } from '../i18n';
+import { chapterAt, chapterSpans, type Chapter } from '../lib/chapters';
 import type PdfSimplePlugin from '../main';
 import { MEDIA_URL } from './media';
 
-/** はじめての 1 回の動画（30 秒。再生ボタンを押したときだけ読み込む） */
-export const FIRST_RUN_VIDEO_URL = {
-	ja: `${MEDIA_URL}/first-run-ja.mp4`,
-	en: `${MEDIA_URL}/first-run-en.mp4`,
+/** 使い方の動画（約 3 分・1 本。日本語と英語） */
+export const TOUR_VIDEO_URL = {
+	ja: `${MEDIA_URL}/tour-ja.mp4`,
+	en: `${MEDIA_URL}/tour-en.mp4`,
 } as const;
-/** すべての機能の動画（約 2 分・日本語。同じ docs/media） */
-export const GUIDE_VIDEO_URL = `${MEDIA_URL}/guide-ja.mp4`;
 /** 詳しい使い方（README） */
 export const GUIDE_PAGE_URL =
 	'https://github.com/tk-pkm111/obsidian-pdf-simple#readme';
 
-const STEPS = [
-	{
-		icon: 'highlighter',
-		title: 'welcome.step1Title',
-		body: 'welcome.step1Body',
-	},
-	{
-		icon: 'pen-line',
-		title: 'welcome.step2Title',
-		body: 'welcome.step2Body',
-	},
-	{
-		icon: 'repeat-2',
-		title: 'welcome.step3Title',
-		body: 'welcome.step3Body',
-	},
-	{
-		icon: 'folder-input',
-		title: 'welcome.step4Title',
-		body: 'welcome.step4Body',
-	},
-] as const;
+/** 動画の章の始まり（秒）。動画を録り直したら合わせる（promo/record-tour.mjs compose が出す tour-<lang>-chapters.json の値） */
+const chapters = (
+	select: number,
+	flip: number,
+	organize: number,
+	settings: number,
+): readonly Chapter<MessageKey>[] => [
+	{ at: 0, label: 'welcome.chapterStart' },
+	{ at: select, label: 'welcome.chapterSelect' },
+	{ at: flip, label: 'welcome.chapterFlip' },
+	{ at: organize, label: 'welcome.chapterOrganize' },
+	{ at: settings, label: 'welcome.chapterSettings' },
+];
+export const TOUR_CHAPTERS = {
+	ja: chapters(34, 64, 87, 153),
+	en: chapters(34, 63, 86, 150),
+} as const;
 
 /**
- * 使い方の画面（はじめて読み込んだときに 1 回だけ開く。コマンド「使い方を見る」でいつでも開ける）。
- * いちばん大きいボタンは「練習用の PDF で試す」（その場で練習用の PDF を開く）。「自分の PDF を取り込む」も並べる。
- * 動画は再生ボタンを押したときだけ GitHub から読み込む（押すまで通信しない）。
+ * 使い方の画面（入れた直後に 1 回だけ開く。コマンド「使い方を見る」と PDF のペンのメニューからも開ける）。
+ * 置くのは、一言の見出し・動画 1 本（章の目盛りで飛べる）・「やってみる」だけ。説明は動画と GitHub が受け持つ。
+ * パソコンでは開くと音なしで流れ始める（そのとき GitHub から動画を読み込む）。スマホは押してから読み込む。
  */
 export class WelcomeModal extends Modal {
+	private frame: HTMLElement | null = null;
 	private video: HTMLVideoElement | null = null;
+	private sound: HTMLButtonElement | null = null;
+	private chapters: HTMLElement[] = [];
+	private readonly tour = isJapaneseUi()
+		? TOUR_CHAPTERS.ja
+		: TOUR_CHAPTERS.en;
 
 	constructor(private readonly plugin: PdfSimplePlugin) {
 		super(plugin.app);
@@ -51,146 +51,226 @@ export class WelcomeModal extends Modal {
 
 	onOpen(): void {
 		this.modalEl.addClass('pdf-simple-welcome');
-		this.setTitle(t('welcome.title'));
+		this.titleEl.empty();
+		this.titleEl.createDiv({
+			cls: 'pdf-simple-welcome-brand',
+			text: t('welcome.brand'),
+		});
+		this.titleEl.createDiv({
+			cls: 'pdf-simple-welcome-headline',
+			text: t('welcome.headline'),
+		});
+
 		const { contentEl } = this;
-		contentEl.createEl('p', {
-			cls: 'pdf-simple-welcome-lead',
-			text: t('welcome.lead'),
+		const frame = contentEl.createDiv({ cls: 'pdf-simple-welcome-video' });
+		this.frame = frame;
+		this.renderScene(frame);
+		const play = frame.createEl('button', {
+			cls: 'pdf-simple-welcome-play',
+			attr: { type: 'button', 'aria-label': t('welcome.play') },
 		});
-		// 広い画面では左に動画、右にできることの一覧（狭い画面では縦に並ぶ）
-		const main = contentEl.createDiv({ cls: 'pdf-simple-welcome-main' });
-		const media = main.createDiv({ cls: 'pdf-simple-welcome-media' });
-		const box = media.createDiv({ cls: 'pdf-simple-welcome-video' });
-		this.renderPoster(box);
-		// すべての機能の動画は、同じ枠で流す（ブラウザで開くと、動画ではなくファイルの保存になるため）
-		const full = media.createEl('a', {
-			cls: 'pdf-simple-welcome-full',
-			text: t('welcome.fullVideo'),
-			href: GUIDE_VIDEO_URL,
+		setIcon(play, 'play');
+		play.addEventListener('click', () => this.togglePlay());
+		this.sound = frame.createEl('button', {
+			cls: 'pdf-simple-welcome-sound',
+			attr: { type: 'button' },
 		});
-		full.addEventListener('click', (evt) => {
-			evt.preventDefault();
-			this.play(box, GUIDE_VIDEO_URL);
+		this.sound.addEventListener('click', () => this.toggleSound());
+		const error = frame.createDiv({ cls: 'pdf-simple-welcome-error' });
+		setIcon(error.createDiv(), 'wifi-off');
+		error.createDiv({ text: t('welcome.videoError') });
+
+		const bar = contentEl.createDiv({ cls: 'pdf-simple-welcome-chapters' });
+		this.chapters = this.tour.map((chapter) => {
+			const name = t(chapter.label);
+			const button = bar.createEl('button', {
+				cls: 'pdf-simple-welcome-chapter',
+				attr: {
+					type: 'button',
+					'aria-label': t('welcome.goTo', { name }),
+				},
+			});
+			button
+				.createDiv({ cls: 'pdf-simple-welcome-chapter-track' })
+				.createDiv({ cls: 'pdf-simple-welcome-chapter-fill' });
+			button.createDiv({
+				cls: 'pdf-simple-welcome-chapter-label',
+				text: name,
+			});
+			button.addEventListener('click', () => this.seek(chapter.at));
+			return button;
 		});
-		const steps = main.createDiv({ cls: 'pdf-simple-welcome-steps' });
-		for (const step of STEPS) {
-			const card = steps.createDiv({ cls: 'pdf-simple-welcome-step' });
-			setIcon(
-				card.createDiv({ cls: 'pdf-simple-welcome-step-icon' }),
-				step.icon,
-			);
-			const text = card.createDiv({
-				cls: 'pdf-simple-welcome-step-text',
-			});
-			text.createDiv({
-				cls: 'pdf-simple-welcome-step-title',
-				text: t(step.title),
-			});
-			text.createDiv({
-				cls: 'pdf-simple-welcome-step-body',
-				text: t(step.body),
-			});
-		}
+		this.updateChapters(0, Number.NaN);
+
 		const footer = contentEl.createDiv({
 			cls: 'pdf-simple-welcome-footer',
 		});
-		footer.createDiv({
-			cls: 'pdf-simple-welcome-hint',
-			text: t('welcome.hint'),
-		});
-		const buttons = footer.createDiv({ cls: 'pdf-simple-welcome-buttons' });
-		buttons.createEl('a', {
-			cls: 'pdf-simple-welcome-link',
+		footer.createEl('a', {
+			cls: 'pdf-simple-welcome-more',
 			text: t('welcome.more'),
 			href: GUIDE_PAGE_URL,
 		});
-		const importButton = buttons.createEl('button', {
-			text: t('welcome.import'),
+		const actions = footer.createDiv({ cls: 'pdf-simple-welcome-actions' });
+		const buttons = actions.createDiv({
+			cls: 'pdf-simple-welcome-buttons',
 		});
-		importButton.addEventListener('click', () => {
-			// ファイルを選ぶ画面は、押した直後に開く必要がある（待たずに呼ぶ）
-			this.plugin.importer.pick();
-			this.close();
-		});
+		buttons
+			.createEl('button', { text: t('welcome.later') })
+			.addEventListener('click', () => this.close());
 		const start = buttons.createEl('button', {
 			cls: 'mod-cta',
-			text: t('welcome.practice'),
+			text: t('welcome.try'),
 		});
 		start.addEventListener('click', () => {
 			this.close();
-			void this.plugin.onboarding.openPractice();
+			void this.plugin.onboarding.begin();
 		});
-		// Obsidian は最初のボタン（動画の表紙）に焦点を置くので、「練習用の PDF で試す」に移す
-		// （開いた直後に Enter を押しても動画は始まらない。題名が隠れないよう、スクロールもしない）
+		actions.createDiv({
+			cls: 'pdf-simple-welcome-try-note',
+			text: t('welcome.tryNote'),
+		});
+
+		// パソコンは音なしで流し始める（自動再生は音なしでないと止められる）。スマホは押してから
+		if (!Platform.isMobile) this.load(true, 0);
+		this.updateSound();
+		// 開いた直後に Enter を押すと「やってみる」（題名が隠れないよう、スクロールもしない）
 		window.setTimeout(() => {
 			start.focus({ preventScroll: true });
 			this.modalEl.scrollTop = 0;
 		}, 0);
 	}
 
-	/** 動画の表紙（通信しない）。押すと動画を読み込んで再生する */
-	private renderPoster(box: HTMLElement): void {
-		const poster = box.createEl('button', {
-			cls: 'pdf-simple-welcome-poster',
-			attr: { 'aria-label': t('welcome.play') },
-		});
-		const logo = poster.createDiv({ cls: 'pdf-simple-welcome-logo' });
-		logo.createSpan({ text: 'PDF' });
-		logo.createSpan({ cls: 'pdf-simple-welcome-mark', text: 'Simple' });
-		poster.createDiv({
-			cls: 'pdf-simple-welcome-sub',
-			text: t('welcome.videoTitle'),
-		});
-		setIcon(poster.createDiv({ cls: 'pdf-simple-welcome-play' }), 'play');
-		poster.createDiv({
-			cls: 'pdf-simple-welcome-note',
-			text: t('welcome.videoNote'),
-		});
-		poster.addEventListener('click', () =>
-			this.play(
-				box,
-				isJapaneseUi()
-					? FIRST_RUN_VIDEO_URL.ja
-					: FIRST_RUN_VIDEO_URL.en,
-			),
-		);
-	}
-
-	private play(box: HTMLElement, url: string): void {
-		this.video?.pause();
-		box.empty();
-		const video = box.createEl('video', {
-			attr: { controls: '', playsinline: '', preload: 'auto' },
-		});
-		const source = video.createEl('source', {
-			attr: { src: url, type: 'video/mp4' },
-		});
-		const fail = () => this.showError(box);
-		// 読み込めなかったとき（オフラインなど）は <source> に error が来る
-		source.addEventListener('error', fail);
-		video.addEventListener('error', fail);
-		this.video = video;
-		void video.play().catch(() => undefined);
-	}
-
-	private showError(box: HTMLElement): void {
-		this.video = null;
-		box.empty();
-		const message = box.createDiv({ cls: 'pdf-simple-welcome-error' });
-		setIcon(
-			message.createDiv({ cls: 'pdf-simple-welcome-error-icon' }),
-			'wifi-off',
-		);
-		message.createDiv({ text: t('welcome.videoError') });
-		message.createEl('a', {
-			text: t('welcome.openInBrowser'),
-			href: GUIDE_PAGE_URL,
-		});
-	}
-
 	onClose(): void {
 		this.video?.pause();
 		this.video = null;
 		this.contentEl.empty();
+	}
+
+	/** 動画を読み込む前と、読み込めなかったときに見せる絵（このプラグインの中で描く。通信しない） */
+	private renderScene(frame: HTMLElement): void {
+		const scene = frame.createDiv({ cls: 'pdf-simple-welcome-scene' });
+		const page = scene.createDiv({ cls: 'pdf-simple-welcome-scene-page' });
+		for (const kind of ['', 'is-short', 'is-hl', 'is-hl is-short', '', ''])
+			page.createDiv({
+				cls: [
+					'pdf-simple-welcome-scene-line',
+					...kind.split(' '),
+				].filter((c) => c !== ''),
+			});
+		const note = scene.createDiv({ cls: 'pdf-simple-welcome-scene-note' });
+		for (const kind of ['is-title', '', 'is-short', 'is-new'])
+			note.createDiv({
+				cls: ['pdf-simple-welcome-scene-line', kind].filter(
+					(c) => c !== '',
+				),
+			});
+	}
+
+	/** 動画を読み込んで、at 秒から流す */
+	private load(muted: boolean, at: number): void {
+		const frame = this.frame;
+		if (!frame) return;
+		frame.removeClass('is-error');
+		const video = createEl('video', {
+			cls: 'pdf-simple-welcome-player',
+			attr: { playsinline: '', preload: 'auto' },
+		});
+		// 属性だけでは音を消した扱いにならないことがあるので、プロパティでも消す（自動再生の条件）
+		video.muted = muted;
+		if (muted) video.setAttr('muted', '');
+		const source = video.createEl('source', {
+			attr: {
+				src: isJapaneseUi() ? TOUR_VIDEO_URL.ja : TOUR_VIDEO_URL.en,
+				type: 'video/mp4',
+			},
+		});
+		const fail = () => {
+			if (this.video !== video) return;
+			frame.addClass('is-error');
+			frame.removeClass('is-playing');
+		};
+		source.addEventListener('error', fail);
+		video.addEventListener('error', fail);
+		video.addEventListener('loadedmetadata', () => {
+			if (at > 0) video.currentTime = at;
+			this.updateChapters(video.currentTime, video.duration);
+		});
+		video.addEventListener('loadeddata', () => frame.addClass('is-ready'));
+		video.addEventListener('timeupdate', () =>
+			this.updateChapters(video.currentTime, video.duration),
+		);
+		const state = () => {
+			frame.toggleClass('is-playing', !video.paused);
+			this.updateSound();
+		};
+		video.addEventListener('play', state);
+		video.addEventListener('pause', state);
+		video.addEventListener('volumechange', state);
+		video.addEventListener('click', () => this.togglePlay());
+		// 絵と再生ボタンの下に入れる（読み込むまでは絵が見える）
+		frame.prepend(video);
+		this.video = video;
+		void video.play().catch(() => state());
+	}
+
+	private togglePlay(): void {
+		const video = this.video;
+		if (!video) {
+			this.load(false, 0);
+			return;
+		}
+		if (video.paused) void video.play().catch(() => undefined);
+		else video.pause();
+	}
+
+	private toggleSound(): void {
+		const video = this.video;
+		if (!video) {
+			this.load(false, 0);
+			return;
+		}
+		video.muted = !video.muted;
+		if (video.paused) void video.play().catch(() => undefined);
+		this.updateSound();
+	}
+
+	private seek(at: number): void {
+		const video = this.video;
+		if (!video) {
+			this.load(!Platform.isMobile, at);
+			return;
+		}
+		if (video.readyState >= 1) video.currentTime = at;
+		void video.play().catch(() => undefined);
+		this.updateChapters(at, video.duration);
+	}
+
+	private updateSound(): void {
+		const sound = this.sound;
+		if (!sound) return;
+		const muted = this.video?.muted ?? true;
+		sound.empty();
+		setIcon(
+			sound.createSpan({ cls: 'pdf-simple-welcome-sound-icon' }),
+			muted ? 'volume-x' : 'volume-2',
+		);
+		sound.createSpan({
+			text: muted ? t('welcome.unmute') : t('welcome.mute'),
+		});
+	}
+
+	/** 章の目盛り: 長さに合わせた幅と、どこまで見たか */
+	private updateChapters(time: number, duration: number): void {
+		const spans = chapterSpans(this.tour, time, duration);
+		const current = chapterAt(this.tour, time);
+		this.chapters.forEach((el, i) => {
+			const span = spans[i];
+			if (!span) return;
+			el.setCssProps({
+				'--pdf-simple-chapter-grow': String(span.length),
+				'--pdf-simple-chapter-done': `${Math.round(span.done * 1000) / 10}%`,
+			});
+			el.toggleClass('is-current', i === current);
+		});
 	}
 }

@@ -3,6 +3,7 @@ import { t } from '../i18n';
 import { MAX_PEN_HEADING, type SelectAction } from '../lib/settings';
 import type PdfSimplePlugin from '../main';
 import { colorLabel, headingKindLabel } from '../ui/labels';
+import { WelcomeModal } from '../ui/welcome';
 import { toolbarSlot } from './dom';
 import type { ViewTools } from './tools';
 
@@ -171,6 +172,15 @@ export class PdfToolbar extends Component {
 					.setChecked(settings.selectAction === mode)
 					.onClick(() => void this.plugin.setSelectAction(mode)),
 			);
+
+		// いちばん下に使い方の動画（設定には置かない。使っている最中に手が届く所に 1 つだけ）
+		menu.addSeparator();
+		menu.addItem((item) =>
+			item
+				.setTitle(t('menu.showTour'))
+				.setIcon('circle-play')
+				.onClick(() => new WelcomeModal(this.plugin).open()),
+		);
 
 		// macOS のネイティブメニューだと色の見本が出ないので、Obsidian のメニューで出す（別ウィンドウにも対応）
 		menu.setUseNativeMenu(false);

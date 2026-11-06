@@ -56,6 +56,7 @@ export const en: Record<keyof typeof ja, string> = {
 	'menu.selectHighlight': 'Highlight on select',
 	'menu.selectPopup': 'Pick a color first',
 	'menu.selectNone': 'Off (select only)',
+	'menu.showTour': 'How-to video',
 	'menu.openInPdf': 'Open in PDF',
 	'menu.movePdf': 'Move to PDF storage folder',
 	'menu.movePairedPdf': 'Move attached PDF to storage folder',
@@ -70,10 +71,6 @@ export const en: Record<keyof typeof ja, string> = {
 	// Notices
 	'notice.noteCreated':
 		'Created the note "{name}". Your highlights will collect here.',
-	'notice.firstHighlight':
-		'Your first highlight is in the note "{name}" (on the right). From now on, just select text in the PDF to add more.',
-	'notice.firstHighlightPhone':
-		'Your first highlight is in the note "{name}". Tap "PDF" at the top right to go back to the PDF.',
 	'notice.practiceFailed': 'Could not create the practice PDF: {message}',
 	'notice.imported': 'Imported "{name}".',
 	'notice.importedMany': 'Imported {count} PDFs.',
@@ -147,34 +144,24 @@ export const en: Record<keyof typeof ja, string> = {
 		'Use a name that starts with a lowercase letter and contains only lowercase letters, digits, and hyphens.',
 	'modal.duplicateColorName': 'That ID is already in use.',
 
-	// Getting started screen
-	'welcome.title': 'Welcome to PDF Simple',
-	'welcome.lead':
-		'Just trace text in a PDF, and the passages you highlight collect in your note. Start by highlighting once in the practice PDF.',
-	'welcome.videoTitle': 'Your first highlight in 30 seconds',
-	'welcome.play': 'Play the 30-second video',
-	'welcome.fullVideo': 'Every feature in 2 minutes (in Japanese)',
-	'welcome.videoNote': 'Plays from GitHub',
-	'welcome.videoError':
-		'Could not load the video. Check your internet connection.',
-	'welcome.openInBrowser': 'Open in browser',
-	'welcome.step1Title': 'Trace to highlight',
-	'welcome.step1Body':
-		'Select text in the PDF with your mouse. It is highlighted right away, and the text goes into your note.',
-	'welcome.step2Title': 'Colors and headings',
-	'welcome.step2Body':
-		'Use the pen at the top right of the PDF to switch colors and heading levels.',
-	'welcome.step3Title': 'Jump between note and PDF',
-	'welcome.step3Body':
-		'Use "PDF" at the top right of the note to open the PDF, and the page button on the PDF to go back. The dots in the note and the highlights in the PDF also jump.',
-	'welcome.step4Title': 'Where highlights go',
-	'welcome.step4Body':
-		'In Settings → PDF Simple, choose the heading for highlights and the folder for your PDFs.',
-	'welcome.hint':
-		'Open this screen any time with the command "Show getting started".',
-	'welcome.more': 'Learn more on GitHub',
-	'welcome.practice': 'Try the practice PDF',
-	'welcome.import': 'Import your PDF',
+	// Getting started screen (opens once after install: one video and "Try it")
+	'welcome.brand': 'PDF Simple',
+	'welcome.headline': 'Select text in a PDF. It collects in your note.',
+	'welcome.play': 'Play the video',
+	'welcome.pause': 'Pause the video',
+	'welcome.unmute': 'Sound on',
+	'welcome.mute': 'Sound off',
+	'welcome.chapterStart': 'Start',
+	'welcome.chapterSelect': 'Select',
+	'welcome.chapterFlip': 'Go back and forth',
+	'welcome.chapterOrganize': 'Organize',
+	'welcome.chapterSettings': 'Settings',
+	'welcome.goTo': 'Watch from "{name}"',
+	'welcome.videoError': "Couldn't load the video. You might be offline.",
+	'welcome.more': 'More on GitHub',
+	'welcome.later': 'Later',
+	'welcome.try': 'Try it',
+	'welcome.tryNote': 'Opens a practice PDF · 30 seconds',
 
 	// What's new (opens once after an update, one slide at a time)
 	'whatsNew.title': "What's new in PDF Simple",
@@ -196,23 +183,54 @@ export const en: Record<keyof typeof ja, string> = {
 	'whatsNew.next': 'Next',
 	'whatsNew.done': 'Get started',
 
-	// Hint above a PDF (for new users)
-	'hint.title': 'Try selecting some text.',
-	'hint.body':
-		'Pick a color, and the text is highlighted and goes into the note for this PDF.',
-	'hint.close': 'Close (and stop showing on other PDFs)',
+	// Guide at the bottom right (first time only, 3 steps)
+	'guide.title': 'Your first highlight',
+	'guide.counter': '{n} / {total}',
+	'guide.close': "Close the guide (don't show again)",
+	'guide.stepSelect': 'Select',
+	'guide.stepBack': 'Back with ●',
+	'guide.stepOwn': 'Your PDF',
+	'guide.selectPractice': 'Select the sentence in the box with your mouse.',
+	'guide.selectPracticePhone':
+		'Long-press the sentence in the box, then tap a color below.',
+	'guide.selectOwn': 'Select some text in the PDF with your mouse.',
+	'guide.selectPracticeColor':
+		'Select the sentence in the box, then pick a color.',
+	'guide.selectOwnColor': 'Select some text in the PDF, then pick a color.',
+	'guide.selectOwnPhone':
+		'Long-press some text in the PDF, then tap a color below.',
+	'guide.selectHighlight':
+		"It's highlighted right away and goes into your note.",
+	'guide.selectPopup': 'Pick a color to add it to your note.',
+	'guide.selectFirst':
+		'A note for this PDF is created with the text in it. After that, selecting highlights right away.',
+	'guide.selectFirstPhone':
+		'A note for this PDF is created with the text in it.',
+	'guide.selectNone':
+		'Highlighting is off. Choose "Highlight on select" with the pen at the top right.',
+	'guide.backTitle': "It's in your note.",
+	'guide.backBody':
+		'Click the ● after the text to jump back to that spot in the PDF.',
+	'guide.doneTitle': 'Done. Next, try your own PDF.',
+	'guide.doneTitleOwn': 'Done.',
+	'guide.doneBody': 'You can also drag a PDF into the file list.',
+	'guide.doneBodyOwn':
+		'Add more PDFs by dragging them into the file list or with "Import PDF".',
+	'guide.later': 'Later',
+	'guide.closeOwn': 'Close',
+	'guide.import': 'Choose a PDF',
+	'guide.cleanup': 'Delete the practice PDF and its note',
+
+	// Tips shown once after you start using it
+	'tip.penTitle': 'Switch colors and headings here.',
+	'tip.penBody':
+		'Make chapter titles into headings, and your note gets chapters.',
+	'tip.chipTitle': 'Switch between the PDF and the note here.',
+	'tip.chipBody':
+		'Click the ● after the text to jump to that spot in the PDF.',
+	'tip.ok': 'Got it',
 
 	// Settings
-	'settings.groupHelp': 'Getting started',
-	'settings.showWelcome': 'Show getting started',
-	'settings.showWelcomeDesc':
-		'Open the video and the overview of what you can do.',
-	'settings.openPractice': 'Open the practice PDF',
-	'settings.openPracticeDesc':
-		'Opens a PDF with step-by-step instructions (creates it if needed).',
-	'settings.showOnboarding': 'Getting started hints',
-	'settings.showOnboardingDesc':
-		'A hint above PDFs without a note, and opening the note on the right after your first highlight.',
 	'settings.colors': 'Colors',
 	'settings.addColor': 'Add color',
 	'settings.colorsEmpty': 'There are no colors.',

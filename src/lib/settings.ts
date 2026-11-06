@@ -15,6 +15,10 @@ export const SETTINGS_VERSION = 4;
 /** ペンで書く見出しの大きさの上限（メニューに出すのは 1〜3） */
 export const MAX_PEN_HEADING = 3;
 
+/** 使い始めてから 1 回だけ出すヒント */
+export const TIP_IDS = ['pen', 'chip'] as const;
+export type TipId = (typeof TIP_IDS)[number];
+
 export interface PdfSimpleSettings {
 	settingsVersion: number;
 	/** ハイライトの色（並び順がそのまま吹き出しとメニューの並び） */
@@ -46,12 +50,10 @@ export interface PdfSimpleSettings {
 	autoMovePdf: boolean;
 	/** 使い方の画面を一度開いた（はじめて読み込んだときだけ開くため） */
 	welcomeShown: boolean;
-	/** はじめの案内（ノートの無い PDF の上の 1 行と、最初のハイライトのあとにノートを横に開く動き） */
-	showOnboarding: boolean;
 	/** 最初のハイライトを案内し終えた（または、入れたときにもうハイライトがあった） */
 	onboardingDone: boolean;
-	/** PDF の上の案内を閉じた（練習用の PDF には閉じても出す） */
-	hintDismissed: boolean;
+	/** もう出したヒント（1 回ずつ） */
+	tipsShown: TipId[];
 	/** 前に読み込んだときの版（上げたあとに「新しくなったこと」を 1 回出すため。空は 0.1.x 以前） */
 	lastVersion: string;
 }
@@ -81,9 +83,8 @@ export const DEFAULT_SETTINGS: Readonly<PdfSimpleSettings> = {
 	pdfFolder: '',
 	autoMovePdf: true,
 	welcomeShown: false,
-	showOnboarding: true,
 	onboardingDone: false,
-	hintDismissed: false,
+	tipsShown: [],
 	lastVersion: '',
 };
 
@@ -247,15 +248,13 @@ export function normalizeSettings(raw: unknown): PdfSimpleSettings {
 		pdfFolder: text(data.pdfFolder, DEFAULT_SETTINGS.pdfFolder),
 		autoMovePdf: bool(data.autoMovePdf, DEFAULT_SETTINGS.autoMovePdf),
 		welcomeShown: bool(data.welcomeShown, DEFAULT_SETTINGS.welcomeShown),
-		showOnboarding: bool(
-			data.showOnboarding,
-			DEFAULT_SETTINGS.showOnboarding,
-		),
 		onboardingDone: bool(
 			data.onboardingDone,
 			DEFAULT_SETTINGS.onboardingDone,
 		),
-		hintDismissed: bool(data.hintDismissed, DEFAULT_SETTINGS.hintDismissed),
+		tipsShown: Array.isArray(data.tipsShown)
+			? TIP_IDS.filter((id) => (data.tipsShown as unknown[]).includes(id))
+			: [],
 		lastVersion: text(data.lastVersion, DEFAULT_SETTINGS.lastVersion),
 	};
 }

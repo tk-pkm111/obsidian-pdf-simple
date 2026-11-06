@@ -272,7 +272,7 @@ export function registerCommands(plugin: PdfSimplePlugin): void {
 		id: 'open-practice-pdf',
 		name: t('command.openPractice'),
 		icon: 'graduation-cap',
-		callback: () => void plugin.onboarding.openPractice(),
+		callback: () => void plugin.onboarding.begin(),
 	});
 
 	plugin.addCommand({

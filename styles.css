@@ -351,192 +351,15 @@ body.pdf-simple-hide-entries
 	gap: var(--size-4-2);
 }
 
+/* 色の見本（色を選ぶ候補と、ペンのメニュー。メニューの題は flex ではないので inline-block にする） */
 .pdf-simple-color-swatch {
+	display: inline-block;
 	flex: none;
+	vertical-align: -0.08em;
 	width: 0.9em;
 	height: 0.9em;
 	border-radius: 50%;
 	background-color: var(--pdf-simple-hl);
-}
-
-/* ---------------------------------------------------------------------------
-   使い方の画面（はじめて読み込んだときに 1 回だけ開く）
-*/
-.modal.pdf-simple-welcome {
-	--dialog-width: min(940px, 94vw);
-	width: min(940px, 94vw);
-	max-width: 94vw;
-}
-
-/* 広い画面では左に動画、右にできることの一覧。狭い画面とスマホでは縦に並べる */
-.pdf-simple-welcome-main {
-	display: grid;
-	grid-template-columns: minmax(0, 1.5fr) minmax(220px, 1fr);
-	gap: var(--size-4-4);
-	align-items: start;
-}
-
-@media (max-width: 760px) {
-	.pdf-simple-welcome-main {
-		grid-template-columns: minmax(0, 1fr);
-	}
-}
-
-.is-mobile .pdf-simple-welcome-main {
-	grid-template-columns: minmax(0, 1fr);
-}
-
-.pdf-simple-welcome-lead {
-	margin: 0 0 var(--size-4-4);
-	color: var(--text-muted);
-	line-height: 1.6;
-}
-
-.pdf-simple-welcome-media {
-	display: flex;
-	flex-direction: column;
-	gap: var(--size-4-1);
-	min-width: 0;
-}
-
-.pdf-simple-welcome-full {
-	align-self: flex-end;
-	color: var(--text-muted);
-	font-size: var(--font-ui-smaller);
-}
-
-.pdf-simple-welcome-video {
-	position: relative;
-	aspect-ratio: 16 / 9;
-	border-radius: var(--radius-l);
-	overflow: hidden;
-	background-color: #0c0b16;
-}
-
-.pdf-simple-welcome-video video {
-	display: block;
-	width: 100%;
-	height: 100%;
-	background-color: #000;
-}
-
-/* 動画の表紙（通信しない。押すと動画を読み込む） */
-.pdf-simple-welcome-poster {
-	position: absolute;
-	inset: 0;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: var(--size-4-2);
-	width: 100%;
-	height: 100%;
-	padding: 0;
-	border: none;
-	border-radius: 0;
-	box-shadow: none;
-	cursor: pointer;
-	color: #fff;
-	background:
-		radial-gradient(circle at 15% 10%, rgba(127, 109, 242, 0.45), transparent 55%),
-		radial-gradient(circle at 90% 95%, rgba(255, 212, 0, 0.18), transparent 50%),
-		linear-gradient(160deg, #0c0b16, #151226 60%, #0b0a12);
-}
-
-.pdf-simple-welcome-poster:hover .pdf-simple-welcome-play {
-	transform: scale(1.06);
-	background-color: rgba(255, 255, 255, 0.24);
-}
-
-.pdf-simple-welcome-logo {
-	display: flex;
-	align-items: center;
-	gap: 0.28em;
-	font-size: clamp(28px, 6vw, 44px);
-	font-weight: 800;
-	letter-spacing: -0.01em;
-	line-height: 1.1;
-}
-
-.pdf-simple-welcome-mark {
-	padding: 0 0.18em;
-	border-radius: 0.14em;
-	color: #16141f;
-	background-color: #ffd400;
-	transform: skewX(-6deg);
-}
-
-.pdf-simple-welcome-sub {
-	font-size: var(--font-ui-medium);
-	color: rgba(255, 255, 255, 0.82);
-}
-
-.pdf-simple-welcome-play {
-	display: grid;
-	place-items: center;
-	width: 64px;
-	height: 64px;
-	margin-top: var(--size-4-2);
-	border-radius: 50%;
-	background-color: rgba(255, 255, 255, 0.16);
-	border: 1.5px solid rgba(255, 255, 255, 0.5);
-	transition: transform 120ms ease-out, background-color 120ms ease-out;
-}
-
-.pdf-simple-welcome-play svg {
-	width: 28px;
-	height: 28px;
-	margin-left: 4px;
-	fill: currentColor;
-}
-
-.pdf-simple-welcome-note {
-	font-size: var(--font-ui-smaller);
-	color: rgba(255, 255, 255, 0.6);
-}
-
-.pdf-simple-welcome-error {
-	position: absolute;
-	inset: 0;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: var(--size-4-2);
-	padding: var(--size-4-4);
-	text-align: center;
-	color: #e8e8ef;
-}
-
-.pdf-simple-welcome-error-icon svg {
-	width: 28px;
-	height: 28px;
-}
-
-/* できることの一覧 */
-.pdf-simple-welcome-steps {
-	display: flex;
-	flex-direction: column;
-	gap: var(--size-4-2);
-}
-
-.pdf-simple-welcome-step {
-	display: flex;
-	gap: var(--size-4-3);
-	padding: var(--size-4-2) var(--size-4-3);
-	border-radius: var(--radius-m);
-	background-color: var(--background-secondary);
-}
-
-.pdf-simple-welcome-step-icon {
-	flex: none;
-	display: grid;
-	place-items: center;
-	width: 30px;
-	height: 30px;
-	border-radius: var(--radius-s);
-	color: var(--text-on-accent);
-	background-color: var(--interactive-accent);
 }
 
 /* 新しくなったこと: 1 枚ずつめくる。動画の左上にラベル、右上に何枚目か */
@@ -652,44 +475,6 @@ body.pdf-simple-hide-entries
 	background-color: var(--interactive-accent);
 }
 
-.pdf-simple-welcome-step-icon svg {
-	width: 18px;
-	height: 18px;
-}
-
-.pdf-simple-welcome-step-title {
-	font-size: var(--font-ui-small);
-	font-weight: var(--font-semibold);
-}
-
-.pdf-simple-welcome-step-body {
-	margin-top: 2px;
-	font-size: var(--font-ui-smaller);
-	color: var(--text-muted);
-	line-height: 1.5;
-}
-
-.pdf-simple-welcome-footer {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: var(--size-4-3);
-	margin-top: var(--size-4-4);
-}
-
-.pdf-simple-welcome-hint {
-	font-size: var(--font-ui-smaller);
-	color: var(--text-faint);
-}
-
-.pdf-simple-welcome-buttons {
-	display: flex;
-	align-items: center;
-	gap: var(--size-4-4);
-	margin-left: auto;
-}
-
 /* ---------------------------------------------------------------------------
    ノートのヘッダーの「PDF を開く（裏面）」: 記号ではなく枠つきの文字（本体の閲覧／編集の本の記号と見分けるため）
 */
@@ -711,47 +496,485 @@ body.pdf-simple-hide-entries
 	color: var(--text-normal);
 }
 
-/* ---------------------------------------------------------------------------
-   はじめての人向けの案内（ノートの無い PDF の上の 1 行）と、PDF を取り込むときの見えない入力欄
-*/
+/* PDF を取り込むときの見えない入力欄 */
+.pdf-simple-file-input {
+	display: none;
+}
 
-.pdf-simple-hint {
+/* ---------------------------------------------------------------------------
+   使い方の画面（入れた直後に 1 回）: 一言の見出し・動画 1 本・章の目盛り・「やってみる」
+*/
+.modal.pdf-simple-welcome {
+	--dialog-width: min(760px, 94vw);
+	width: min(760px, 94vw);
+	max-width: 94vw;
+}
+
+.pdf-simple-welcome-brand {
+	display: inline-block;
+	margin-bottom: var(--size-2-2);
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-semibold);
+	letter-spacing: 0.04em;
+	color: var(--text-muted);
+}
+
+.pdf-simple-welcome-headline {
+	font-size: 1.35em;
+	font-weight: var(--font-bold);
+	line-height: 1.35;
+}
+
+.pdf-simple-welcome-video {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	border: var(--border-width) solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	background-color: #141418;
+}
+
+.pdf-simple-welcome-player {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	width: 100%;
+	height: 100%;
+	cursor: pointer;
+	background: transparent;
+}
+
+/* 読み込む前・読み込めないときの絵（PDF とノートが並び、新しい行が入ったところ） */
+.pdf-simple-welcome-scene {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6%;
+	padding: 9% 8% 12%;
+	background: radial-gradient(120% 120% at 20% 0%, #26213f 0%, #141418 60%);
+}
+
+.pdf-simple-welcome-video.is-ready .pdf-simple-welcome-scene {
+	visibility: hidden;
+}
+
+.pdf-simple-welcome-scene-page,
+.pdf-simple-welcome-scene-note {
 	display: flex;
-	flex: none;
+	flex-direction: column;
+	gap: 9%;
+	padding: 8% 9%;
+	border-radius: 4px;
+}
+
+.pdf-simple-welcome-scene-page {
+	background-color: #fff;
+}
+
+.pdf-simple-welcome-scene-note {
+	border: 1px solid #3a3a3e;
+	background-color: #202022;
+}
+
+.pdf-simple-welcome-scene-line {
+	height: 6px;
+	border-radius: 3px;
+	background-color: #d4d4d8;
+}
+
+.pdf-simple-welcome-scene-note .pdf-simple-welcome-scene-line {
+	background-color: #4a4a4e;
+}
+
+.pdf-simple-welcome-scene-line.is-short {
+	width: 64%;
+}
+
+.pdf-simple-welcome-scene-line.is-hl {
+	background-color: #ffe36b;
+}
+
+.pdf-simple-welcome-scene-line.is-title {
+	width: 50%;
+	height: 9px;
+	background-color: #8a8a90;
+}
+
+.pdf-simple-welcome-scene-note .pdf-simple-welcome-scene-line.is-new {
+	width: 80%;
+	background-color: #d0d0d4;
+	box-shadow: 0 0 0 4px rgba(255, 212, 0, 0.16);
+}
+
+.pdf-simple-welcome-video button.pdf-simple-welcome-play {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 64px;
+	height: 64px;
+	padding: 0;
+	border: 2px solid rgba(255, 255, 255, 0.85);
+	border-radius: 50%;
+	background-color: rgba(0, 0, 0, 0.55);
+	box-shadow: none;
+	color: #fff;
+	transform: translate(-50%, -50%);
+	cursor: pointer;
+}
+
+.pdf-simple-welcome-play svg {
+	width: 26px;
+	height: 26px;
+	margin-left: 3px;
+}
+
+.pdf-simple-welcome-video.is-playing .pdf-simple-welcome-play,
+.pdf-simple-welcome-video.is-error .pdf-simple-welcome-play {
+	display: none;
+}
+
+.pdf-simple-welcome-video button.pdf-simple-welcome-sound {
+	position: absolute;
+	top: var(--size-4-2);
+	right: var(--size-4-2);
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	gap: var(--size-2-2);
+	height: auto;
+	padding: var(--size-2-2) var(--size-4-2);
+	border: none;
+	border-radius: 999px;
+	background-color: rgba(0, 0, 0, 0.6);
+	box-shadow: none;
+	color: #fff;
+	font-size: var(--font-ui-smaller);
+	cursor: pointer;
+}
+
+.pdf-simple-welcome-sound-icon {
+	display: flex;
+}
+
+.pdf-simple-welcome-sound-icon svg {
+	width: 14px;
+	height: 14px;
+}
+
+.pdf-simple-welcome-video.is-error .pdf-simple-welcome-sound {
+	display: none;
+}
+
+.pdf-simple-welcome-error {
+	position: absolute;
+	right: var(--size-4-3);
+	bottom: var(--size-4-3);
+	left: var(--size-4-3);
+	z-index: 2;
+	display: none;
 	align-items: center;
 	gap: var(--size-4-2);
 	padding: var(--size-4-2) var(--size-4-3);
-	border-bottom: var(--border-width) solid var(--background-modifier-border);
-	background-color: var(--background-secondary);
+	border-radius: var(--radius-s);
+	background-color: rgba(0, 0, 0, 0.72);
+	color: #fff;
+	font-size: var(--font-ui-small);
+}
+
+.pdf-simple-welcome-error svg {
+	width: 16px;
+	height: 16px;
+}
+
+.pdf-simple-welcome-video.is-error .pdf-simple-welcome-error {
+	display: flex;
+}
+
+/* 章の目盛り: 幅は章の長さ、塗りはどこまで見たか。押すとその章から */
+.pdf-simple-welcome-chapters {
+	display: flex;
+	gap: var(--size-2-3);
+	margin-top: var(--size-4-2);
+}
+
+.pdf-simple-welcome-chapters button.pdf-simple-welcome-chapter {
+	flex: var(--pdf-simple-chapter-grow, 1) 1 0;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: var(--size-2-2);
+	min-width: 0;
+	height: auto;
+	padding: var(--size-2-2) 0;
+	border: none;
+	background: none;
+	box-shadow: none;
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+	cursor: pointer;
+}
+
+.pdf-simple-welcome-chapters button.pdf-simple-welcome-chapter:hover,
+.pdf-simple-welcome-chapters button.pdf-simple-welcome-chapter.is-current {
+	color: var(--text-normal);
+}
+
+.pdf-simple-welcome-chapter-track {
+	height: 4px;
+	overflow: hidden;
+	border-radius: 2px;
+	background-color: var(--background-modifier-border);
+}
+
+.pdf-simple-welcome-chapter-fill {
+	width: var(--pdf-simple-chapter-done, 0%);
+	height: 100%;
+	background-color: var(--interactive-accent);
+}
+
+.pdf-simple-welcome-chapter-label {
+	overflow: hidden;
+	text-align: left;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pdf-simple-welcome-footer {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: var(--size-4-3);
+	margin-top: var(--size-4-4);
+}
+
+.pdf-simple-welcome-more {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+}
+
+.pdf-simple-welcome-actions {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: var(--size-2-2);
+	margin-left: auto;
+}
+
+.pdf-simple-welcome-buttons {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+}
+
+.pdf-simple-welcome-try-note {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-faint);
+}
+
+/* ---------------------------------------------------------------------------
+   右下のガイド（はじめての 1 回。3 ステップ）。スマホは上に細く
+*/
+.pdf-simple-guide {
+	position: fixed;
+	right: var(--size-4-4);
+	bottom: calc(var(--size-4-8) + var(--size-4-2));
+	z-index: var(--layer-notice);
+	width: min(340px, calc(100vw - 32px));
+	padding: var(--size-4-3) var(--size-4-4) var(--size-4-4);
+	border: var(--border-width) solid var(--background-modifier-border-hover);
+	border-radius: var(--radius-l);
+	background-color: var(--background-primary);
+	box-shadow: var(--shadow-l);
 	color: var(--text-normal);
 	font-size: var(--font-ui-small);
-	line-height: var(--line-height-tight);
+	line-height: 1.5;
 }
 
-.pdf-simple-hint-icon {
+.pdf-simple-guide.is-phone {
+	top: var(--pdf-simple-guide-top, calc(var(--safe-area-inset-top, 0px) + 56px));
+	right: var(--size-4-2);
+	bottom: auto;
+	left: var(--size-4-2);
+	width: auto;
+	padding: var(--size-4-2) var(--size-4-3);
+}
+
+.pdf-simple-guide-head {
 	display: flex;
-	flex: none;
-	color: var(--text-accent);
+	align-items: center;
+	gap: var(--size-4-2);
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
 }
 
-.pdf-simple-hint-icon svg {
-	width: var(--icon-s);
-	height: var(--icon-s);
+.pdf-simple-guide-name {
+	font-weight: var(--font-semibold);
+	color: var(--text-normal);
 }
 
-.pdf-simple-hint-text {
+.pdf-simple-guide-count {
+	margin-left: auto;
+	font-variant-numeric: tabular-nums;
+}
+
+.pdf-simple-guide-close {
+	padding: var(--size-2-1);
+}
+
+.pdf-simple-guide-steps {
+	display: flex;
+	gap: var(--size-2-3);
+	margin-top: var(--size-4-2);
+}
+
+.pdf-simple-guide-step {
 	flex: 1;
 	min-width: 0;
+	padding-top: var(--size-2-2);
+	border-top: 3px solid var(--background-modifier-border);
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
-.pdf-simple-hint-text strong {
+.pdf-simple-guide-step.is-active {
+	border-top-color: var(--interactive-accent);
+	color: var(--text-accent);
 	font-weight: var(--font-semibold);
 }
 
-.pdf-simple-hint-close {
-	flex: none;
+.pdf-simple-guide-step.is-done {
+	border-top-color: var(--color-green);
+	color: var(--text-muted);
 }
 
-.pdf-simple-file-input {
+.pdf-simple-guide-step.is-done::after {
+	content: " ✓";
+	color: var(--color-green);
+}
+
+.pdf-simple-guide-title {
+	margin-top: var(--size-4-3);
+	font-size: var(--font-ui-medium);
+	font-weight: var(--font-semibold);
+}
+
+.pdf-simple-guide-body {
+	margin-top: var(--size-2-2);
+	color: var(--text-muted);
+}
+
+.pdf-simple-guide.is-phone .pdf-simple-guide-steps,
+.pdf-simple-guide.is-phone .pdf-simple-guide-body {
 	display: none;
+}
+
+.pdf-simple-guide.is-phone .pdf-simple-guide-title {
+	margin-top: var(--size-2-2);
+}
+
+.pdf-simple-guide-buttons {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--size-4-2);
+	margin-top: var(--size-4-3);
+}
+
+.pdf-simple-guide button.pdf-simple-guide-cleanup {
+	display: block;
+	height: auto;
+	margin: var(--size-4-2) 0 0 auto;
+	padding: 0;
+	border: none;
+	background: none;
+	box-shadow: none;
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.pdf-simple-guide button.pdf-simple-guide-cleanup:hover {
+	color: var(--text-muted);
+}
+
+/* ガイドの②: ノートの文の後ろの点が脈打つ（押すと PDF に戻る） */
+@keyframes pdf-simple-dot-pulse {
+	0% {
+		box-shadow: 0 0 0 0 color-mix(in srgb, var(--interactive-accent) 70%, transparent);
+	}
+	70% {
+		box-shadow: 0 0 0 10px transparent;
+	}
+	100% {
+		box-shadow: 0 0 0 0 transparent;
+	}
+}
+
+.pdf-simple-tour-back .pdf-simple-dot {
+	animation: pdf-simple-dot-pulse 1.6s ease-out infinite;
+}
+
+/* ---------------------------------------------------------------------------
+   使い始めてからのヒント（ボタンの下の吹き出し。1 回ずつ）
+*/
+.pdf-simple-tip {
+	position: fixed;
+	top: var(--pdf-simple-tip-top);
+	right: var(--pdf-simple-tip-right);
+	z-index: var(--layer-tooltip);
+	width: min(300px, calc(100vw - 24px));
+	padding: var(--size-4-3) var(--size-4-3) var(--size-4-3);
+	border: var(--border-width) solid var(--interactive-accent);
+	border-radius: var(--radius-m);
+	background-color: var(--background-primary);
+	box-shadow: var(--shadow-l);
+	font-size: var(--font-ui-small);
+	line-height: 1.5;
+}
+
+.pdf-simple-tip::before {
+	content: "";
+	position: absolute;
+	top: -7px;
+	right: var(--pdf-simple-tip-arrow, 16px);
+	width: 12px;
+	height: 12px;
+	border-top: var(--border-width) solid var(--interactive-accent);
+	border-left: var(--border-width) solid var(--interactive-accent);
+	background-color: var(--background-primary);
+	transform: rotate(45deg);
+}
+
+.pdf-simple-tip-title {
+	font-weight: var(--font-semibold);
+}
+
+.pdf-simple-tip-body {
+	margin-top: var(--size-2-2);
+	color: var(--text-muted);
+}
+
+.pdf-simple-tip button {
+	display: block;
+	margin: var(--size-4-2) 0 0 auto;
+}
+
+.pdf-simple-tip-target {
+	box-shadow: 0 0 0 2px var(--interactive-accent);
+	border-radius: var(--radius-s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pdf-simple-tour-back .pdf-simple-dot {
+		animation: none;
+	}
 }

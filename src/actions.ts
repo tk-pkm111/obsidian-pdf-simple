@@ -128,9 +128,9 @@ export class HighlightActions {
 				new Notice(t('notice.duplicateHighlight'));
 				return;
 			}
-			// はじめての 1 件なら、書いたあとにノートを見せる（ノートを作った通知は、その案内に含める）
+			// ガイドの①なら、書いたあとにノートを見せて②へ（ノートを作った通知は、ガイドに含める）
 			const { onboarding } = this.plugin;
-			const guide = onboarding.claim(pdf);
+			const guide = onboarding.claim();
 			let guided = false;
 			try {
 				const note = await this.plugin.flip.noteFor(
@@ -146,7 +146,7 @@ export class HighlightActions {
 				if (id !== null && guide) {
 					guided = true;
 					void onboarding.guide(item.view, note, id);
-				}
+				} else if (id !== null) onboarding.afterHighlight(item.view);
 			} finally {
 				if (guide && !guided) onboarding.release();
 			}
@@ -306,6 +306,7 @@ export class HighlightActions {
 			return;
 		}
 		await revealInPdf(this.plugin, entry, options);
+		this.plugin.onboarding.returnedToPdf();
 	}
 
 	chooseColor(ids: readonly string[]): void {

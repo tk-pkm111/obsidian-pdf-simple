@@ -53,6 +53,7 @@ export const ja = {
 	'menu.selectHighlight': '選んだらすぐ塗る',
 	'menu.selectPopup': '色を選んでから塗る',
 	'menu.selectNone': '塗らない（選ぶだけ）',
+	'menu.showTour': '使い方の動画',
 	'menu.openInPdf': 'PDF で開く',
 	'menu.movePdf': 'PDF の保存先へ移す',
 	'menu.movePairedPdf': '添付した PDF を保存先へ移す',
@@ -66,10 +67,6 @@ export const ja = {
 	// 通知
 	'notice.noteCreated':
 		'ノート「{name}」を作りました。ハイライトはここに溜まります。',
-	'notice.firstHighlight':
-		'最初のハイライトがノート「{name}」に入りました（右）。これからは PDF をなぞるだけで、ここにたまっていきます。',
-	'notice.firstHighlightPhone':
-		'最初のハイライトがノート「{name}」に入りました。右上の「PDF」で PDF に戻れます。',
 	'notice.practiceFailed': '練習用の PDF を作れませんでした: {message}',
 	'notice.imported': '「{name}」を取り込みました。',
 	'notice.importedMany': 'PDF を {count} 個取り込みました。',
@@ -142,33 +139,25 @@ export const ja = {
 		'英小文字で始まる、英小文字・数字・ハイフンの名前にしてください。',
 	'modal.duplicateColorName': 'その識別名はもう使われています。',
 
-	// 使い方の画面
-	'welcome.title': 'PDF Simple へようこそ',
-	'welcome.lead':
-		'PDF の文字をなぞるだけで、ハイライトした文がノートにたまっていきます。まずは練習用の PDF で、1 回なぞってみましょう。',
-	'welcome.videoTitle': '30 秒でわかる、はじめての 1 回',
-	'welcome.play': '使い方の動画（30 秒）を再生する',
-	'welcome.fullVideo': 'すべての機能を 2 分の動画で見る',
-	'welcome.videoNote': '再生すると、GitHub から動画を読み込みます',
+	// 使い方の画面（入れた直後に 1 回。動画 1 本と「やってみる」だけ）
+	'welcome.brand': 'PDF Simple',
+	'welcome.headline': 'PDF をなぞると、ノートにたまる。',
+	'welcome.play': '使い方の動画を再生する',
+	'welcome.pause': '動画を止める',
+	'welcome.unmute': '音を出す',
+	'welcome.mute': '音を消す',
+	'welcome.chapterStart': 'はじめる',
+	'welcome.chapterSelect': 'なぞる',
+	'welcome.chapterFlip': '行き来',
+	'welcome.chapterOrganize': '整える',
+	'welcome.chapterSettings': '設定',
+	'welcome.goTo': '「{name}」から見る',
 	'welcome.videoError':
-		'動画を読み込めませんでした。インターネットに接続しているか確かめてください。',
-	'welcome.openInBrowser': 'ブラウザで開く',
-	'welcome.step1Title': 'なぞってハイライト',
-	'welcome.step1Body':
-		'PDF の文字をマウスで選ぶと、すぐに塗られて、その文がノートに入ります。',
-	'welcome.step2Title': 'ペンで色と見出し',
-	'welcome.step2Body':
-		'PDF の右上のペンで、色や見出しの大きさを切り替えます。',
-	'welcome.step3Title': '表と裏を行き来',
-	'welcome.step3Body':
-		'ノートの右上の「PDF」で PDF へ、PDF の右上の紙のボタンでノートへ。ノートの点や PDF のハイライトを押しても移れます。',
-	'welcome.step4Title': '入れる場所と保存先',
-	'welcome.step4Body':
-		'「設定 → PDF Simple」で、ハイライトを入れる見出しや PDF の保存先を決められます。',
-	'welcome.hint': 'この画面は、コマンド「使い方を見る」でいつでも開けます。',
-	'welcome.more': 'GitHub で詳しく見る',
-	'welcome.practice': '練習用の PDF で試す',
-	'welcome.import': '自分の PDF を取り込む',
+		'動画を読み込めませんでした（オフラインかもしれません）。',
+	'welcome.more': 'くわしい説明（GitHub）',
+	'welcome.later': 'あとで',
+	'welcome.try': 'やってみる',
+	'welcome.tryNote': '練習用の PDF が開きます・30 秒',
 
 	// 新しくなったこと（アップデートしたあとに 1 回だけ開く。1 枚ずつめくる）
 	'whatsNew.title': 'PDF Simple が新しくなりました',
@@ -190,22 +179,50 @@ export const ja = {
 	'whatsNew.next': '次へ',
 	'whatsNew.done': 'はじめる',
 
-	// PDF の上の案内（はじめての人向け）
-	'hint.title': '文字をなぞってみましょう。',
-	'hint.body':
-		'色を選ぶと、なぞった文がハイライトになり、この PDF のノート（表）に入ります。',
-	'hint.close': '閉じる（ほかの PDF にも出さない）',
+	// 右下のガイド（はじめての 1 回。3 ステップ）
+	'guide.title': 'はじめての 1 回',
+	'guide.counter': '{n} / {total}',
+	'guide.close': 'ガイドを閉じる（もう出さない）',
+	'guide.stepSelect': 'なぞる',
+	'guide.stepBack': '● で戻る',
+	'guide.stepOwn': '自分の PDF',
+	'guide.selectPractice': '枠の中の文を、マウスでなぞってください。',
+	'guide.selectPracticePhone':
+		'枠の中の文を長押しして選び、下の色を押してください。',
+	'guide.selectOwn': 'PDF の文字を、マウスでなぞってください。',
+	'guide.selectPracticeColor':
+		'枠の中の文をなぞって、出てきた色を押してください。',
+	'guide.selectOwnColor':
+		'PDF の文字をなぞって、出てきた色を押してください。',
+	'guide.selectOwnPhone':
+		'PDF の文字を長押しして選び、下の色を押してください。',
+	'guide.selectHighlight': 'なぞると、すぐ色が付いて、ノートに入ります。',
+	'guide.selectPopup': '色を押すと、ノートに入ります。',
+	'guide.selectFirst':
+		'この PDF のノートができて、文が入ります。次からは、なぞるだけで塗られます。',
+	'guide.selectFirstPhone': 'この PDF のノートができて、文が入ります。',
+	'guide.selectNone':
+		'今は塗らない設定です。右上のペンで「選んだらすぐ塗る」にしてください。',
+	'guide.backTitle': 'ノートに入りました。',
+	'guide.backBody': '文の後ろの ● を押すと、PDF のその場所に戻ります。',
+	'guide.doneTitle': 'できました。次は自分の PDF で。',
+	'guide.doneTitleOwn': 'できました。',
+	'guide.doneBody': 'ファイル一覧へドラッグしても入ります。',
+	'guide.doneBodyOwn':
+		'ほかの PDF も、ファイル一覧へドラッグするか「PDF を取り込む」で入れられます。',
+	'guide.later': 'あとで',
+	'guide.closeOwn': '閉じる',
+	'guide.import': 'PDF を選ぶ',
+	'guide.cleanup': '練習の PDF とノートを片付ける',
+
+	// 使い始めてから 1 回だけ出すヒント
+	'tip.penTitle': '色と見出しは、ここで切り替えられます。',
+	'tip.penBody': '章の名前は見出しにすると、ノートが章立てになります。',
+	'tip.chipTitle': 'ここで PDF とノートを切り替えます。',
+	'tip.chipBody': '文の後ろの ● を押すと、PDF のその場所に戻ります。',
+	'tip.ok': 'わかった',
 
 	// 設定
-	'settings.groupHelp': '使い方',
-	'settings.showWelcome': '使い方を見る',
-	'settings.showWelcomeDesc': '動画と、できることの一覧を開きます。',
-	'settings.openPractice': '練習用の PDF を開く',
-	'settings.openPracticeDesc':
-		'手順が書いてある PDF を開きます（無ければ作ります）。上から順に試せます。',
-	'settings.showOnboarding': 'はじめの案内',
-	'settings.showOnboardingDesc':
-		'ノートの無い PDF を開いたときの案内と、最初のハイライトのあとにノートを右に開く動き。',
 	'settings.colors': '色',
 	'settings.addColor': '色を追加',
 	'settings.colorsEmpty': '色がありません。',

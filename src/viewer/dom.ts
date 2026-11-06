@@ -162,11 +162,6 @@ export function toolbarSlot(root: HTMLElement): HTMLElement | null {
 	);
 }
 
-/** ページの枠（上部ツールバーの下）。このプラグインの案内はこの手前に置く */
-export function pageFrame(root: HTMLElement): HTMLElement | null {
-	return root.querySelector<HTMLElement>(':scope > .pdf-container');
-}
-
 /** 画面の上から 3 分の 1 の高さにあるページ（今読んでいるページ） */
 export function currentPageNumber(root: HTMLElement): number | null {
 	const container = root.querySelector<HTMLElement>('.pdf-viewer-container');

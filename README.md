@@ -4,13 +4,9 @@
 
 [日本語の説明はこちら（README.ja.md）](README.ja.md)
 
-**Your first highlight in 30 seconds**
+**Select text. It collects in your note.**
 
-![The practice PDF: select a sentence, pick a color, and it goes into a note that opens on the right](docs/media/first-run-en.gif)
-
-Every feature in 2 minutes (the video is in Japanese):
-
-https://github.com/user-attachments/assets/adcd0b42-f566-4e12-bfa7-53dbc004661d
+![Select a sentence and pick a color: a note for this PDF is created. After that, selecting highlights right away.](docs/media/tour-en.gif)
 
 The plugin's interface follows Obsidian's language (English or Japanese).
 
@@ -18,7 +14,7 @@ The plugin's interface follows Obsidian's language (English or Japanese).
 
 | | |
 |---|---|
-| **Trace to highlight** | Select text in a PDF with the mouse. It is highlighted right away, and the text is added to the paired note, keeping its paragraphs and lists. |
+| **Trace to highlight** | Select text in a PDF with the mouse. It is highlighted, and the text is added to the paired note, keeping its paragraphs and lists. The first time in a PDF without a note, you pick a color, and the note is created. |
 | **Colors and headings** | The pen at the top right of the PDF switches colors and heading levels (H1 to H3). Mark chapter headings first, and body text goes under its chapter. |
 | **Jump both ways** | Click the dot after a highlight in your note to open the PDF there, and click a highlight in the PDF to jump back to the note. Edit the note text freely. |
 | **Capture figures** | Draw a rectangle on the PDF to save that area as a PNG and embed it in the note. |
@@ -30,11 +26,11 @@ The PDF file itself is never modified. The note keeps only the text (`quoted tex
 ## Getting started
 
 1. Install and enable the plugin (see [Installation](#installation)).
-2. On first load, a "Welcome to PDF Simple" screen opens. Press **Try the practice PDF**: a one-page PDF with step-by-step instructions opens. Select the sentence in the box and pick a color. A note is created and opens on the right with the text in it (on a phone, it opens in the same tab). Open the screen again any time with the command "Show getting started" or from the top of **Settings → PDF Simple**.
-3. To use your own PDF, press **Import your PDF** on that screen, the **Import PDF** button in the left ribbon, or the command of the same name, and choose PDFs from your computer or phone. They're copied into the vault (the PDF storage folder if you set one, otherwise your attachments folder) and the first one opens. You can also drag PDFs into the file explorer.
+2. On first load, a getting started screen opens. Watch the 3-minute video and press **Try it**. A practice PDF opens, and a small guide at the bottom right walks you through 3 steps: select the sentence in the box and pick a color, click the ● after the text in the note that opens on the right to jump back to the PDF, then try your own PDF. In a PDF without a note, the first selection shows color buttons, and picking one creates the note. After that, selecting highlights right away. Open the screen again any time with the command "Show getting started" or **How-to video** in the pen menu at the top right of a PDF.
+3. To use your own PDF, press **Choose a PDF** at the end of the guide, the **Import PDF** button in the left ribbon, or the command of the same name, and choose PDFs from your computer or phone. They're copied into the vault (the PDF storage folder if you set one, otherwise your attachments folder) and the first one opens. You can also drag PDFs into the file explorer.
 4. Optionally, choose the heading for highlights and the PDF storage folder in **Settings → PDF Simple**.
 
-After an update, a "What's new in PDF Simple" screen opens once and shows each new feature in a short video, one at a time. Until your first highlight, a one-line hint is shown above PDFs that don't have a note yet. Turn the hints off with **Getting started hints** in settings. If your vault already has highlights when you install this version, the hints are skipped.
+After an update, a "What's new in PDF Simple" screen opens once and shows each new feature in a short video, one at a time. If you close the getting started screen, the same guide appears the first time you open a PDF. Once you finish the guide or close it with **×**, it doesn't appear again (it's skipped if your vault already has highlights when you install this version). After that, two tips appear once each: the pen (after your third highlight in a PDF) and the **PDF** button in a note (when you open a note on its own).
 
 ## Installation
 
@@ -108,14 +104,14 @@ The plugin writes to your notes (it never modifies PDF files), so back up import
 | Insert PDF highlights under the heading at cursor | On a heading line (same as right-clicking the heading) |
 | Move PDF to storage folder | Move the open PDF, or the note's attached PDF, to the storage folder |
 | Clean up highlight records without text | Remove records whose text is gone from every note |
-| Show getting started | Open the video and the overview |
+| Show getting started | Open the screen with the 3-minute video |
 | Show what's new | Open the list of changes in the latest version (it opens once by itself after an update) |
 | Import PDF | Choose PDFs from your computer or phone, copy them into the vault, and open the first one (also in the left ribbon) |
-| Open the practice PDF | Open a one-page PDF with step-by-step instructions (created if missing) |
+| Open the practice PDF | Open the one-page practice PDF (created if missing) and start the guide again |
 
 ### Settings
 
-Getting started (at the top: show the getting started screen, open the practice PDF, and getting started hints), colors (add, remove, reorder), default color, insert as (body text or heading 1 to 3), when you select text (highlight right away, pick a color first, or do nothing), heading for highlights (one per line; empty means the end of the note), order of highlights (PDF order or order added), bullet list (off by default), hide records in properties (on by default), PDF storage folder and whether to move PDFs when highlighting, how to flip (same tab or side by side), and the property for the attached PDF.
+Colors (add, remove, reorder), default color, insert as (body text or heading 1 to 3), when you select text (highlight right away, pick a color first, or do nothing), heading for highlights (one per line; empty means the end of the note), order of highlights (PDF order or order added), bullet list (off by default), hide records in properties (on by default), PDF storage folder and whether to move PDFs when highlighting, how to flip (same tab or side by side), and the property for the attached PDF.
 
 ### Limitations
 
@@ -129,7 +125,7 @@ Getting started (at the top: show the getting started screen, open the practice 
 
 ## Privacy and permissions
 
-- **Network**: the getting started videos are loaded from GitHub (raw.githubusercontent.com) only when you press play. The "What's new" screen, which opens once after an update, loads a few short videos (under 100 KB each) from the same place while it is open. The plugin makes no other network requests and never sends your PDFs or notes anywhere.
+- **Network**: the how-to video (about 13 MB) is loaded from GitHub (raw.githubusercontent.com) when the getting started screen opens on desktop (it starts playing without sound), and only when you press play on a phone. The "What's new" screen, which opens once after an update, loads a few short videos (under 100 KB each) from the same place while it is open. The plugin makes no other network requests and never sends your PDFs or notes anywhere.
 - **Vault access**: the plugin reads note metadata (properties and block IDs) through Obsidian's metadata cache to find highlights and their PDFs, lists the PDFs in your vault when you attach one, and reads all notes only when you run **Clean up highlight records without text** (after you confirm). It writes only to the notes it adds highlights to, to the PNG files it captures, and to new PDFs you ask for (the practice PDF, and PDFs you choose with **Import PDF**), and moves PDFs only as described in [PDF storage](#pdf-storage).
 - **Clipboard**: **Copy text** in a highlight's right-click menu writes the highlight's text to the clipboard. The plugin never reads the clipboard.
 

@@ -33,19 +33,19 @@ describe('normalizeSettings', () => {
 		expect(settings.hideEntriesProperty).toBe(true);
 	});
 
-	it('はじめの案内: 既定は出す・まだ済んでいない。真偽値でなければ既定値', () => {
-		expect(DEFAULT_SETTINGS.showOnboarding).toBe(true);
+	it('はじめの案内: 既定はまだ済んでいない。真偽値でなければ既定値。前の版の「はじめの案内」の切り替えは読まない', () => {
 		expect(DEFAULT_SETTINGS.onboardingDone).toBe(false);
-		expect(DEFAULT_SETTINGS.hintDismissed).toBe(false);
+		expect(DEFAULT_SETTINGS.tipsShown).toEqual([]);
 		const settings = normalizeSettings({
 			settingsVersion: SETTINGS_VERSION,
 			showOnboarding: false,
 			onboardingDone: true,
-			hintDismissed: 'yes',
+			tipsShown: ['chip', 'other', 3],
 		});
-		expect(settings.showOnboarding).toBe(false);
+		expect('showOnboarding' in settings).toBe(false);
 		expect(settings.onboardingDone).toBe(true);
-		expect(settings.hintDismissed).toBe(false);
+		expect(settings.tipsShown).toEqual(['chip']);
+		expect('hintDismissed' in settings).toBe(false);
 		expect(settings.lastVersion).toBe('');
 		expect(
 			normalizeSettings({

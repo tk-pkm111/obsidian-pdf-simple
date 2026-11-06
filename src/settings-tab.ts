@@ -16,7 +16,6 @@ import type { PaletteEntry } from './lib/types';
 import type PdfSimplePlugin from './main';
 import { colorLabel, headingKindLabel } from './ui/labels';
 import { AddColorModal } from './ui/modals';
-import { WelcomeModal } from './ui/welcome';
 
 const PALETTE_KEY = /^palette\.(\d+)\.color$/;
 
@@ -46,28 +45,6 @@ export class PdfSimpleSettingTab extends PluginSettingTab {
 	getSettingDefinitions(): SettingDefinitionItem[] {
 		const settings = this.plugin.settings;
 		return [
-			{
-				type: 'group',
-				heading: t('settings.groupHelp'),
-				items: [
-					{
-						name: t('settings.showWelcome'),
-						desc: t('settings.showWelcomeDesc'),
-						action: () => new WelcomeModal(this.plugin).open(),
-					},
-					{
-						name: t('settings.openPractice'),
-						desc: t('settings.openPracticeDesc'),
-						action: () =>
-							void this.plugin.onboarding.openPractice(),
-					},
-					{
-						name: t('settings.showOnboarding'),
-						desc: t('settings.showOnboardingDesc'),
-						control: { type: 'toggle', key: 'showOnboarding' },
-					},
-				],
-			},
 			{
 				type: 'list',
 				heading: t('settings.colors'),

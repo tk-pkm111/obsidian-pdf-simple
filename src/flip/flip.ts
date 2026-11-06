@@ -63,6 +63,7 @@ export class FlipController {
 		const pdf = this.plugin.pairing.pdfFor(note);
 		if (pdf) {
 			await this.openPdf(view, note, pdf, newLeaf);
+			this.plugin.onboarding.returnedToPdf();
 			return;
 		}
 		new PdfSuggestModal(this.plugin.app, (chosen) => {
