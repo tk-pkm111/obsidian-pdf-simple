@@ -4,9 +4,15 @@
 
 [日本語の説明はこちら（README.ja.md）](README.ja.md)
 
+**Your first highlight in 30 seconds**
+
+![The practice PDF: select a sentence, pick a color, and it goes into a note that opens on the right](docs/media/first-run-en.gif)
+
+Every feature in 2 minutes (the video is in Japanese):
+
 https://github.com/user-attachments/assets/5667a2b6-7cd8-47cd-9c57-350b813780ce
 
-The getting started video is in Japanese. The plugin's interface follows Obsidian's language (English or Japanese).
+The plugin's interface follows Obsidian's language (English or Japanese).
 
 ## Features
 

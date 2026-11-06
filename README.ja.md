@@ -4,6 +4,12 @@
 
 > English: see [README.md](README.md).
 
+**30 秒でわかる、はじめての 1 回**
+
+![練習用の PDF で文をなぞって色を選ぶと、右に開いたノートに入る](docs/media/first-run-ja.gif)
+
+すべての機能を 2 分で:
+
 https://github.com/user-attachments/assets/5667a2b6-7cd8-47cd-9c57-350b813780ce
 
 ## できること
